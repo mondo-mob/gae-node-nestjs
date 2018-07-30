@@ -6,6 +6,7 @@ import { DatastoreLoader, Index, QueryOptions } from './loader';
 import * as _ from 'lodash';
 import { asArray, Omit, OneOrMany } from '../util/types';
 import { Context } from './context';
+import { QueryInfo } from '@google-cloud/datastore/query';
 
 interface RepositoryOptions<T extends { id: any }> {
   defaultValues?: Partial<Omit<T, 'id'>>;
@@ -125,12 +126,12 @@ export class Repository<T extends { id: string }> {
   async query(
     context: Context,
     options: Partial<QueryOptions<T>> = {},
-  ): Promise<ReadonlyArray<T>> {
-    const results = await context.datastore.executeQuery<T>(this.kind, options);
+  ): Promise<[ReadonlyArray<T>, QueryInfo]> {
+    const [results, queryInfo] = await context.datastore.executeQuery<T>(this.kind, options);
 
-    return results.map<any>(value =>
+    return [results.map<any>(value =>
       this.validate(value[Datastore.KEY].name!, _.omit(value, Datastore.KEY)),
-    );
+    ), queryInfo];
   }
 
   async save(context: Context, entities: T): Promise<T>;

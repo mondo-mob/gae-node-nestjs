@@ -4,7 +4,7 @@ import { DatastoreKey, DatastorePayload } from '@google-cloud/datastore/entity';
 import {
   OrderOptions,
   Query,
-  QueryFilterOperator,
+  QueryFilterOperator, QueryInfo,
 } from '@google-cloud/datastore/query';
 import { DatastoreTransaction } from '@google-cloud/datastore/transaction';
 import * as _ from 'lodash';
@@ -181,7 +181,7 @@ export class DatastoreLoader {
   public async executeQuery<T>(
     kind: string,
     options: Partial<QueryOptions<T>>,
-  ): Promise<WithDatstoreKey<T>[]> {
+  ): Promise<[WithDatstoreKey<T>[], QueryInfo]> {
     let query = this.datastore.createQuery(kind);
 
     if (options.select) {
@@ -220,13 +220,13 @@ export class DatastoreLoader {
       query.offset(options.offset);
     }
 
-    const [results] = await query.run();
+    const [results, queryInfo] = await query.run();
 
     results.forEach((result: any) => {
       this.loader.prime(result[Datastore.KEY], _.omit(result, Datastore.KEY));
     });
 
-    return results as WithDatstoreKey<T>[];
+    return [results as WithDatstoreKey<T>[], queryInfo];
   }
 
   public async inTransaction<T>(
