@@ -194,7 +194,7 @@ export class Repository<T extends { id: string }> {
    * @param operation
    */
   async reindex(context: Context, operation: (input: T) => T | Promise<T>) {
-    const allEntities = await this.query(context);
+    const [allEntities] = await this.query(context);
 
     const updatedEntities = await Promise.all(allEntities.map(operation));
 
@@ -207,7 +207,7 @@ export class Repository<T extends { id: string }> {
   }
 
   async deleteAll(context: Context): Promise<void> {
-    const allEntities = await this.query(context);
+    const [allEntities] = await this.query(context);
     const allIds = allEntities.map(value => this.key(value.id));
     await context.datastore.delete(allIds);
   }
