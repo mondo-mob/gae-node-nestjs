@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -29,15 +29,20 @@
     "io-ts-reporters": "0.0.20",
     "lodash": "^4.17.10",
     "node-fetch": "^2.2.0",
+    "reflect-metadata": "^0.1.12",
     "tslib": "^1.9.3"
   },
   "peerDependencies": {
-    "@nestjs/common": "^5.1.0"
+    "@nestjs/core": "^5.1.0",
+    "@nestjs/common": "^5.1.0",
+    "rxjs": "^6.2.2"
   },
   "devDependencies": {
     "@nestjs/common": "^5.1.0",
+    "@nestjs/core": "^5.1.0",
     "@types/lodash": "^4.14.115",
     "@types/node-fetch": "^2.1.2",
+    "rxjs": "^6.2.2",
     "tslint": "^5.11.0",
     "typescript": "^2.9.2"
   }

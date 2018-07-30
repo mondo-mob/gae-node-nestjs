@@ -222,7 +222,7 @@ export class DatastoreLoader {
 
     const [results] = await query.run();
 
-    results.forEach(result => {
+    results.forEach((result: any) => {
       this.loader.prime(result[Datastore.KEY], _.omit(result, Datastore.KEY));
     });
 
