@@ -1,12 +1,17 @@
 import { DatastoreLoader } from './loader';
 import * as Datastore from '@google-cloud/datastore';
+import { createParamDecorator } from '@nestjs/common';
 
 const ContextType = Symbol();
 
 export interface IUser {
   id: string;
+  email: string;
+  name: string;
   roles?: ReadonlyArray<string>;
 }
+
+export const Ctxt = createParamDecorator((data, req) => req.context);
 
 export interface Context<User = IUser> {
   datastore: DatastoreLoader;

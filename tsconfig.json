@@ -20,5 +20,13 @@
     "outDir": "./dist",
     "downlevelIteration": true,
     "moduleResolution": "node"
-  }
+  },
+  "include": [
+    "src/**/*",
+    "typings/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
+  ]
 }
