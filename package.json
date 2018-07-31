@@ -50,6 +50,7 @@
     "@nestjs/core": "^5.1.0",
     "@types/lodash": "^4.14.115",
     "@types/node-fetch": "^2.1.2",
+    "chokidar": "^2.0.4",
     "rxjs": "^6.2.2",
     "tslint": "^5.11.0",
     "typescript": "^2.9.2"

@@ -7,6 +7,7 @@ const path = require('path');
 const webpackConfig = require(path.resolve(process.cwd(), './webpack.config'));
 const Logger = require('bunyan');
 const colors = require('colors');
+const chokidar = require('chokidar');
 
 const DATASTORE_PORT = 9000;
 
@@ -68,6 +69,21 @@ process.on('SIGINT', async function() {
   logger.info('Shutting down');
   process.exit();
 });
+
+// reload server on graphqls or config files change
+chokidar.watch(['./src/**/*.graphqls', './config/**/*.json'])
+  .on('all', (event, path) => {
+    if (event === 'add') {
+      console.log('added to watch list:', path);
+    } else if (event === 'change') {
+      console.log('file changed:', path);
+      stopServer()
+        .then(() => {
+          startServer();
+        })
+    }
+  });
+
 
 function setupLogging() {
   const loggingStream = new BunyanStream();
