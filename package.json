@@ -15,7 +15,7 @@
     "server": "./server.js"
   },
   "author": "",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "homepage": "https://bitbucket.org/3wks/gae-node-nestjs#readme",
   "dependencies": {
     "@google-cloud/datastore": "^1.4.1",
