@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, HttpException, HttpStatus } from "@nestjs/common";
 import * as Logger from "bunyan";
 import * as t from "io-ts";
 import * as uuid from "node-uuid";
@@ -24,19 +24,19 @@ const userProfile = t.interface({
   displayName: t.string
 });
 
-export class UserNotFoundError extends Error {
+export class UserNotFoundError extends HttpException {
   constructor() {
-    super("UserNotFoundError");
+    super("UserNotFoundError", HttpStatus.FORBIDDEN);
   }
 }
-export class CredentialsNotFoundError extends Error {
+export class CredentialsNotFoundError extends HttpException {
   constructor() {
-    super("CredentialsNotFoundError");
+    super("CredentialsNotFoundError", HttpStatus.FORBIDDEN);
   }
 }
-export class PasswordInvalidError extends Error {
+export class PasswordInvalidError extends HttpException {
   constructor() {
-    super("PasswordInvalidError");
+    super("PasswordInvalidError", HttpStatus.FORBIDDEN);
   }
 }
 
@@ -52,7 +52,7 @@ export class AuthService {
 
   constructor(
     private readonly authRepository: CredentialRepository,
-    @Inject(USER_SERVICE) private readonly userService: UserService,
+    @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
     @Inject(CONFIGURATION) private readonly configurationProvider: Configuration
   ) {
     this.logger = createLogger("account-service");

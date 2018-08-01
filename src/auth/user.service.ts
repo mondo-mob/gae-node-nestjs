@@ -1,8 +1,8 @@
-import { Context, IUser } from '..';
+import { Context, IUser } from "..";
 
-export const USER_SERVICE = 'UserService';
+export const USER_SERVICE = "UserService";
 
-export interface UserService {
-  get(context: Context, userId: string): IUser;
-  create(context: Context, user: IUser): IUser;
+export interface UserService<T extends IUser> {
+  get(context: Context, userId: string): Promise<T | undefined>;
+  create(context: Context, user: IUser): Promise<T>;
 }

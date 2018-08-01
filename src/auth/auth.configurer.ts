@@ -8,6 +8,10 @@ import { DatastoreProvider } from "../datastore/datastore.provider";
 import { newContext } from "../datastore/context";
 import { Configuration, IUser } from "../index";
 import { createLogger } from "../gcloud/logging";
+import { Strategy as LocalStrategy } from "passport-local";
+import { OAuth2Strategy as GoogleStrategy } from "passport-google-oauth";
+import { Strategy as SamlStrategy } from "passport-saml";
+import { USER_SERVICE, UserService } from "./user.service";
 
 const GOOGLE_SIGNIN = "google-signin";
 const SAML_SIGNIN = "saml";
@@ -21,6 +25,7 @@ export class AuthConfigurer {
   constructor(
     datastoreProvider: DatastoreProvider,
     @Inject("Configuration") private readonly configuration: Configuration,
+    @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
     private readonly authService: AuthService
   ) {
     this.datastore = datastoreProvider.datastore;
@@ -29,14 +34,19 @@ export class AuthConfigurer {
   }
 
   private init() {
+    passport.serializeUser((user: IUser, done) => {
+      done(null, { id: user.id });
+    });
+
+    passport.deserializeUser(async (user: { id: string }, done) => {
+      done(null, { id: user.id });
+    });
+
     if (this.configuration.auth.local) {
       use(
         LOCAL_SIGNIN,
-        new (require("passport-local")).Strategy(
-          {
-            usernameField: "username",
-            passwordField: "password"
-          },
+        new LocalStrategy(
+          { usernameField: "username", passwordField: "password" },
           this.validate
         )
       );
@@ -48,7 +58,7 @@ export class AuthConfigurer {
     ) {
       use(
         GOOGLE_SIGNIN,
-        new (require("passport-google-oauth20")).Strategy(
+        new GoogleStrategy(
           {
             clientID: this.configuration.auth.google.clientId,
             clientSecret: this.configuration.auth.google.secret,
@@ -64,7 +74,7 @@ export class AuthConfigurer {
     if (this.configuration.auth.saml && this.configuration.auth.saml.enabled) {
       use(
         SAML_SIGNIN,
-        new (require("passport-saml")).Strategy(
+        new SamlStrategy(
           {
             entryPoint: this.configuration.auth.saml.identityProviderUrl,
             callbackUrl: `${this.configuration.host}/auth/signin/saml/acs`,
@@ -76,14 +86,6 @@ export class AuthConfigurer {
         )
       );
     }
-
-    passport.serializeUser((user: IUser, done) => {
-      done(null, { id: user.id });
-    });
-
-    passport.deserializeUser((user: IUser, done) => {
-      done(null, { id: user.id });
-    });
   }
 
   beginAuthenticateGoogle() {
