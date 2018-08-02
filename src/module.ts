@@ -1,8 +1,6 @@
 import {ForwardReference, Global, MiddlewareConsumer, Module, NestModule} from '@nestjs/common';
 import {APP_FILTER, APP_GUARD} from '@nestjs/core';
-import {GraphQLFactory, GraphQLModule} from '@nestjs/graphql';
-import {graphqlExpress} from 'apollo-server-express';
-import * as _ from 'lodash';
+import {GraphQLModule} from '@nestjs/graphql';
 import {fileLoader, mergeTypes} from 'merge-graphql-schemas';
 import {AuthConfigurer} from './auth/auth.configurer';
 import {AuthController} from './auth/auth.controller';
