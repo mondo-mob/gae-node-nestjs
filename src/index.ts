@@ -30,7 +30,7 @@ export {
 } from "./auth/auth.repository";
 export { PasswordResetService } from "./auth/password-reset.service";
 export { InviteUserService } from "./auth/invite-user.service";
-export { AuthService } from "./auth/auth.service";
+export { AuthService, hashPassword } from "./auth/auth.service";
 export { UserService } from "./auth/user.service";
 export { Configuration, CONFIGURATION } from "./configuration";
 export * from "./module";

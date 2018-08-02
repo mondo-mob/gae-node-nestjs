@@ -34,7 +34,7 @@ export class UserInviteRepository extends Repository<UserInvite> {
   }
 }
 
-const loginCredentials = t.union([
+const loginCredentials = t.clean(t.union([
   t.interface({
     id: t.string, // username
     userId: t.string,
@@ -51,7 +51,7 @@ const loginCredentials = t.union([
     userId: t.string,
     type: t.literal('saml'),
   }),
-]);
+]));
 
 export type LoginCredentials = t.TypeOf<typeof loginCredentials>;
 
