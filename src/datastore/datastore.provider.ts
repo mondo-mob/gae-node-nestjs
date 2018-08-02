@@ -6,13 +6,13 @@ import Logger = require('bunyan');
 @Injectable()
 export class DatastoreProvider {
   private readonly datastoreConnection: Datastore;
-  private readonly logger: Logger = createLogger("datastore-provider");
+  private readonly logger: Logger = createLogger('datastore-provider');
 
-  constructor(@Inject("Configuration") configuration: Configuration) {
+  constructor(@Inject('Configuration') configuration: Configuration) {
     const { projectId, apiEndpoint } = configuration;
 
     if (apiEndpoint) {
-      this.logger.info("API endpoint provided for datastore, connecting to local emulator.");
+      this.logger.info('API endpoint provided for datastore, connecting to local emulator.');
     }
 
     this.datastoreConnection = new Datastore({

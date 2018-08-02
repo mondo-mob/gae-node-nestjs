@@ -2,7 +2,6 @@ import {ForwardReference, Global, MiddlewareConsumer, Module, NestModule} from '
 import {APP_FILTER, APP_GUARD} from '@nestjs/core';
 import {GraphQLFactory, GraphQLModule} from '@nestjs/graphql';
 import {graphqlExpress} from 'apollo-server-express';
-import {GraphQLDateTime, GraphQLTime} from 'graphql-iso-date';
 import * as _ from 'lodash';
 import {fileLoader, mergeTypes} from 'merge-graphql-schemas';
 import {AuthConfigurer} from './auth/auth.configurer';
@@ -22,7 +21,7 @@ import {GmailController} from './gmail/gmail.controller';
 import {GmailSender} from './gmail/gmail.sender';
 import {LocalGmailSender} from './gmail/gmail.sender.local';
 import {StoredCredentialsRepository} from './gmail/stored.credentials.repository';
-import {rootLogger} from './index';
+import {GraphQLMiddleware} from './graphql/GraphQLMiddleware';
 import {ContextMiddleware} from './interceptor';
 
 interface ClassType { new (...args: any[]): any }
@@ -69,6 +68,7 @@ export interface Options {
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
+    GraphQLMiddleware,
   ],
   exports: [
     StorageProvider,
@@ -83,47 +83,11 @@ export interface Options {
   controllers: [AuthController, GmailController],
 })
 export class GCloudModule implements NestModule {
-  constructor(private readonly graphqlFactory: GraphQLFactory) {}
+  constructor(private readonly graphqlConfigurer: GraphQLMiddleware) {}
 
   configure(consumer: MiddlewareConsumer) {
-    const appTypeDefs = fileLoader('./src/**/*.graphqls');
-    const libTypeDefs = fileLoader(
-      './node_modules/@3wks/gae-node-nestjs/src/**/*.graphqls',
-    );
-
-    const typeDefs = mergeTypes([...appTypeDefs, ...libTypeDefs]);
-
-    const schema = this.graphqlFactory.createSchema({
-      typeDefs,
-      resolvers: {
-        Time: GraphQLTime,
-        DateAndTime: GraphQLDateTime,
-      },
-      logger: {
-        log: payload => {
-          if (typeof payload === 'string') {
-            rootLogger.info(payload);
-          } else {
-            rootLogger.error(payload);
-          }
-        },
-      },
-    });
-
     consumer.apply(ContextMiddleware).forRoutes('*');
-
-    consumer
-      .apply(
-        graphqlExpress(async req => {
-          return {
-            schema,
-            rootValue: req,
-            context: _.get(req, 'context'),
-          };
-        }),
-      )
-      .forRoutes('/api/graphql');
-
+    consumer.apply(GraphQLMiddleware).forRoutes('/api/graphql');
   }
 
   static forConfiguration(options: Options) {

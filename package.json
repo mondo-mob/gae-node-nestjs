@@ -77,9 +77,9 @@
     "@types/passport-google-oauth": "^1.0.38",
     "@types/passport-local": "^1.0.33",
     "@types/passport-saml": "^0.15.6",
+    "chokidar": "^2.0.4",
     "jest": "^23.4.2",
     "jsonwebtoken": "^8.3.0",
-    "chokidar": "^2.0.4",
     "rxjs": "^6.2.2",
     "tslint": "^5.11.0",
     "typescript": "^3.0.1"
