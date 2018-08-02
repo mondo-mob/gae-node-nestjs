@@ -13,7 +13,7 @@ export class GmailConfigurer {
     private readonly datastoreProvider: DatastoreProvider,
     @Inject(CONFIGURATION) private readonly configuration: Configuration
   ) {
-    if (this.configuration.auth.google) {
+    if (this.configuration.auth.google && this.configuration.auth.google.enabled) {
       passport.use(
         "google-gmail",
         new (require("passport-google-oauth20")).Strategy(
