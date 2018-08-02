@@ -1,36 +1,31 @@
-import {
-  forwardRef,
-  Module,
-  ForwardReference,
-  NestModule,
-  MiddlewareConsumer,
-  Global
-} from "@nestjs/common";
-import { StorageProvider } from "./gcloud/storage.provider";
-import { DatastoreProvider } from "./datastore/datastore.provider";
-import {
-  CredentialRepository,
-  PasswordResetRepository,
-  UserInviteRepository
-} from "./auth/auth.repository";
-import { AuthService } from "./auth/auth.service";
-import { AuthConfigurer } from "./auth/auth.configurer";
-import { AuthResolver } from "./auth/auth.graphql";
-import { PasswordResetService } from "./auth/password-reset.service";
-import { InviteUserService } from "./auth/invite-user.service";
-import { AuthController } from "./auth/auth.controller";
-import { GmailController } from "./gmail/gmail.controller";
-import { GmailConfigurer } from "./gmail/gmail.configurer";
-import { GmailSender } from "./gmail/gmail.sender";
-import { LocalGmailSender } from "./gmail/gmail.sender.local";
-import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
-import { AuthGuard } from "./auth/auth.guard";
-import { Configuration } from "./configuration";
-import { StoredCredentialsRepository } from "./gmail/stored.credentials.repository";
-import { ContextMiddleware } from "./interceptor";
-import { NotFoundFilter } from "./filter";
+import {ForwardReference, Global, MiddlewareConsumer, Module, NestModule} from '@nestjs/common';
+import {APP_FILTER, APP_GUARD} from '@nestjs/core';
+import {GraphQLFactory, GraphQLModule} from '@nestjs/graphql';
+import {graphqlExpress} from 'apollo-server-express';
+import {GraphQLDateTime, GraphQLTime} from 'graphql-iso-date';
+import * as _ from 'lodash';
+import {fileLoader, mergeTypes} from 'merge-graphql-schemas';
+import {AuthConfigurer} from './auth/auth.configurer';
+import {AuthController} from './auth/auth.controller';
+import {AuthResolver} from './auth/auth.graphql';
+import {AuthGuard} from './auth/auth.guard';
+import {CredentialRepository, PasswordResetRepository, UserInviteRepository} from './auth/auth.repository';
+import {AuthService} from './auth/auth.service';
+import {InviteUserService} from './auth/invite-user.service';
+import {PasswordResetService} from './auth/password-reset.service';
+import {Configuration} from './configuration';
+import {DatastoreProvider} from './datastore/datastore.provider';
+import {NotFoundFilter} from './filter';
+import {StorageProvider} from './gcloud/storage.provider';
+import {GmailConfigurer} from './gmail/gmail.configurer';
+import {GmailController} from './gmail/gmail.controller';
+import {GmailSender} from './gmail/gmail.sender';
+import {LocalGmailSender} from './gmail/gmail.sender.local';
+import {StoredCredentialsRepository} from './gmail/stored.credentials.repository';
+import {rootLogger} from './index';
+import {ContextMiddleware} from './interceptor';
 
-type ClassType = { new (...args: any[]): any };
+interface ClassType { new (...args: any[]): any }
 type ClassTypeOrReference = ClassType | ForwardReference<any>;
 
 export interface Options {
@@ -55,25 +50,25 @@ export interface Options {
     GmailConfigurer,
     {
       provide: APP_FILTER,
-      useClass: NotFoundFilter
+      useClass: NotFoundFilter,
     },
     ContextMiddleware,
     {
       provide: GmailSender,
       useFactory: (
         configurationProvider: Configuration,
-        gmailConfigurer: GmailConfigurer
+        gmailConfigurer: GmailConfigurer,
       ) => {
-        return configurationProvider.environment === "development"
+        return configurationProvider.environment === 'development'
           ? new LocalGmailSender()
           : new GmailSender(gmailConfigurer, configurationProvider);
       },
-      inject: ["Configuration", GmailConfigurer]
+      inject: ['Configuration', GmailConfigurer],
     },
     {
       provide: APP_GUARD,
-      useClass: AuthGuard
-    }
+      useClass: AuthGuard,
+    },
   ],
   exports: [
     StorageProvider,
@@ -83,21 +78,58 @@ export interface Options {
     PasswordResetRepository,
     PasswordResetService,
     InviteUserService,
-    GmailSender
+    GmailSender,
   ],
-  controllers: [AuthController, GmailController]
+  controllers: [AuthController, GmailController],
 })
 export class GCloudModule implements NestModule {
-  constructor() {}
+  constructor(private readonly graphqlFactory: GraphQLFactory) {}
 
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(ContextMiddleware).forRoutes("*");
+    const appTypeDefs = fileLoader('./src/**/*.graphqls');
+    const libTypeDefs = fileLoader(
+      './node_modules/@3wks/gae-node-nestjs/src/**/*.graphqls',
+    );
+
+    const typeDefs = mergeTypes([...appTypeDefs, ...libTypeDefs]);
+
+    const schema = this.graphqlFactory.createSchema({
+      typeDefs,
+      resolvers: {
+        Time: GraphQLTime,
+        DateAndTime: GraphQLDateTime,
+      },
+      logger: {
+        log: payload => {
+          if (typeof payload === 'string') {
+            rootLogger.info(payload);
+          } else {
+            rootLogger.error(payload);
+          }
+        },
+      },
+    });
+
+    consumer.apply(ContextMiddleware).forRoutes('*');
+
+    consumer
+      .apply(
+        graphqlExpress(async req => {
+          return {
+            schema,
+            rootValue: req,
+            context: _.get(req, 'context'),
+          };
+        }),
+      )
+      .forRoutes('/api/graphql');
+
   }
 
   static forConfiguration(options: Options) {
     return {
       module: GCloudModule,
-      imports: [options.configurationModule, options.userModule]
+      imports: [options.configurationModule, options.userModule, GraphQLModule],
     };
   }
 }
