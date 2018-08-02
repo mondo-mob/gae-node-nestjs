@@ -1,13 +1,13 @@
-import * as passport from "passport";
-import { CsrfValidator } from "./auth/csrf.interceptor";
-import * as Datastore from "@google-cloud/datastore";
-import * as session from "express-session";
-import * as express from "express";
 import * as DatastoreStore from "@google-cloud/connect-datastore";
-import { OneOrMany } from "@google-cloud/datastore/entity";
-import { rootLogger } from "./gcloud/logging";
+import * as Datastore from "@google-cloud/datastore";
+import {OneOrMany} from "@google-cloud/datastore/entity";
+import * as session from "express-session";
+import * as passport from "passport";
+import {CsrfValidator} from "./auth/csrf.interceptor";
+import * as csp from 'helmet-csp';
 
 interface ServerOptions {
+  csp?: object,
   csrf?: {
     ignorePaths: OneOrMany<string | RegExp>;
   };
@@ -26,6 +26,19 @@ export const configureExpress = (
   options: ServerOptions
 ) => {
   const SessionStore = DatastoreStore(session);
+
+  expressApp.use(
+    csp(options.csp || {
+      directives: {
+        defaultSrc: ["'none'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: ["'self'"],
+        connectSrc: ["'self'"],
+      },
+    }),
+  );
 
   expressApp.use(
     session({
