@@ -6,8 +6,8 @@ import { CredentialRepository, UserInviteRepository } from "./auth.repository";
 import { hashPassword } from "./auth.service";
 import { Transactional } from "../datastore/transactional";
 import { createLogger } from "../gcloud/logging";
-import { Context } from "../datastore/context";
-import { Configuration } from "../index";
+import {Context, IUser} from "../datastore/context";
+import {Configuration, USER_SERVICE, UserService} from "../index";
 import { CONFIGURATION } from "../configuration";
 
 export const INVITE_CODE_EXPIRY = 7 * 24 * 60 * 60 * 1000;
@@ -20,6 +20,7 @@ export class InviteUserService {
     private readonly authRepository: CredentialRepository,
     private readonly gmailSender: GmailSender,
     @Inject(CONFIGURATION) private readonly configuration: Configuration,
+    @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
     private readonly userInviteRepository: UserInviteRepository
   ) {
     this.logger = createLogger("invite-user-service");
@@ -106,6 +107,13 @@ export class InviteUserService {
       type: "password",
       password: await hashPassword(password),
       userId: id
+    });
+
+    await this.userService.create(context, {
+      id,
+      name,
+      email: invite.email,
+      roles: invite.roles
     });
 
     await this.userInviteRepository.delete(context, code);
