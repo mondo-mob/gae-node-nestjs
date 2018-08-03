@@ -13,6 +13,8 @@ interface ServerOptions {
   };
   session: {
     secret: string;
+    projectId?: string;
+    apiEndpoint?: string;
   };
 }
 
@@ -46,7 +48,9 @@ export const configureExpress = (
       resave: false,
       store: new SessionStore({
         dataset: new Datastore({
-          prefix: "express-sessions"
+          prefix: "express-sessions",
+          apiEndpoint: options.session.apiEndpoint,
+          projectId: options.session.projectId
         } as any)
       }),
       secret: options.session.secret
