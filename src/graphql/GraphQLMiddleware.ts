@@ -8,9 +8,10 @@ import {rootLogger} from '../index';
 
 @Injectable()
 export class GraphQLMiddleware implements NestMiddleware {
-  constructor(private readonly graphqlFactory: GraphQLFactory) {}
+  constructor(private readonly graphqlFactory: GraphQLFactory) {
+  }
 
-  private getSchemaConfig = () => {
+  private generateSchema = () => {
     const appTypeDefs = fileLoader('./src/**/*.graphqls');
     const libTypeDefs = fileLoader(
       './node_modules/@3wks/gae-node-nestjs/src/**/*.graphqls',
@@ -37,9 +38,10 @@ export class GraphQLMiddleware implements NestMiddleware {
   };
 
   resolve(...args: any[]): MiddlewareFunction {
+    const schema = this.generateSchema();
     return graphqlExpress(async req => {
       return {
-        schema: this.getSchemaConfig(),
+        schema,
         rootValue: req,
         context: _.get(req, 'context'),
       };
