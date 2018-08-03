@@ -13,7 +13,7 @@
     "url": "git+ssh://git@bitbucket.org/3wks/gae-node-nestjs.git"
   },
   "bin": {
-    "": "./server.js"
+    "server": "./server.js"
   },
   "author": "",
   "license": "MIT",
