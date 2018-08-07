@@ -3,9 +3,10 @@ import * as Datastore from '@google-cloud/datastore';
 import {OneOrMany} from '@google-cloud/datastore/entity';
 import {CookieOptions} from 'express';
 import * as session from 'express-session';
+import * as csp from 'helmet-csp';
 import * as passport from 'passport';
 import {CsrfValidator} from './auth/csrf.interceptor';
-import * as csp from 'helmet-csp';
+import {rootLogger} from './gcloud/logging';
 
 interface ServerOptions {
   csp?: object,
@@ -22,7 +23,10 @@ interface ServerOptions {
 
 interface Express {
   use(...handlers: Function[]): void;
+
   use(paths: OneOrMany<string | RegExp>, ...handlers: Function[]): void;
+
+  set(property: string, value: boolean): void;
 }
 
 export const configureExpress = (
@@ -44,6 +48,13 @@ export const configureExpress = (
     }),
   );
 
+  // Force secure session cookie in app engine / prod
+  let secure: boolean | 'auto' = (options.session.cookie && options.session.cookie.secure) || false;
+  if (process.env.NODE_ENV === 'production' && process.env.APP_ENGINE_ENVIRONMENT) {
+    expressApp.set('trust proxy', true);
+    secure = true;
+    rootLogger.info('Cookie secured for prod');
+  }
   expressApp.use(
     session({
       saveUninitialized: true,
@@ -56,11 +67,11 @@ export const configureExpress = (
         } as any),
       }),
       secret: options.session.secret,
-      cookie: options.session.cookie,
+      cookie: {...options.session.cookie, secure},
     }),
   );
 
-  const { ignorePaths = [/^\/(?!tasks\/|system\/).*/] } = options.csrf || {};
+  const {ignorePaths = [/^\/(?!tasks\/|system\/).*/]} = options.csrf || {};
 
   expressApp.use(passport.initialize());
   expressApp.use(passport.session());
