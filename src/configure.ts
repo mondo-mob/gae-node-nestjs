@@ -1,9 +1,10 @@
-import * as DatastoreStore from "@google-cloud/connect-datastore";
-import * as Datastore from "@google-cloud/datastore";
-import {OneOrMany} from "@google-cloud/datastore/entity";
-import * as session from "express-session";
-import * as passport from "passport";
-import {CsrfValidator} from "./auth/csrf.interceptor";
+import * as DatastoreStore from '@google-cloud/connect-datastore';
+import * as Datastore from '@google-cloud/datastore';
+import {OneOrMany} from '@google-cloud/datastore/entity';
+import {CookieOptions} from 'express';
+import * as session from 'express-session';
+import * as passport from 'passport';
+import {CsrfValidator} from './auth/csrf.interceptor';
 import * as csp from 'helmet-csp';
 
 interface ServerOptions {
@@ -15,6 +16,7 @@ interface ServerOptions {
     secret: string;
     projectId?: string;
     apiEndpoint?: string;
+    cookie?: CookieOptions;
   };
 }
 
@@ -25,19 +27,19 @@ interface Express {
 
 export const configureExpress = (
   expressApp: Express,
-  options: ServerOptions
+  options: ServerOptions,
 ) => {
   const SessionStore = DatastoreStore(session);
 
   expressApp.use(
     csp(options.csp || {
       directives: {
-        defaultSrc: ["'none'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-        imgSrc: ["'self'"],
-        connectSrc: ["'self'"],
+        defaultSrc: ['\'none\''],
+        scriptSrc: ['\'self\''],
+        styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
+        fontSrc: ['\'self\'', 'https://fonts.gstatic.com'],
+        imgSrc: ['\'self\''],
+        connectSrc: ['\'self\''],
       },
     }),
   );
@@ -48,13 +50,14 @@ export const configureExpress = (
       resave: false,
       store: new SessionStore({
         dataset: new Datastore({
-          prefix: "express-sessions",
+          prefix: 'express-sessions',
           apiEndpoint: options.session.apiEndpoint,
-          projectId: options.session.projectId
-        } as any)
+          projectId: options.session.projectId,
+        } as any),
       }),
-      secret: options.session.secret
-    })
+      secret: options.session.secret,
+      cookie: options.session.cookie,
+    }),
   );
 
   const { ignorePaths = [/^\/(?!tasks\/|system\/).*/] } = options.csrf || {};
