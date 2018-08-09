@@ -6,7 +6,6 @@ export interface Configuration {
   location: string;
   host: string;
   apiEndpoint?: string;
-  gmailUser: string;
   passwordTokenExpiry?: number;
 
   systemSecret: Buffer;

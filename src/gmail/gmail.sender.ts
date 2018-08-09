@@ -18,11 +18,12 @@ export class GmailSender {
 
   async send(context: Context, mailOptions: Options) {
     const credential = await this.gmailConfigurer.getCredential(context);
+    const gmailUser = await this.gmailConfigurer.getUser(context);
 
-    if (credential && this.configurationProvider.auth.google) {
+    if (credential && gmailUser && this.configurationProvider.auth.google) {
       const auth = {
         type: 'oauth2',
-        user: this.configurationProvider.gmailUser,
+        user: gmailUser.value,
         clientId: this.configurationProvider.auth.google.clientId,
         clientSecret: this.configurationProvider.auth.google.secret,
         refreshToken: credential.value,
