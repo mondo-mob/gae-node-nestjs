@@ -6,6 +6,7 @@ import { DatastoreProvider } from '../datastore/datastore.provider';
 const storedCredential = t.interface({
   id: t.string, // credential name
   value: t.string,
+  account: t.string,
 });
 
 export type StoredCredential = t.TypeOf<typeof storedCredential>;

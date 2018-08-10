@@ -1,6 +1,7 @@
 import {Inject, Injectable} from '@nestjs/common';
 import * as passport from 'passport';
 import {Configuration, Context} from '..';
+import {accountHolderEmail, decodeUserProfile} from '../auth/auth.service';
 import {CONFIGURATION} from '../configuration';
 import {newContext} from '../datastore/context';
 import {DatastoreProvider} from '../datastore/datastore.provider';
@@ -27,14 +28,15 @@ export class GmailConfigurer {
           (
             accessToken: string,
             refreshToken: string,
-            profile: any,
+            profileInput: any,
             done: Function,
           ) => {
+            const profile = decodeUserProfile(profileInput);
+            const gmailAccount = accountHolderEmail(profile);
             storedCredentialsRepository.save(
               newContext(this.datastoreProvider.datastore),
               [
-                {id: 'gmail-credential', value: refreshToken},
-                {id: 'gmail-user', value: profile.id},
+                {id: 'gmail-credential', value: refreshToken, account: gmailAccount},
               ],
             );
 
@@ -61,9 +63,5 @@ export class GmailConfigurer {
 
   getCredential(context: Context) {
     return this.storedCredentialsRepository.get(context, 'gmail-credential');
-  }
-
-  getUser(context: Context) {
-    return this.storedCredentialsRepository.get(context, 'gmail-user');
   }
 }
