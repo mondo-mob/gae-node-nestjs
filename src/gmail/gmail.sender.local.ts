@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import * as Logger from 'bunyan';
 import { Options } from 'nodemailer/lib/mailer';
-import { Context, createLogger } from '..';
+import { Context } from '../datastore/context';
+import { createLogger } from '../gcloud/logging';
 
 @Injectable()
 export class LocalGmailSender {
