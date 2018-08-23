@@ -43,7 +43,7 @@ export const configureExpress = (
         styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
         fontSrc: ['\'self\'', 'https://fonts.gstatic.com'],
         imgSrc: ['\'self\''],
-        connectSrc: ['\'self\''],
+        connectSrc: ['\'self\'', 'https://www.googleapis.com'],
       },
     }),
   );
