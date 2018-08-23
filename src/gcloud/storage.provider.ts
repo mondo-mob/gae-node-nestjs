@@ -34,4 +34,12 @@ export class StorageProvider {
   get defaultBucket(): Bucket {
     return this._defaultBucket;
   }
+
+  async getDefaultBucketResumableUploadUrl(fileId: string): Promise<string> {
+    const gcsFile = this._defaultBucket.file(fileId);
+    const urls = await gcsFile.createResumableUpload({
+      origin: this.configurationProvider.host,
+    });
+    return urls[0];
+  }
 }
