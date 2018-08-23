@@ -2,6 +2,7 @@ import {Injectable, MiddlewareFunction, NestMiddleware} from '@nestjs/common';
 import {GraphQLFactory} from '@nestjs/graphql';
 import {graphqlExpress} from 'apollo-server-express';
 import {GraphQLDateTime, GraphQLTime} from 'graphql-iso-date';
+import {GraphQLUpload} from 'apollo-upload-server';
 import * as _ from 'lodash';
 import {fileLoader, mergeTypes} from 'merge-graphql-schemas';
 import {rootLogger} from '../index';
@@ -24,6 +25,7 @@ export class GraphQLMiddleware implements NestMiddleware {
       resolvers: {
         Time: GraphQLTime,
         DateAndTime: GraphQLDateTime,
+        Upload: GraphQLUpload,
       },
       logger: {
         log: payload => {
