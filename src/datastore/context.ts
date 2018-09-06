@@ -23,13 +23,12 @@ export function isContext(value: object): value is Context {
   return !!(value as any)[ContextType];
 }
 
-export const newContext = (datastore: Datastore): Context =>
-  ({
-    datastore: new DatastoreLoader(datastore, {
-      [ContextType]: true,
-    } as Context),
-    [ContextType]: true,
-  } as Context);
+export const newContext = (datastore: Datastore): Context => {
+  const context: any = { [ContextType]: true };
+  context.datastore = new DatastoreLoader(datastore, context);
+  return context;
+};
+
 export const transaction = async <T>(
   context: Context,
   callback: (context: Context) => Promise<T>,
