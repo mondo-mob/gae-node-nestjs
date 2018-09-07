@@ -101,7 +101,7 @@ const buildFilters = <T>(
 function isTransaction(
   datastore: Datastore | DatastoreTransaction,
 ): datastore is DatastoreTransaction {
-  return datastore.hasOwnProperty('commit');
+  return (datastore as any).commit !== undefined;
 }
 
 export class DatastoreLoader {
