@@ -12,7 +12,7 @@ export class TaskQueue {
   private taskLogger: Logger;
 
   constructor(
-    private readonly configurationProvider: Configuration,
+    protected readonly configurationProvider: Configuration,
     private readonly queueName: string,
   ) {
     this.taskLogger = createLogger('task-queue');
