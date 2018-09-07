@@ -8,11 +8,11 @@ const cloudtasks = google.cloudtasks('v2beta2');
 const tasks = cloudtasks.projects.locations.queues
   .tasks as cloudtasks_v2beta2.Resource$Projects$Locations$Queues$Tasks;
 
-export class TaskQueue {
+export class TaskQueue<T extends Configuration> {
   private taskLogger: Logger;
 
   constructor(
-    private readonly configurationProvider: Configuration,
+    protected readonly configurationProvider: T,
     private readonly queueName: string,
   ) {
     this.taskLogger = createLogger('task-queue');
