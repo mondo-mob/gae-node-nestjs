@@ -88,7 +88,7 @@ const buildFilters = <T>(
 
     for (const filter of parameterFilters) {
       if (isComplexFilter(value)) {
-        q = q.filter(pathPrefix + key, filter.op, filter);
+        q = q.filter(pathPrefix + key, filter.op, filter.value);
       } else {
         q = q.filter(pathPrefix + key, filter);
       }
