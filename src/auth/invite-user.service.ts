@@ -109,7 +109,7 @@ export class InviteUserService {
       userId: id
     });
 
-    await this.userService.create(context, {
+    const user = await this.userService.create(context, {
       id,
       name,
       email: invite.email,
@@ -117,5 +117,7 @@ export class InviteUserService {
     });
 
     await this.userInviteRepository.delete(context, code);
+
+    return user;
   }
 }

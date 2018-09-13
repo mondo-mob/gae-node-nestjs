@@ -3,8 +3,7 @@ import * as Datastore from '@google-cloud/datastore';
 import { DatastoreKey, DatastorePayload } from '@google-cloud/datastore/entity';
 import {
   OrderOptions,
-  Query,
-  QueryFilterOperator, QueryInfo,
+  QueryInfo,
 } from '@google-cloud/datastore/query';
 import { DatastoreTransaction } from '@google-cloud/datastore/transaction';
 import * as _ from 'lodash';
@@ -14,6 +13,7 @@ import * as Logger from 'bunyan';
 import { CommitResult } from '@google-cloud/datastore/request';
 import { asArray, OneOrMany } from '../util/types';
 import { Context } from './context';
+import { buildFilters, Filters } from './filters';
 
 const keysEqual = (key1: DatastoreKey, key2: DatastoreKey) => {
   return _.isEqual(key1.path, key2.path);
@@ -34,22 +34,6 @@ const countEntities = (keys: DatastoreKey[]) => {
     .map(([entry, value]) => `${entry}: ${value} entities`)
     .join(', ');
 };
-
-export type Filter<T> = OneOrMany<T | ComplexFilter<T>>;
-export interface ComplexFilter<T> {
-  op: QueryFilterOperator;
-  value: T;
-}
-
-export type Filters<T> = {
-  [K in keyof T]?: T[K] extends Array<any>
-    ? Filter<T[K][0]>
-    : T[K] extends object ? Filters<T[K]> : Filter<T[K]>
-};
-
-function isComplexFilter<T>(filter: Filter<T>): filter is ComplexFilter<T> {
-  return (filter as any).op !== undefined;
-}
 
 export type Index<T> =
   | true
@@ -72,30 +56,6 @@ export interface QueryOptions<T> {
 
 export type WithDatstoreKey<T> = T & {
   [Datastore.KEY]: DatastoreKey;
-};
-
-const buildFilters = <T>(
-  query: Query,
-  filters: Filters<T>,
-  pathPrefix: string = '',
-): Query => {
-  return Object.entries(filters).reduce<Query>((q, [key, value]) => {
-    if (!isComplexFilter(value) && typeof value === 'object') {
-      return buildFilters(query, value, pathPrefix + `${key}.`);
-    }
-
-    const parameterFilters = asArray(value);
-
-    for (const filter of parameterFilters) {
-      if (isComplexFilter(value)) {
-        q = q.filter(pathPrefix + key, filter.op, filter.value);
-      } else {
-        q = q.filter(pathPrefix + key, filter);
-      }
-    }
-
-    return q;
-  }, query);
 };
 
 function isTransaction(

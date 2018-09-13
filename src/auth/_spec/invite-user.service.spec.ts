@@ -3,8 +3,6 @@ import {
   LoginCredentials,
   UserInviteRepository,
 } from '../auth.repository';
-import { UserRepository } from '../../users/users.repository';
-import { ConfigurationProvider } from '../../config/config.provider';
 import { INVITE_CODE_EXPIRY, InviteUserService } from '../invite-user.service';
 import { mockContext } from './auth.service.spec';
 import {
@@ -14,36 +12,33 @@ import {
   when,
   verify,
   capture,
-  anything,
 } from 'ts-mockito';
 import { GmailSender } from '../../gmail/gmail.sender';
+import { Configuration } from '../../configuration';
 
 describe('InviteUserService', () => {
   const credentialRepository = mock(CredentialRepository);
-  const userRepository = mock(UserRepository);
-  const configurationProvider = mock(ConfigurationProvider);
   const gmailSender = mock(GmailSender);
   const userInviteRepository = mock(UserInviteRepository);
 
-  const authService = new InviteUserService(
-    instance(credentialRepository),
-    instance(userRepository),
-    instance(gmailSender),
-    instance(configurationProvider),
-    instance(userInviteRepository),
-  );
   const context = mockContext();
 
   beforeEach(() => {
     reset(credentialRepository);
-    reset(userRepository);
-    reset(configurationProvider);
     reset(gmailSender);
     reset(userInviteRepository);
   });
 
   describe('inviteUser', () => {
     it('should throw an error if the email address already exists', async () => {
+      const authService = new InviteUserService(
+        instance(credentialRepository),
+        instance(gmailSender),
+        {} as Configuration,
+        {} as any,
+        instance(userInviteRepository),
+      );
+
       when(credentialRepository.get(context, 'test@example.com')).thenResolve({
         id: '123',
       } as LoginCredentials);
@@ -54,6 +49,14 @@ describe('InviteUserService', () => {
     });
 
     it("should throw an error if roles contains 'super'", async () => {
+      const authService = new InviteUserService(
+        instance(credentialRepository),
+        instance(gmailSender),
+        {} as Configuration,
+        {} as any,
+        instance(userInviteRepository),
+      );
+
       when(credentialRepository.get(context, 'test@example.com')).thenResolve(
         undefined,
       );
@@ -64,6 +67,14 @@ describe('InviteUserService', () => {
     });
 
     it('should generate an invite and send it to the user', async () => {
+      const authService = new InviteUserService(
+        instance(credentialRepository),
+        instance(gmailSender),
+        {} as Configuration,
+        {} as any,
+        instance(userInviteRepository),
+      );
+
       await authService.inviteUser(context, 'test@example.com', ['admin']);
 
       const [, value] = capture(userInviteRepository.save).last();
@@ -75,12 +86,28 @@ describe('InviteUserService', () => {
 
   describe('activateAccount', () => {
     it('should error if invite code does not exist', async () => {
+      const authService = new InviteUserService(
+        instance(credentialRepository),
+        instance(gmailSender),
+        {} as Configuration,
+        {} as any,
+        instance(userInviteRepository),
+      );
+
       await expect(
         authService.activateAccount(context, '12345', 'Test User', 'password'),
       ).rejects.toHaveProperty('message', 'Invalid invite code');
     });
 
     it('should error if invite code has expired', async () => {
+      const authService = new InviteUserService(
+        instance(credentialRepository),
+        instance(gmailSender),
+        {} as Configuration,
+        {} as any,
+        instance(userInviteRepository),
+      );
+
       when(userInviteRepository.get(context, '12345')).thenResolve({
         id: '12345',
         email: 'test@example.com',
@@ -94,6 +121,14 @@ describe('InviteUserService', () => {
     });
 
     it('should error if the account has been created', async () => {
+      const authService = new InviteUserService(
+        instance(credentialRepository),
+        instance(gmailSender),
+        {} as Configuration,
+        {} as any,
+        instance(userInviteRepository),
+      );
+
       when(userInviteRepository.get(context, '12345')).thenResolve({
         id: '12345',
         email: 'test@example.com',
@@ -111,14 +146,22 @@ describe('InviteUserService', () => {
     });
 
     it('should create the user account', async () => {
+      const authService = new InviteUserService(
+        instance(credentialRepository),
+        instance(gmailSender),
+        {} as Configuration,
+        {
+          create: (_: any, user: any) => user,
+        } as any,
+        instance(userInviteRepository),
+      );
+
       when(userInviteRepository.get(context, '12345')).thenResolve({
         id: '12345',
         email: 'test@example.com',
         createdAt: new Date(),
         roles: ['admin'],
       });
-
-      when(userRepository.save(context, anything())).thenCall((_c, u) => u);
 
       const user = await authService.activateAccount(
         context,
@@ -128,7 +171,6 @@ describe('InviteUserService', () => {
       );
 
       verify(userInviteRepository.delete(context, '12345')).once();
-      verify(userRepository.save(context, user)).once();
 
       const [, createdCredentials] = capture(credentialRepository.save).last();
 

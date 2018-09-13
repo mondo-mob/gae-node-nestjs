@@ -6,7 +6,7 @@
   "typings": "dist/index.d.ts",
   "scripts": {
     "prepublish": "npx tsc && cp src/auth/auth.graphqls dist/auth",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -70,6 +70,7 @@
     "@nestjs/core": "^5.1.0",
     "@types/bcryptjs": "^2.4.1",
     "@types/express-session": "^1.15.10",
+    "@types/jest": "^23.3.2",
     "@types/jsonwebtoken": "^7.2.8",
     "@types/lodash": "^4.14.115",
     "@types/node-fetch": "^2.1.2",
@@ -78,9 +79,11 @@
     "@types/passport-local": "^1.0.33",
     "@types/passport-saml": "^0.15.6",
     "chokidar": "^2.0.4",
-    "jest": "^23.4.2",
+    "jest": "^23.6.0",
     "jsonwebtoken": "^8.3.0",
     "rxjs": "^6.2.2",
+    "ts-jest": "^23.1.4",
+    "ts-mockito": "^2.3.1",
     "tslint": "^5.11.0",
     "typescript": "^3.0.1"
   }
