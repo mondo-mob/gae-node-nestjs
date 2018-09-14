@@ -21,6 +21,7 @@ export function buildExclusions<T>(
   if (schema === true) {
     return [];
   } else if (Array.isArray(input)) {
+
     return _.chain(input)
       .flatMap(value => {
         return buildExclusions(value, schema, `${path}[]`);
@@ -28,7 +29,9 @@ export function buildExclusions<T>(
       .push(`${path}[]`)
       .uniq()
       .value();
+
   } else if (typeof input === 'object') {
+
     const paths = _.flatMap<object, string>(input as any, (value, key) => {
       return buildExclusions(
         value,

@@ -240,10 +240,12 @@ export class DatastoreLoader {
     const span = trace.get().createChildSpan({
       name: 'load-keys',
     });
+
     const prettyPrint = countEntities(keys);
     span.addLabel('entities', prettyPrint);
 
     const [results] = await this.datastore.get(keys);
+
     span.endSpan();
     this.logger.info('Fetched entities by key ', { entities: prettyPrint });
 
