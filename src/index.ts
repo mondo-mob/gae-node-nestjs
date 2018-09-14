@@ -11,7 +11,7 @@ export {
   Ctxt
 } from "./datastore/context";
 export { TaskQueue } from "./gcloud/tasks";
-export { Filters, Filter } from "./datastore/loader";
+export { Filters, Filter } from "./datastore/filters";
 export { CsrfValidator } from "./auth/csrf.interceptor";
 export {
   AuthGuard,

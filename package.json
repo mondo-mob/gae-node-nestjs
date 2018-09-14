@@ -6,7 +6,8 @@
   "typings": "dist/index.d.ts",
   "scripts": {
     "prepublish": "npx tsc && cp src/auth/auth.graphqls dist/auth",
-    "test": "jest"
+    "test": "jest",
+    "verify": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
