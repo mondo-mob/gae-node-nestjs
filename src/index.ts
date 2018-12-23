@@ -8,6 +8,7 @@ export {
   isContext,
   newContext,
   IUser,
+  IUserInput,
   Ctxt
 } from "./datastore/context";
 export { TaskQueue } from "./gcloud/tasks";
