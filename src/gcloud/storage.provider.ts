@@ -11,7 +11,7 @@ export class StorageProvider {
   private readonly _defaultBucket: Bucket;
   private readonly logger: Logger;
 
-  constructor(@Inject("Configuration") private readonly configurationProvider: Configuration) {
+  constructor(@Inject('Configuration') private readonly configurationProvider: Configuration) {
     this.logger = createLogger('storage');
     const config: ConfigurationObject = {};
     if (configurationProvider.isDevelopment()) {

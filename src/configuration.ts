@@ -31,4 +31,4 @@ export interface Configuration {
   };
 }
 
-export const CONFIGURATION = "Configuration";
+export const CONFIGURATION = 'Configuration';

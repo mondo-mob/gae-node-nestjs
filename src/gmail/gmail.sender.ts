@@ -13,7 +13,7 @@ export class GmailSender {
 
   constructor(
     private readonly gmailConfigurer: GmailConfigurer,
-    @Inject("Configuration") private readonly configurationProvider: Configuration,
+    @Inject('Configuration') private readonly configurationProvider: Configuration,
   ) {
     this.logger = createLogger('gmail-sender');
   }

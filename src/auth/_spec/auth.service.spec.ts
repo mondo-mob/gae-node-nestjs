@@ -9,9 +9,9 @@ import {
   reset,
   when,
 } from 'ts-mockito';
-import * as _ from 'lodash';
 import { Configuration } from '../../configuration';
 import { UserService } from '../user.service';
+import { omit } from 'lodash';
 
 export const mockContext = () => {
   const datastoreLoader = mock(DatastoreLoader);
@@ -125,7 +125,7 @@ describe('AuthService', () => {
       await expect(
         authService.validateUser(context, 'username', 'password'),
       ).resolves.toEqual({
-        id: '12345'
+        id: '12345',
       });
     });
   });
@@ -150,7 +150,7 @@ describe('AuthService', () => {
       );
 
       await expect(
-        authService.validateUserGoogle(context, _.omit(profile, 'id')),
+        authService.validateUserGoogle(context, omit(profile, 'id')),
       ).rejects.toHaveProperty(
         'message',
         'Expecting string at id but instead got: undefined.',
@@ -178,8 +178,8 @@ describe('AuthService', () => {
         {} as any,
         {
           auth: {
-            google: {}
-          }
+            google: {},
+          },
         } as Configuration,
       );
 
@@ -192,15 +192,15 @@ describe('AuthService', () => {
       const authService = new AuthService(
         instance(credentialRepository),
         {
-          save: (_: any, user: any) => user
+          save: (_: any, user: any) => user,
         } as any,
         {
           auth: {
             google: {
               signUpEnabled: true,
-              signUpDomains: [ 'test.com' ]
-            }
-          }
+              signUpDomains: [ 'test.com' ],
+            },
+          },
         } as Configuration,
       );
 
@@ -213,16 +213,16 @@ describe('AuthService', () => {
       const authService = new AuthService(
         instance(credentialRepository),
         {
-          create: (_: any, user: any) => user
+          create: (_: any, user: any) => user,
         } as any,
         {
           auth: {
             google: {
               signUpEnabled: true,
               signUpDomains: [ 'example.com' ],
-              signUpRoles: [ 'user' ]
-            }
-          }
+              signUpRoles: [ 'user' ],
+            },
+          },
         } as Configuration,
       );
 
@@ -241,16 +241,16 @@ describe('AuthService', () => {
         instance(credentialRepository),
         {
           save: (_: any, user: any) => user,
-          get: () => ({ id: '12345' })
+          get: () => ({ id: '12345' }),
         } as any,
         {
           auth: {
             google: {
               signUpEnabled: true,
               signUpDomains: [ 'example.com' ],
-              signUpRoles: [ 'user ']
-            }
-          }
+              signUpRoles: [ 'user '],
+            },
+          },
         } as Configuration,
       );
 

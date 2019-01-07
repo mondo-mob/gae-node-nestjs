@@ -1,21 +1,21 @@
-import { use } from "passport";
-import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
-import { AuthService } from "./auth.service";
-import * as Datastore from "@google-cloud/datastore";
-import * as passport from "passport";
-import * as Logger from "bunyan";
-import { DatastoreProvider } from "../datastore/datastore.provider";
-import { newContext } from "../datastore/context";
-import { Configuration, IUser } from "../index";
-import { createLogger } from "../gcloud/logging";
-import { Strategy as LocalStrategy } from "passport-local";
-import { OAuth2Strategy as GoogleStrategy } from "passport-google-oauth";
-import { Strategy as SamlStrategy } from "passport-saml";
-import { USER_SERVICE, UserService } from "./user.service";
+import { use } from 'passport';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import * as Datastore from '@google-cloud/datastore';
+import * as passport from 'passport';
+import * as Logger from 'bunyan';
+import { DatastoreProvider } from '../datastore/datastore.provider';
+import { newContext } from '../datastore/context';
+import { Configuration, IUser } from '../index';
+import { createLogger } from '../gcloud/logging';
+import { Strategy as LocalStrategy } from 'passport-local';
+import { OAuth2Strategy as GoogleStrategy } from 'passport-google-oauth';
+import { Strategy as SamlStrategy } from 'passport-saml';
+import { USER_SERVICE, UserService } from './user.service';
 
-const GOOGLE_SIGNIN = "google-signin";
-const SAML_SIGNIN = "saml";
-const LOCAL_SIGNIN = "local-signin";
+const GOOGLE_SIGNIN = 'google-signin';
+const SAML_SIGNIN = 'saml';
+const LOCAL_SIGNIN = 'local-signin';
 
 @Injectable()
 export class AuthConfigurer {
@@ -24,12 +24,12 @@ export class AuthConfigurer {
 
   constructor(
     datastoreProvider: DatastoreProvider,
-    @Inject("Configuration") private readonly configuration: Configuration,
+    @Inject('Configuration') private readonly configuration: Configuration,
     @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
   ) {
     this.datastore = datastoreProvider.datastore;
-    this.logger = createLogger("auth");
+    this.logger = createLogger('auth');
     this.init();
   }
 
@@ -46,9 +46,9 @@ export class AuthConfigurer {
       use(
         LOCAL_SIGNIN,
         new LocalStrategy(
-          { usernameField: "username", passwordField: "password" },
-          this.validate
-        )
+          { usernameField: 'username', passwordField: 'password' },
+          this.validate,
+        ),
       );
     }
 
@@ -64,10 +64,10 @@ export class AuthConfigurer {
             clientSecret: this.configuration.auth.google.secret,
             callbackURL: `${
               this.configuration.host
-            }/auth/signin/google/callback`
+            }/auth/signin/google/callback`,
           },
-          this.validateGmail
-        )
+          this.validateGmail,
+        ),
       );
     }
 
@@ -80,36 +80,36 @@ export class AuthConfigurer {
             callbackUrl: `${this.configuration.host}/auth/signin/saml/acs`,
             issuer: this.configuration.host,
             acceptedClockSkewMs: 5000,
-            cert: this.configuration.auth.saml.cert
+            cert: this.configuration.auth.saml.cert,
           },
-          this.validateSaml
-        )
+          this.validateSaml,
+        ),
       );
     }
   }
 
   beginAuthenticateGoogle() {
     const options = {
-      scope: ["profile", "email"]
+      scope: ['profile', 'email'],
     };
     return passport.authenticate(GOOGLE_SIGNIN, options);
   }
 
   completeAuthenticateGoogle() {
     return passport.authenticate(GOOGLE_SIGNIN, {
-      failureRedirect: "/"
+      failureRedirect: '/',
     });
   }
 
   beginAuthenticateSaml() {
     return passport.authenticate(SAML_SIGNIN, {
-      failureRedirect: "/"
+      failureRedirect: '/',
     });
   }
 
   completeAuthenticateSaml() {
     return passport.authenticate(SAML_SIGNIN, {
-      failureRedirect: "/"
+      failureRedirect: '/',
     });
   }
 
@@ -120,13 +120,13 @@ export class AuthConfigurer {
   validate = async (
     username: string,
     password: string,
-    done: (error: Error | null, user: IUser | false) => void
+    done: (error: Error | null, user: IUser | false) => void,
   ) => {
     try {
       const user = await this.authService.validateUser(
         newContext(this.datastore),
         username,
-        password
+        password,
       );
       if (!user) {
         return done(new UnauthorizedException(), false);
@@ -135,8 +135,8 @@ export class AuthConfigurer {
     } catch (ex) {
       this.logger.error(ex);
       done(
-        new UnauthorizedException("Username or password is invalid.", ex),
-        false
+        new UnauthorizedException('Username or password is invalid.', ex),
+        false,
       );
     }
   };
@@ -145,12 +145,12 @@ export class AuthConfigurer {
     accessToken: string,
     refreshToken: string,
     profile: object,
-    done: (error: Error | null, user: IUser | false) => void
+    done: (error: Error | null, user: IUser | false) => void,
   ) => {
     try {
       const user = await this.authService.validateUserGoogle(
         newContext(this.datastore),
-        profile
+        profile,
       );
       if (!user) {
         return done(new UnauthorizedException(), false);
@@ -158,7 +158,7 @@ export class AuthConfigurer {
       done(null, user);
     } catch (ex) {
       this.logger.error(ex);
-      done(new UnauthorizedException("Username is invalid.", ex), false);
+      done(new UnauthorizedException('Username is invalid.', ex), false);
     }
   };
 
@@ -166,7 +166,7 @@ export class AuthConfigurer {
     try {
       const user = await this.authService.validateUserSaml(
         newContext(this.datastore),
-        profile
+        profile,
       );
       if (!user) {
         return done(new UnauthorizedException(), false);
@@ -174,7 +174,7 @@ export class AuthConfigurer {
       done(null, user);
     } catch (ex) {
       this.logger.error(ex);
-      done(new UnauthorizedException("Username is invalid.", ex), false);
+      done(new UnauthorizedException('Username is invalid.', ex), false);
     }
   };
 }

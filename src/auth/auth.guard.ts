@@ -2,37 +2,37 @@ import {
   Injectable,
   CanActivate,
   ExecutionContext,
-  Inject
-} from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
-import * as Logger from "bunyan";
-import { Observable } from "rxjs";
-import { Request } from "express";
-import { ReflectMetadata } from "@nestjs/common";
-import { createLogger } from "../gcloud/logging";
-import { Context, isContext } from "../datastore/context";
-import { Configuration, IUser } from "../index";
-import { CONFIGURATION } from "../configuration";
+  Inject,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import * as Logger from 'bunyan';
+import { Observable } from 'rxjs';
+import { Request } from 'express';
+import { ReflectMetadata } from '@nestjs/common';
+import { createLogger } from '../gcloud/logging';
+import { Context, isContext } from '../datastore/context';
+import { Configuration, IUser } from '../index';
+import { CONFIGURATION } from '../configuration';
 
-const logger = createLogger("auth-guard");
+const logger = createLogger('auth-guard');
 
 interface RequestWithSessionAndDatastore extends Request {
   session: any;
   context: Context;
 }
 
-export const Roles = (...roles: string[]) => ReflectMetadata("roles", roles);
-export const AllowAnonymous = () => ReflectMetadata("allowAnonymous", true);
+export const Roles = (...roles: string[]) => ReflectMetadata('roles', roles);
+export const AllowAnonymous = () => ReflectMetadata('allowAnonymous', true);
 export const Task = () =>
-  ReflectMetadata("secure-header", "x-appengine-taskname");
-export const Cron = () => ReflectMetadata("secure-header", "x-appengine-cron");
-export const System = () => ReflectMetadata("system", true);
+  ReflectMetadata('secure-header', 'x-appengine-taskname');
+export const Cron = () => ReflectMetadata('secure-header', 'x-appengine-cron');
+export const System = () => ReflectMetadata('system', true);
 
 const reflectValue = <T>(
   reflector: Reflector,
   key: string,
   context: ExecutionContext,
-  defaultValue: T
+  defaultValue: T,
 ) => {
   const methodValue = reflector.get<T>(key, context.getHandler());
 
@@ -51,17 +51,17 @@ const reflectValue = <T>(
 
 function isAllowAnonymous(
   reflector: Reflector,
-  context: ExecutionContext
+  context: ExecutionContext,
 ): boolean {
-  return reflectValue(reflector, "allowAnonymous", context, false);
+  return reflectValue(reflector, 'allowAnonymous', context, false);
 }
 
 function isUserAllowedAccess(
   reflector: Reflector,
   context: ExecutionContext,
-  user?: IUser
+  user?: IUser,
 ): boolean {
-  const roles = reflectValue(reflector, "roles", context, []);
+  const roles = reflectValue(reflector, 'roles', context, []);
 
   if (user) {
     const { roles: userRoles = [] } = user;
@@ -78,17 +78,17 @@ function isUserAllowedAccess(
 
 function isSystemCall(
   reflector: Reflector,
-  context: ExecutionContext
+  context: ExecutionContext,
 ): boolean {
-  return reflectValue(reflector, "system", context, false);
+  return reflectValue(reflector, 'system', context, false);
 }
 
 async function isAuthorizedSystemCall(
   reflector: Reflector,
   context: ExecutionContext,
-  secret: Buffer
+  secret: Buffer,
 ) {
-  const { verify } = await import("jsonwebtoken");
+  const { verify } = await import('jsonwebtoken');
 
   const { headers } = context.switchToHttp().getRequest<Request>();
 
@@ -103,24 +103,24 @@ async function isAuthorizedSystemCall(
       token,
       secret,
       {
-        maxAge: "5 min",
-        algorithms: ["HS256"]
+        maxAge: '5 min',
+        algorithms: ['HS256'],
       },
       err => {
         if (err) {
-          logger.error("Error decoding system token", err);
+          logger.error('Error decoding system token', err);
           resolve(false);
         } else {
           resolve(true);
         }
-      }
-    )
+      },
+    ),
   );
 }
 
 function hasSecureHeader(
   reflector: Reflector,
-  context: ExecutionContext
+  context: ExecutionContext,
 ): boolean {
   const { headers } = context
     .switchToHttp()
@@ -132,9 +132,9 @@ function hasSecureHeader(
 
   const secureHeader = reflectValue<string | undefined>(
     reflector,
-    "secure-header",
+    'secure-header',
     context,
-    undefined
+    undefined,
   );
 
   if (secureHeader) {
@@ -172,13 +172,13 @@ export class AuthGuard implements CanActivate {
 
   constructor(
     private readonly reflector: Reflector,
-    @Inject(CONFIGURATION) private readonly configurationProvider: Configuration
+    @Inject(CONFIGURATION) private readonly configurationProvider: Configuration,
   ) {
-    this.logger = createLogger("auth-guard");
+    this.logger = createLogger('auth-guard');
   }
 
   canActivate(
-    context: ExecutionContext
+    context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     if (isAllowAnonymous(this.reflector, context)) {
       return true;
@@ -188,7 +188,7 @@ export class AuthGuard implements CanActivate {
       return isAuthorizedSystemCall(
         this.reflector,
         context,
-        this.configurationProvider.systemSecret
+        this.configurationProvider.systemSecret,
       );
     }
 

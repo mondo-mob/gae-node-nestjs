@@ -1,42 +1,42 @@
-import { Inject, Injectable, HttpException, HttpStatus } from "@nestjs/common";
-import * as Logger from "bunyan";
-import * as t from "io-ts";
-import * as uuid from "node-uuid";
-import * as bcrypt from "bcryptjs";
-import * as emails from "email-addresses";
-import { CredentialRepository, LoginCredentials } from "./auth.repository";
-import { reporter } from "io-ts-reporters";
-import { USER_SERVICE, UserService } from "./user.service";
-import { Configuration, IUser } from "../index";
-import { Transactional } from "../datastore/transactional";
-import { createLogger } from "../gcloud/logging";
-import { Context } from "../datastore/context";
-import { CONFIGURATION } from "../configuration";
+import { Inject, Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import * as Logger from 'bunyan';
+import * as t from 'io-ts';
+import * as uuid from 'node-uuid';
+import * as bcrypt from 'bcryptjs';
+import * as emails from 'email-addresses';
+import { CredentialRepository, LoginCredentials } from './auth.repository';
+import { reporter } from 'io-ts-reporters';
+import { USER_SERVICE, UserService } from './user.service';
+import { Configuration, IUser } from '../index';
+import { Transactional } from '../datastore/transactional';
+import { createLogger } from '../gcloud/logging';
+import { Context } from '../datastore/context';
+import { CONFIGURATION } from '../configuration';
 
 const userProfile = t.interface({
   id: t.string, // username
   emails: t.array(
     t.interface({
       value: t.string,
-      type: t.string
-    })
+      type: t.string,
+    }),
   ),
-  displayName: t.string
+  displayName: t.string,
 });
 
 export class UserNotFoundError extends HttpException {
   constructor() {
-    super("UserNotFoundError", HttpStatus.FORBIDDEN);
+    super('UserNotFoundError', HttpStatus.FORBIDDEN);
   }
 }
 export class CredentialsNotFoundError extends HttpException {
   constructor() {
-    super("CredentialsNotFoundError", HttpStatus.FORBIDDEN);
+    super('CredentialsNotFoundError', HttpStatus.FORBIDDEN);
   }
 }
 export class PasswordInvalidError extends HttpException {
   constructor() {
-    super("PasswordInvalidError", HttpStatus.FORBIDDEN);
+    super('PasswordInvalidError', HttpStatus.FORBIDDEN);
   }
 }
 
@@ -53,9 +53,9 @@ export class AuthService {
   constructor(
     private readonly authRepository: CredentialRepository,
     @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
-    @Inject(CONFIGURATION) private readonly configurationProvider: Configuration
+    @Inject(CONFIGURATION) private readonly configurationProvider: Configuration,
   ) {
-    this.logger = createLogger("account-service");
+    this.logger = createLogger('account-service');
   }
 
   /**
@@ -70,7 +70,7 @@ export class AuthService {
   async validateUser(
     context: Context,
     username: string,
-    password: string
+    password: string,
   ): Promise<IUser> {
     const account = await this.authRepository.get(context, username);
 
@@ -78,7 +78,7 @@ export class AuthService {
       throw new CredentialsNotFoundError();
     }
 
-    if (account.type !== "password") {
+    if (account.type !== 'password') {
       throw new CredentialsNotFoundError();
     }
 
@@ -110,17 +110,17 @@ export class AuthService {
   @Transactional()
   async validateUserGoogle(
     context: Context,
-    inputProfile: object
+    inputProfile: object,
   ): Promise<IUser> {
     const validationResult = userProfile.decode(inputProfile);
 
     if (validationResult.isLeft()) {
-      throw new Error(reporter(validationResult).join(", "));
+      throw new Error(reporter(validationResult).join(', '));
     }
 
     const profile = validationResult.value;
     const accountEmails = profile.emails.filter(
-      email => email.type === "account"
+      accountEmail => accountEmail.type === 'account',
     );
 
     if (accountEmails.length === 0) {
@@ -145,7 +145,7 @@ export class AuthService {
 
       const { domain } = emails.parseOneAddress(email) as emails.ParsedMailbox;
 
-      let signUpDomains =
+      const signUpDomains =
         this.configurationProvider.auth.google.signUpDomains || [];
       if (!signUpDomains.includes(domain)) {
         throw new CredentialsNotFoundError();
@@ -155,19 +155,19 @@ export class AuthService {
 
       await this.authRepository.save(context, {
         id: email,
-        type: "google",
-        userId: id
+        type: 'google',
+        userId: id,
       });
 
       return await this.userService.create(context, {
         id,
         roles: this.configurationProvider.auth.google.signUpRoles,
         email,
-        name: profile.displayName
+        name: profile.displayName,
       });
     }
 
-    if (account.type !== "google" && account.type !== "password") {
+    if (account.type !== 'google' && account.type !== 'password') {
       throw new CredentialsNotFoundError();
     }
 
@@ -190,32 +190,32 @@ export class AuthService {
    */
   @Transactional()
   async validateUserSaml(context: Context, profile: any): Promise<IUser> {
-    this.logger.info("Validating SAML user profile");
+    this.logger.info('Validating SAML user profile');
 
     const email = profile.email;
     this.logger.info(`Looking up user by email ${email}`);
     const account = await this.authRepository.get(context, email);
 
     if (!account) {
-      this.logger.info("No account found, creating it.");
+      this.logger.info('No account found, creating it.');
 
       const id = uuid.v4();
 
       await this.authRepository.save(context, {
         id: profile.email,
-        type: "saml",
-        userId: id
+        type: 'saml',
+        userId: id,
       });
 
       return await this.userService.create(context, {
         id,
         roles: [],
         email,
-        name: `${profile.firstName} ${profile.lastName}`
+        name: `${profile.firstName} ${profile.lastName}`,
       });
     }
 
-    if (account.type !== "saml") {
+    if (account.type !== 'saml') {
       throw new CredentialsNotFoundError();
     }
 
@@ -243,7 +243,7 @@ export class AuthService {
     context: Context,
     email: string,
     password: string,
-    account: string
+    account: string,
   ): Promise<LoginCredentials> {
     const existingCredentials = await this.authRepository.get(context, email);
 
@@ -252,7 +252,7 @@ export class AuthService {
         id: email,
         password: await hashPassword(password),
         userId: account,
-        type: "password"
+        type: 'password',
       });
     }
 

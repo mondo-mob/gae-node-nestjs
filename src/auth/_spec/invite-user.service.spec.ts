@@ -48,7 +48,7 @@ describe('InviteUserService', () => {
       ).rejects.toHaveProperty('message', 'Email already exists');
     });
 
-    it("should throw an error if roles contains 'super'", async () => {
+    it('should throw an error if roles contains \'super\'', async () => {
       const authService = new InviteUserService(
         instance(credentialRepository),
         instance(gmailSender),
@@ -151,7 +151,7 @@ describe('InviteUserService', () => {
         instance(gmailSender),
         {} as Configuration,
         {
-          create: (_: any, user: any) => user,
+          create: (_: any, usr: any) => usr,
         } as any,
         instance(userInviteRepository),
       );

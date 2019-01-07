@@ -1,3 +1,4 @@
+/* tslint:disable:ban-types */
 import * as DatastoreStore from '@google-cloud/connect-datastore';
 import * as Datastore from '@google-cloud/datastore';
 import {OneOrMany} from '@google-cloud/datastore/entity';

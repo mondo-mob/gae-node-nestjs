@@ -3,10 +3,10 @@ import {
   ExceptionFilter,
   ArgumentsHost,
   HttpException,
-  Catch
-} from "@nestjs/common";
-import { Request, Response } from "express";
-import * as path from "path";
+  Catch,
+} from '@nestjs/common';
+import { Request, Response } from 'express';
+import * as path from 'path';
 
 @Catch(NotFoundException)
 export class NotFoundFilter implements ExceptionFilter {
@@ -17,17 +17,17 @@ export class NotFoundFilter implements ExceptionFilter {
 
     if (
       request.headers.accept &&
-      request.headers.accept.includes("text/html")
+      request.headers.accept.includes('text/html')
     ) {
       return response
         .status(200)
-        .sendFile(path.join(process.cwd(), "public", "index.html"));
+        .sendFile(path.join(process.cwd(), 'public', 'index.html'));
     }
 
     response.status(404).json({
       statusCode: exception.getStatus(),
       timestamp: new Date().toISOString(),
-      path: request.url
+      path: request.url,
     });
   }
 }

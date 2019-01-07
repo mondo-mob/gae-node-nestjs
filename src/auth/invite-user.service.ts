@@ -1,14 +1,14 @@
-import { Injectable, Inject } from "@nestjs/common";
-import * as Logger from "bunyan";
-import * as uuid from "node-uuid";
-import { GmailSender } from "../gmail/gmail.sender";
-import { CredentialRepository, UserInviteRepository } from "./auth.repository";
-import { hashPassword } from "./auth.service";
-import { Transactional } from "../datastore/transactional";
-import { createLogger } from "../gcloud/logging";
-import {Context, IUser} from "../datastore/context";
-import {Configuration, USER_SERVICE, UserService} from "../index";
-import { CONFIGURATION } from "../configuration";
+import { Injectable, Inject } from '@nestjs/common';
+import * as Logger from 'bunyan';
+import * as uuid from 'node-uuid';
+import { GmailSender } from '../gmail/gmail.sender';
+import { CredentialRepository, UserInviteRepository } from './auth.repository';
+import { hashPassword } from './auth.service';
+import { Transactional } from '../datastore/transactional';
+import { createLogger } from '../gcloud/logging';
+import {Context, IUser} from '../datastore/context';
+import {Configuration, USER_SERVICE, UserService} from '../index';
+import { CONFIGURATION } from '../configuration';
 
 export const INVITE_CODE_EXPIRY = 7 * 24 * 60 * 60 * 1000;
 
@@ -21,9 +21,9 @@ export class InviteUserService {
     private readonly gmailSender: GmailSender,
     @Inject(CONFIGURATION) private readonly configuration: Configuration,
     @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
-    private readonly userInviteRepository: UserInviteRepository
+    private readonly userInviteRepository: UserInviteRepository,
   ) {
-    this.logger = createLogger("invite-user-service");
+    this.logger = createLogger('invite-user-service');
   }
 
   /**
@@ -40,11 +40,11 @@ export class InviteUserService {
     const auth = await this.authRepository.get(context, email);
 
     if (auth) {
-      throw new Error("Email already exists");
+      throw new Error('Email already exists');
     }
 
-    if (roles.includes("super")) {
-      throw new Error("Cannot assign super role to users");
+    if (roles.includes('super')) {
+      throw new Error('Cannot assign super role to users');
     }
 
     const id = uuid.v4();
@@ -53,20 +53,20 @@ export class InviteUserService {
       id,
       email,
       createdAt: new Date(),
-      roles
+      roles,
     });
 
     const address = `${this.configuration.host}/activate/${id}`;
 
     await this.gmailSender.send(context, {
       to: email,
-      subject: "Activate account",
+      subject: 'Activate account',
       html: `
         <html>
         <head></head>
         <body><a href="${address}">Activate your account</a></body>
         </html>
-      `
+      `,
     });
   }
 
@@ -83,37 +83,37 @@ export class InviteUserService {
     context: Context,
     code: string,
     name: string,
-    password: string
+    password: string,
   ) {
     const invite = await this.userInviteRepository.get(context, code);
 
     if (!invite) {
-      throw new Error("Invalid invite code");
+      throw new Error('Invalid invite code');
     }
 
     if (Date.now() - invite.createdAt.getTime() > INVITE_CODE_EXPIRY) {
-      throw new Error("Invite code has expired");
+      throw new Error('Invite code has expired');
     }
 
     const auth = await this.authRepository.get(context, invite.email);
 
     if (auth) {
-      throw new Error("Account already registered");
+      throw new Error('Account already registered');
     }
 
     const id = uuid.v4();
     await this.authRepository.save(context, {
       id: invite.email,
-      type: "password",
+      type: 'password',
       password: await hashPassword(password),
-      userId: id
+      userId: id,
     });
 
     const user = await this.userService.create(context, {
       id,
       name,
       email: invite.email,
-      roles: invite.roles
+      roles: invite.roles,
     });
 
     await this.userInviteRepository.delete(context, code);
