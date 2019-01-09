@@ -31,7 +31,7 @@ export abstract class AbstractUserService<T extends IUser> implements UserServic
 
     await this.validateEmailAddressAvailable(context, normalisedEmail);
     const createdUser = await this.createUser(context, {...user, email: normalisedEmail});
-    await this.createLoginIdentifier(context, createdUser.id, normalisedEmail);
+    await this.createLoginIdentifier(context, normalisedEmail, createdUser.id);
 
     return createdUser;
   }
@@ -47,7 +47,7 @@ export abstract class AbstractUserService<T extends IUser> implements UserServic
       await this.validateEmailAddressAvailable(context, normalisedEmail);
       await Promise.all([
           this.loginIdentifierRepository.delete(context, user.email),
-          this.createLoginIdentifier(context, user.id, normalisedEmail),
+          this.createLoginIdentifier(context, normalisedEmail, user.id),
       ]);
     }
     const userUpdates = (normalisedEmail && {...updates, email: normalisedEmail}) || updates;
