@@ -74,6 +74,7 @@ export interface Options {
     StorageProvider,
     DatastoreProvider,
     CredentialRepository,
+    LoginIdentifierRepository,
     UserInviteRepository,
     PasswordResetRepository,
     PasswordResetService,
