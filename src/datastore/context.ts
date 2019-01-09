@@ -4,14 +4,18 @@ import { createParamDecorator } from '@nestjs/common';
 
 const ContextType = Symbol();
 
-export interface IUserInput {
-  id?: string;
-  email: string;
-  name: string;
+export interface IUserUpdates {
+  email?: string;
+  name?: string;
   roles?: ReadonlyArray<string>;
 }
 
-export interface IUser extends IUserInput {
+export interface IUserCreateRequest extends IUserUpdates {
+  email: string;
+  name: string;
+}
+
+export interface IUser extends IUserCreateRequest {
   id: string;
 }
 

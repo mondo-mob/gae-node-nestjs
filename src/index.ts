@@ -8,7 +8,8 @@ export {
   isContext,
   newContext,
   IUser,
-  IUserInput,
+  IUserUpdates,
+  IUserCreateRequest,
   Ctxt,
 } from './datastore/context';
 export { TaskQueue } from './gcloud/tasks';
@@ -29,6 +30,7 @@ export {
   UserInviteRepository,
   CredentialRepository,
 } from './auth/auth.repository';
+export { LoginIdentifierRepository } from './auth/login-identifier.repository';
 export { PasswordResetService } from './auth/password-reset.service';
 export { InviteUserService } from './auth/invite-user.service';
 export { AuthService, hashPassword } from './auth/auth.service';

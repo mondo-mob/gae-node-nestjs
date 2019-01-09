@@ -1,4 +1,4 @@
-import {Context, IUser, IUserInput, Transactional} from '..';
+import {Context, IUser, IUserCreateRequest, IUserUpdates, Transactional} from '..';
 import {LoginIdentifierRepository} from './login-identifier.repository';
 
 export const USER_SERVICE = 'UserService';
@@ -6,8 +6,8 @@ export const USER_SERVICE = 'UserService';
 export interface UserService<T extends IUser> {
   getByEmail(context: Context, email: string): Promise<T | undefined>;
   get(context: Context, userId: string): Promise<T | undefined>;
-  create(context: Context, user: IUserInput): Promise<T>;
-  update(context: Context, id: string, updates: IUserInput): Promise<T>;
+  create(context: Context, user: IUserCreateRequest): Promise<T>;
+  update(context: Context, id: string, updates: IUserUpdates): Promise<T>;
 
 }
 
@@ -17,8 +17,8 @@ export abstract class AbstractUserService<T extends IUser> implements UserServic
   };
 
   abstract get(context: Context, userId: string): Promise<T | undefined>;
-  protected abstract createUser(context: Context, user: IUserInput): Promise<T>;
-  protected abstract updateUser(context: Context, user: T, updates: IUserInput): Promise<T>;
+  protected abstract createUser(context: Context, user: IUserCreateRequest): Promise<T>;
+  protected abstract updateUser(context: Context, user: T, updates: IUserUpdates): Promise<T>;
 
   async getByEmail(context: Context, email: string) {
     const loginIdentifier = await this.loginIdentifierRepository.get(context, email.toLowerCase());
@@ -26,7 +26,7 @@ export abstract class AbstractUserService<T extends IUser> implements UserServic
   }
 
   @Transactional()
-  async create(context: Context, user: IUserInput) {
+  async create(context: Context, user: IUserCreateRequest) {
     const normalisedEmail = user.email.toLowerCase();
 
     await this.validateEmailAddressAvailable(context, normalisedEmail);
@@ -37,21 +37,21 @@ export abstract class AbstractUserService<T extends IUser> implements UserServic
   }
 
   @Transactional()
-  async update(context: Context, id: string, updates: IUserInput) {
+  async update(context: Context, id: string, updates: IUserUpdates) {
     const user = await this.get(context, id);
     if (!user) {
       throw new Error(`No user exists with id: ${id}`);
     }
-    const normalisedEmail = updates.email.toLowerCase();
-    if (normalisedEmail !== user.email) {
+    const normalisedEmail = updates.email && updates.email.toLowerCase();
+    if (normalisedEmail && normalisedEmail !== user.email) {
       await this.validateEmailAddressAvailable(context, normalisedEmail);
       await Promise.all([
           this.loginIdentifierRepository.delete(context, user.email),
           this.createLoginIdentifier(context, user.id, normalisedEmail),
       ]);
     }
-
-    return this.updateUser(context, user, {...updates, email: normalisedEmail});
+    const userUpdates = (normalisedEmail && {...updates, email: normalisedEmail}) || updates;
+    return this.updateUser(context, user, userUpdates);
   }
 
   private async createLoginIdentifier(context: Context, email: string, userId: string) {

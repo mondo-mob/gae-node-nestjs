@@ -101,19 +101,17 @@ export class InviteUserService {
       throw new Error('Account already registered');
     }
 
-    const id = uuid.v4();
+    const user = await this.userService.create(context, {
+      name,
+      email: invite.email,
+      roles: invite.roles,
+    });
+
     await this.authRepository.save(context, {
       id: invite.email,
       type: 'password',
       password: await hashPassword(password),
-      userId: id,
-    });
-
-    const user = await this.userService.create(context, {
-      id,
-      name,
-      email: invite.email,
-      roles: invite.roles,
+      userId: user.id,
     });
 
     await this.userInviteRepository.delete(context, code);

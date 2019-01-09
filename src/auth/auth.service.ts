@@ -151,20 +151,19 @@ export class AuthService {
         throw new CredentialsNotFoundError();
       }
 
-      const id = uuid.v4();
-
-      await this.authRepository.save(context, {
-        id: email,
-        type: 'google',
-        userId: id,
-      });
-
-      return await this.userService.create(context, {
-        id,
+      const createdUser = await this.userService.create(context, {
         roles: this.configurationProvider.auth.google.signUpRoles,
         email,
         name: profile.displayName,
       });
+
+      await this.authRepository.save(context, {
+        id: email,
+        type: 'google',
+        userId: createdUser.id,
+      });
+
+      return createdUser;
     }
 
     if (account.type !== 'google' && account.type !== 'password') {
@@ -199,20 +198,19 @@ export class AuthService {
     if (!account) {
       this.logger.info('No account found, creating it.');
 
-      const id = uuid.v4();
-
-      await this.authRepository.save(context, {
-        id: profile.email,
-        type: 'saml',
-        userId: id,
-      });
-
-      return await this.userService.create(context, {
-        id,
+      const createdUser = await this.userService.create(context, {
         roles: [],
         email,
         name: `${profile.firstName} ${profile.lastName}`,
       });
+
+      await this.authRepository.save(context, {
+        id: profile.email,
+        type: 'saml',
+        userId: createdUser.id,
+      });
+
+      return createdUser;
     }
 
     if (account.type !== 'saml') {
