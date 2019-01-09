@@ -9,6 +9,7 @@ import {AuthGuard} from './auth/auth.guard';
 import {CredentialRepository, PasswordResetRepository, UserInviteRepository} from './auth/auth.repository';
 import {AuthService} from './auth/auth.service';
 import {InviteUserService} from './auth/invite-user.service';
+import {LoginIdentifierRepository} from './auth/login-identifier.repository';
 import {PasswordResetService} from './auth/password-reset.service';
 import {Configuration} from './configuration';
 import {DatastoreProvider} from './datastore/datastore.provider';
@@ -36,6 +37,7 @@ export interface Options {
     StorageProvider,
     DatastoreProvider,
     CredentialRepository,
+    LoginIdentifierRepository,
     PasswordResetRepository,
     UserInviteRepository,
     StoredCredentialsRepository,
