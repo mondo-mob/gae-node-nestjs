@@ -47,16 +47,24 @@ export class InviteUserService {
       throw new Error('Cannot assign super role to users');
     }
 
-    const id = uuid.v4();
+    let user = await this.userService.getByEmail(context, email);
+    if (!user) {
+      user = await this.userService.create(context, {
+        email,
+        enabled: false,
+      });
+    }
 
+    const inviteId = uuid.v4();
     await this.userInviteRepository.save(context, {
-      id,
+      id: inviteId,
       email,
       createdAt: new Date(),
       roles,
+      userId: user.id,
     });
 
-    const address = `${this.configuration.host}/activate/${id}`;
+    const address = `${this.configuration.host}/activate/${inviteId}`;
 
     await this.gmailSender.send(context, {
       to: email,
@@ -68,6 +76,7 @@ export class InviteUserService {
         </html>
       `,
     });
+    return user;
   }
 
   /**
@@ -101,10 +110,10 @@ export class InviteUserService {
       throw new Error('Account already registered');
     }
 
-    const user = await this.userService.create(context, {
+    const user = await this.userService.update(context, invite.userId, {
       name,
-      email: invite.email,
       roles: invite.roles,
+      enabled: true,
     });
 
     await this.authRepository.save(context, {

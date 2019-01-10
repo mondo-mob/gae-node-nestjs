@@ -7,16 +7,18 @@ const ContextType = Symbol();
 export interface IUserUpdates {
   email?: string;
   name?: string;
+  enabled?: boolean;
   roles?: ReadonlyArray<string>;
 }
 
 export interface IUserCreateRequest extends IUserUpdates {
   email: string;
-  name: string;
+  name?: string;
 }
 
 export interface IUser extends IUserCreateRequest {
   id: string;
+  enabled: boolean;
 }
 
 export const Ctxt = createParamDecorator((data, req) => req.context);

@@ -22,6 +22,7 @@ const userInvite = t.interface({
   id: t.string, // username
   email: t.string,
   createdAt: dateType,
+  userId: t.string,
   roles: t.array(t.string),
 });
 
