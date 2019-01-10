@@ -30,7 +30,7 @@ export abstract class AbstractUserService<T extends IUser> implements UserServic
     const normalisedEmail = user.email.toLowerCase();
 
     await this.validateEmailAddressAvailable(context, normalisedEmail);
-    const createdUser = await this.createUser(context, {...user, email: normalisedEmail});
+    const createdUser = await this.createUser(context, {...user, email: normalisedEmail, roles: user.roles || []});
     await this.createLoginIdentifier(context, normalisedEmail, createdUser.id);
 
     return createdUser;
