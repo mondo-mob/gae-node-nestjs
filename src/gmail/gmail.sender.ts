@@ -21,7 +21,13 @@ export class GmailSender {
   async send(context: Context, mailOptions: Options) {
     const credential = await this.gmailConfigurer.getCredential(context);
 
-    if (credential && this.configurationProvider.auth.google) {
+    if (!credential) {
+      this.logger.error('Gmail OAuth is not configured yet. No StoredCredential entity with id "gmail-credential"');
+
+    } else if (!this.configurationProvider.auth.google) {
+      this.logger.error('Gmail OAuth is not configured yet. No environment configuration exists for "auth.google"');
+
+    } else {
       const auth = {
         type: 'oauth2',
         user: this.configurationProvider.gmailUser,
@@ -51,8 +57,6 @@ export class GmailSender {
           },
         ),
       );
-    } else {
-      this.logger.error('Gmail OAuth is not configured yet');
     }
   }
 }

@@ -1,13 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as passport from 'passport';
 import { StoredCredentialsRepository } from './stored.credentials.repository';
-import { Configuration, Context } from '..';
+import { Configuration, Context, createLogger } from '..';
 import { DatastoreProvider } from '../datastore/datastore.provider';
 import { newContext } from '../datastore/context';
 import { CONFIGURATION } from '../configuration';
 
+// tslint:disable-next-line
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+
 @Injectable()
 export class GmailConfigurer {
+  private readonly logger = createLogger('gmail-configurer');
+
   constructor(
     private readonly storedCredentialsRepository: StoredCredentialsRepository,
     private readonly datastoreProvider: DatastoreProvider,
@@ -16,31 +21,24 @@ export class GmailConfigurer {
     if (this.configuration.auth.google && this.configuration.auth.google.enabled) {
       passport.use(
         'google-gmail',
-        new (require('passport-google-oauth20')).Strategy(
+        new GoogleStrategy(
           {
             clientID: this.configuration.auth.google.clientId,
             clientSecret: this.configuration.auth.google.secret,
-            callbackURL: `${
-              this.configuration.host
-            }/system/gmail/setup/oauth2callback`,
+            callbackURL: `${this.configuration.host}/system/gmail/setup/oauth2callback`,
           },
-          (
-            accessToken: string,
-            refreshToken: string,
-            profile: object,
-            // tslint:disable-next-line:ban-types
-            done: Function,
-          ) => {
+          // tslint:disable-next-line:ban-types
+          (accessToken: string, refreshToken: string, profile: object, done: Function) => {
+            this.logger.info(`Gmail oath complete. Saving credentials.`);
             storedCredentialsRepository.save(
               newContext(this.datastoreProvider.datastore),
               {
                 id: 'gmail-credential',
                 value: refreshToken,
               },
-            );
-
-            return done(null, {
-              refreshToken,
+            ).then(() => {
+              this.logger.info(`Gmail oath complete and credentials have been saved.`);
+              return done(null, { refreshToken });
             });
           },
         ),
