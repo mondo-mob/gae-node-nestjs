@@ -2,8 +2,8 @@ import { anything, capture, instance, mock, reset, verify, when } from 'ts-mocki
 import { IUser } from '../..';
 import { Configuration } from '../../configuration';
 import { GmailSender } from '../../gmail/gmail.sender';
-import { CredentialRepository, LoginCredentials, UserInviteRepository } from '../auth.repository';
-import { INVITE_CODE_EXPIRY, InviteUserService } from '../invite-user.service';
+import { CredentialRepository, LoginCredentials, UserInvite, UserInviteRepository } from '../auth.repository';
+import { IInviteUserRequest, INVITE_CODE_EXPIRY, InviteUserService } from '../invite-user.service';
 import { AbstractUserService } from '../user.service';
 import { mockContext } from './auth.service.spec';
 
@@ -23,6 +23,15 @@ describe('InviteUserService', () => {
   });
 
   describe('inviteUser', () => {
+    let inviteRequest: IInviteUserRequest;
+
+    beforeEach(() => {
+      inviteRequest = {
+        email: 'test@example.com',
+        roles: [],
+      }
+    });
+
     it('should throw an error if the email address already exists', async () => {
       const authService = new InviteUserService(
         instance(credentialRepository),
@@ -32,12 +41,12 @@ describe('InviteUserService', () => {
         instance(userInviteRepository),
       );
 
-      when(credentialRepository.get(context, 'test@example.com')).thenResolve({
+      when(credentialRepository.get(context, inviteRequest.email)).thenResolve({
         id: '123',
       } as LoginCredentials);
 
       await expect(
-        authService.inviteUser(context, 'test@example.com', []),
+        authService.inviteUser(context, inviteRequest),
       ).rejects.toHaveProperty('message', 'Email already exists');
     });
 
@@ -49,13 +58,14 @@ describe('InviteUserService', () => {
         instance(userService),
         instance(userInviteRepository),
       );
+      inviteRequest.roles = ['admin', 'super'];
 
-      when(credentialRepository.get(context, 'test@example.com')).thenResolve(
+      when(credentialRepository.get(context, inviteRequest.email)).thenResolve(
         undefined,
       );
 
       await expect(
-        authService.inviteUser(context, 'test@example.com', ['admin', 'super']),
+        authService.inviteUser(context, inviteRequest),
       ).rejects.toHaveProperty('message', 'Cannot assign super role to users');
     });
 
@@ -67,17 +77,27 @@ describe('InviteUserService', () => {
           instance(userService),
           instance(userInviteRepository),
       );
-      when(userService.getByEmail(context, 'test@example.com')).thenResolve({
+      inviteRequest.roles = ['admin'];
+      const existingUser = {
         id: 'user-123',
-      } as IUser);
+        email: inviteRequest.email,
+        roles: [],
+        enabled: false,
+      } as IUser;
 
-      await authService.inviteUser(context, 'test@example.com', ['admin']);
+      when(userService.getByEmail(context, inviteRequest.email)).thenResolve(existingUser);
+
+      const result = await authService.inviteUser(context, inviteRequest);
 
       verify(userService.create(anything(), anything())).never();
       const [, invite] = capture(userInviteRepository.save).last();
       const [, mail] = capture(gmailSender.send).last();
 
-      expect((invite as any).userId).toBe('user-123');
+      expect(result).toEqual({
+        user: existingUser,
+        inviteId: (invite as any).id,
+      });
+      expect((invite as any).userId).toBe(existingUser.id);
       expect(mail.html).toMatch((invite as any).id);
     });
 
@@ -89,22 +109,160 @@ describe('InviteUserService', () => {
         instance(userService),
         instance(userInviteRepository),
       );
-      when(userService.create(context, anything())).thenResolve({
+      inviteRequest.roles = ['admin'];
+      const createdUser = {
         id: 'user-123',
-      } as IUser);
+        email: inviteRequest.email,
+        roles: [],
+        enabled: false,
+      } as IUser;
 
-      await authService.inviteUser(context, 'test@example.com', ['admin']);
+      when(userService.create(context, anything())).thenResolve(createdUser);
+
+      const result = await authService.inviteUser(context, inviteRequest);
 
       const [, createRequest] = capture(userService.create).last();
       const [, invite] = capture(userInviteRepository.save).last();
       const [, mail] = capture(gmailSender.send).last();
 
-      expect(createRequest).toMatchObject({
-        email: 'test@example.com',
+      expect(result).toEqual({
+        user: createdUser,
+        inviteId: (invite as any).id,
+      });
+      expect(createRequest).toEqual({
+        email: inviteRequest.email,
         enabled: false,
       });
-      expect((invite as any).userId).toBe('user-123');
+      expect((invite as any).userId).toBe(createdUser.id);
       expect(mail.html).toMatch((invite as any).id);
+    });
+
+    it('should generate an invite for new user and skip sending email', async () => {
+      const authService = new InviteUserService(
+          instance(credentialRepository),
+          instance(gmailSender),
+          {} as Configuration,
+          instance(userService),
+          instance(userInviteRepository),
+      );
+      inviteRequest.roles = ['admin'];
+      inviteRequest.skipEmail = true;
+      const createdUser = {
+        id: 'user-123',
+        email: inviteRequest.email,
+        roles: [],
+        enabled: false,
+      } as IUser;
+
+      when(userService.create(context, anything())).thenResolve(createdUser);
+
+      const result = await authService.inviteUser(context, inviteRequest);
+
+      const [, createRequest] = capture(userService.create).last();
+      const [, invite] = capture(userInviteRepository.save).last();
+      verify(gmailSender.send(context, anything())).never();
+
+      expect(result).toEqual({
+        user: createdUser,
+        inviteId: (invite as any).id,
+      });
+      expect(createRequest).toEqual({
+        email: inviteRequest.email,
+        enabled: false,
+      });
+      expect((invite as any).userId).toBe(createdUser.id);
+    });
+
+  });
+
+  describe('inviteUserIfRequired', () => {
+    let inviteRequest: IInviteUserRequest;
+
+    beforeEach(() => {
+      inviteRequest = {
+        email: 'test@example.com',
+        roles: [],
+      }
+    });
+
+    it('should update existing user and not generate invite when user has auth', async () => {
+      const authService = new InviteUserService(
+          instance(credentialRepository),
+          instance(gmailSender),
+          {} as Configuration,
+          instance(userService),
+          instance(userInviteRepository),
+      );
+      inviteRequest.roles = ['user'];
+      inviteRequest.skipEmail = true;
+      const existingUser = {
+        id: 'user-123',
+        email: inviteRequest.email,
+        roles: ['admin'],
+        enabled: false,
+      } as IUser;
+      const expectedUpdates = {
+        enabled: true,
+        roles: ['admin', 'user'],
+      };
+      const updatedUser = {
+        ...existingUser,
+        ...expectedUpdates,
+      };
+
+      when(credentialRepository.get(context, inviteRequest.email)).thenResolve({
+        id: '123',
+      } as LoginCredentials);
+      when(userService.getByEmail(context, inviteRequest.email)).thenResolve(existingUser);
+      when(userService.update(context, existingUser.id, anything())).thenResolve(updatedUser);
+
+      const result = await authService.inviteUserIfRequired(context, inviteRequest);
+
+      verify(userService.create(anything(), anything())).never();
+      verify(userInviteRepository.save(anything(), anything())).never();
+      verify(gmailSender.send(context, anything())).never();
+      const [, , updateRequest] = capture(userService.update).last();
+
+      expect(result).toEqual({
+        user: updatedUser,
+      });
+      expect(updateRequest).toEqual(expectedUpdates);
+    });
+
+    it('should generate an invite for new user and skip sending email', async () => {
+      const authService = new InviteUserService(
+          instance(credentialRepository),
+          instance(gmailSender),
+          {} as Configuration,
+          instance(userService),
+          instance(userInviteRepository),
+      );
+      inviteRequest.roles = ['admin'];
+      inviteRequest.skipEmail = true;
+      const createdUser = {
+        id: 'user-123',
+        email: inviteRequest.email,
+        roles: [],
+        enabled: false,
+      } as IUser;
+
+      when(userService.create(context, anything())).thenResolve(createdUser);
+
+      const result = await authService.inviteUserIfRequired(context, inviteRequest);
+
+      const [, createRequest] = capture(userService.create).last();
+      const [, invite] = capture(userInviteRepository.save).last();
+      verify(gmailSender.send(context, anything())).never();
+
+      expect(result).toEqual({
+        user: createdUser,
+        inviteId: (invite as any).id,
+      });
+      expect(createRequest).toEqual({
+        email: inviteRequest.email,
+        enabled: false,
+      });
+      expect((invite as any).userId).toBe(createdUser.id);
     });
   });
 
@@ -215,7 +373,7 @@ describe('InviteUserService', () => {
         type: 'password',
         userId: user.id,
       });
-      expect(updateRequest).toMatchObject(expectedUpdates);
+      expect(updateRequest).toEqual(expectedUpdates);
     });
   });
 });

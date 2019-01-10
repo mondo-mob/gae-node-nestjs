@@ -18,6 +18,7 @@ export interface IUserCreateRequest extends IUserUpdates {
 export interface IUser extends IUserCreateRequest {
   id: string;
   enabled: boolean;
+  roles: ReadonlyArray<string>;
 }
 
 export const Ctxt = createParamDecorator((data, req) => req.context);

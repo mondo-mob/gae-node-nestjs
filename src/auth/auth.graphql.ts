@@ -72,7 +72,7 @@ export class AuthResolver {
     { email, roles }: { email: string; roles: string[] },
     context: Context,
   ) {
-    return await this.inviteUserService.inviteUser(context, email, roles);
+    return await this.inviteUserService.inviteUser(context, { email, roles });
   }
 
   @AllowAnonymous()

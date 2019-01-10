@@ -12,6 +12,17 @@ import { CONFIGURATION } from '../configuration';
 
 export const INVITE_CODE_EXPIRY = 7 * 24 * 60 * 60 * 1000;
 
+export interface IInviteUserResponse {
+  user: IUser;
+  inviteId?: string;
+}
+
+export interface IInviteUserRequest {
+  email: string;
+  roles: string[];
+  skipEmail?: boolean;
+}
+
 @Injectable()
 export class InviteUserService {
   private readonly logger: Logger;
@@ -26,26 +37,36 @@ export class InviteUserService {
     this.logger = createLogger('invite-user-service');
   }
 
+  async inviteUserIfRequired(context: Context, request: IInviteUserRequest) {
+    return this.inviteUserInternal(context, request, false);
+  }
+
   /**
    * Create a user invite and dispatch an invite email
    *
    * Invite expires after {@link INVITE_CODE_EXPIRY} ms
    *
    * @param context Request context
-   * @param email The recipient
-   * @param roles The roles for this account
+   * @param request Request details
    */
   @Transactional()
-  async inviteUser(context: Context, email: string, roles: string[]) {
-    this.logger.info(`Inviting user with email: ${email}`);
-    const auth = await this.authRepository.get(context, email);
+  async inviteUser(context: Context, request: IInviteUserRequest) {
+    return this.inviteUserInternal(context, request, true);
+  }
 
-    if (auth) {
-      throw new Error('Email already exists');
-    }
+protected async inviteUserInternal(context: Context, request: IInviteUserRequest, validateNew: boolean): Promise<IInviteUserResponse> {
+    const { email, roles } = request;
+
+    this.logger.info(`Inviting user with email: ${email}, roles: ${roles}, validateNew: ${validateNew}`);
 
     if (roles.includes('super')) {
       throw new Error('Cannot assign super role to users');
+    }
+
+    const auth = await this.authRepository.get(context, email);
+
+    if (validateNew && auth) {
+      throw new Error('Email already exists');
     }
 
     let user = await this.userService.getByEmail(context, email);
@@ -56,29 +77,44 @@ export class InviteUserService {
       });
     }
 
-    const inviteId = uuid.v4();
-    await this.userInviteRepository.save(context, {
-      id: inviteId,
-      email,
-      createdAt: new Date(),
-      roles,
-      userId: user.id,
-    });
+    if (auth) {
+      this.logger.info(`User with email ${email} already has a login so does not need to be invited`);
+      const updatedUser = await this.userService.update(context, user.id, {
+        roles: [...user.roles, ...roles],
+        enabled: true,
+      });
+      return { user: updatedUser };
 
-    const address = `${this.configuration.host}/activate/${inviteId}`;
+    } else {
+      const inviteId = uuid.v4();
+      await this.userInviteRepository.save(context, {
+        id: inviteId,
+        email,
+        createdAt: new Date(),
+        roles,
+        userId: user.id,
+      });
 
-    this.logger.info(`Sending invitation email to ${email} with link ${address}`);
-    await this.gmailSender.send(context, {
-      to: email,
-      subject: 'Activate account',
-      html: `
+      const address = `${this.configuration.host}/activate/${inviteId}`;
+
+      if (request.skipEmail) {
+        this.logger.info('Skipping sending invitation email based on request option');
+      } else {
+        this.logger.info(`Sending invitation email to ${email} with link ${address}`);
+        await this.gmailSender.send(context, {
+          to: email,
+          subject: 'Activate account',
+          html: `
         <html>
         <head></head>
         <body><a href="${address}">Activate your account</a></body>
         </html>
       `,
-    });
-    return user;
+        });
+      }
+
+      return { user, inviteId };
+    }
   }
 
   /**
