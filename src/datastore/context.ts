@@ -13,7 +13,6 @@ export interface IUserUpdates {
 
 export interface IUserCreateRequest extends IUserUpdates {
   email: string;
-  name?: string;
 }
 
 export interface IUser extends IUserCreateRequest {

@@ -37,6 +37,7 @@ export class InviteUserService {
    */
   @Transactional()
   async inviteUser(context: Context, email: string, roles: string[]) {
+    this.logger.info(`Inviting user with email: ${email}`);
     const auth = await this.authRepository.get(context, email);
 
     if (auth) {
@@ -66,6 +67,7 @@ export class InviteUserService {
 
     const address = `${this.configuration.host}/activate/${inviteId}`;
 
+    this.logger.info(`Sending invitation email to ${email} with link ${address}`);
     await this.gmailSender.send(context, {
       to: email,
       subject: 'Activate account',
@@ -95,8 +97,8 @@ export class InviteUserService {
     password: string,
   ) {
     const invite = await this.userInviteRepository.get(context, code);
-
     if (!invite) {
+
       throw new Error('Invalid invite code');
     }
 
@@ -115,6 +117,8 @@ export class InviteUserService {
       roles: invite.roles,
       enabled: true,
     });
+
+    this.logger.info(`Accepting invitation and activating account for email ${user.email}, code ${code}, name ${name}`);
 
     await this.authRepository.save(context, {
       id: invite.email,
