@@ -27,6 +27,8 @@ export class GmailController {
     });
 
     authenticateRet(request, response, () => {
+      this.logger.info(`Gmail OAuth done. request.user.refreshToken property exists is: ${request.user && !!request.user.refreshToken}`);
+
       if (!request.user) {
         response.send('Gmail OAuth setup FAILED.');
       } else if (!request.user.refreshToken) {
