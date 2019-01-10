@@ -39,7 +39,7 @@ export class GmailConfigurer {
             ).then(() => {
               this.logger.info(`Gmail oath complete and credentials have been saved.`);
               return done(null, { refreshToken });
-            });
+            }).catch(err => done(err, { refreshToken }));
           },
         ),
       );

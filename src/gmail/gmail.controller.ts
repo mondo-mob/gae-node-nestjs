@@ -1,5 +1,6 @@
 import { Controller, Get, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { createLogger } from '..';
 import { Roles } from '../auth/auth.guard';
 import * as passport from 'passport';
 import { GmailConfigurer } from './gmail.configurer';
@@ -7,6 +8,8 @@ import { GmailConfigurer } from './gmail.configurer';
 @Roles('super')
 @Controller('system/gmail')
 export class GmailController {
+  private readonly logger = createLogger('gmail-controller');
+
   constructor(
     private readonly gmailConfigurer: GmailConfigurer,
   ) {}
@@ -24,6 +27,7 @@ export class GmailController {
     });
 
     authenticateRet(request, response, () => {
+      this.logger.info(`Gmail OAuth done. request.user.refreshToken property exists is: ${request.user && !!request.user.refreshToken}`);
       if (request.user) {
         response.send('Gmail OAuth completed!');
       } else {
