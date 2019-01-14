@@ -35,7 +35,7 @@ export class MailDiverter implements MailSender {
       // @ts-ignore
       const divertedFromAddresses = this.getDivertedFromAddressesAsString(actualAddresses);
       // @ts-ignore
-      return this.configurationProvider.devHooks.diverteEmailTo.map(divertToAddress => {
+      return this.configurationProvider.devHooks.divertEmailTo.map(divertToAddress => {
         return {
           name: divertedFromAddresses,
           address: divertToAddress,
@@ -54,14 +54,15 @@ export class MailDiverter implements MailSender {
     // Extract raw email address and concatenate into a comma separated string
     const justAddresses = addressList.map(address => {
       if (typeof address === 'string') {
-        return address;
+        return address.trim();
       }
       // Assuming it's an Address object
       // @ts-ignore
-      return address.address;
-    }).join(',');
+      return address.address.trim();
+    }).join(', ');
 
-    return `Diverted from ${replace(justAddresses, /@/g, 'at')}`;
+    const deAttedAddresses = replace(justAddresses, /@/g, '.at.');
+    return `Diverted from ${deAttedAddresses}`;
   }
 
 }
