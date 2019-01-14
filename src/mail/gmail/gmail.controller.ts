@@ -1,7 +1,7 @@
 import { Controller, Get, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { createLogger } from '..';
-import { Roles } from '../auth/auth.guard';
+import { createLogger } from '../..';
+import { Roles } from '../../auth/auth.guard';
 import * as passport from 'passport';
 import { GmailConfigurer } from './gmail.configurer';
 

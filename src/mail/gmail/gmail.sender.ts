@@ -1,14 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { MailSender } from '../mail.sender';
 import { GmailConfigurer } from './gmail.configurer';
 import { createTransport, SentMessageInfo } from 'nodemailer';
 import { Options } from 'nodemailer/lib/mailer';
 import * as Logger from 'bunyan';
-import { Configuration } from '../configuration';
-import { Context } from '../datastore/context';
-import { createLogger } from '../gcloud/logging';
+import { Configuration } from '../../configuration';
+import { Context } from '../../datastore/context';
+import { createLogger } from '../../gcloud/logging';
 
 @Injectable()
-export class GmailSender {
+export class GmailSender implements MailSender{
   private logger: Logger;
 
   constructor(

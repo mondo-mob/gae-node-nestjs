@@ -15,13 +15,14 @@ import {Configuration} from './configuration';
 import {DatastoreProvider} from './datastore/datastore.provider';
 import {NotFoundFilter} from './filter';
 import {StorageProvider} from './gcloud/storage.provider';
-import {GmailConfigurer} from './gmail/gmail.configurer';
-import {GmailController} from './gmail/gmail.controller';
-import {GmailSender} from './gmail/gmail.sender';
-import {LocalGmailSender} from './gmail/gmail.sender.local';
-import {StoredCredentialsRepository} from './gmail/stored.credentials.repository';
+import {GmailConfigurer} from './mail/gmail/gmail.configurer';
+import {GmailController} from './mail/gmail/gmail.controller';
+import {GmailSender} from './mail/gmail/gmail.sender';
+import {StoredCredentialsRepository} from './mail/gmail/stored.credentials.repository';
 import {GraphQLMiddleware} from './graphql/GraphQLMiddleware';
 import {ContextMiddleware} from './interceptor';
+import {MailDiverter} from './mail/mail.diverter';
+import {LocalMailLogger} from './mail/mail.local.logger';
 
 interface ClassType { new (...args: any[]): any }
 type ClassTypeOrReference = ClassType | ForwardReference<any>;
@@ -58,8 +59,11 @@ export interface Options {
         configurationProvider: Configuration,
         gmailConfigurer: GmailConfigurer,
       ) => {
-        return configurationProvider.environment === 'development'
-          ? new LocalGmailSender()
+        if (configurationProvider.environment === 'development') {
+          return new LocalMailLogger();
+        }
+        return (configurationProvider.devHooks && configurationProvider.devHooks.divertEmailTo)
+          ? new MailDiverter(configurationProvider, new GmailSender(gmailConfigurer, configurationProvider))
           : new GmailSender(gmailConfigurer, configurationProvider);
       },
       inject: ['Configuration', GmailConfigurer],

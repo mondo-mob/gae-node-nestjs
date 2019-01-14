@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as Logger from 'bunyan';
 import * as uuid from 'node-uuid';
-import { GmailSender } from '../gmail/gmail.sender';
+import { GmailSender } from '../mail/gmail/gmail.sender';
 import {
   CredentialRepository,
   PasswordResetRepository,

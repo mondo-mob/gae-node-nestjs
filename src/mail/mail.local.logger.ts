@@ -3,9 +3,10 @@ import * as Logger from 'bunyan';
 import { Options } from 'nodemailer/lib/mailer';
 import { Context } from '../datastore/context';
 import { createLogger } from '../gcloud/logging';
+import { MailSender } from './mail.sender';
 
 @Injectable()
-export class LocalGmailSender {
+export class LocalMailLogger implements MailSender {
   private readonly logger: Logger;
 
   constructor() {

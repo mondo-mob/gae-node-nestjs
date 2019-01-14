@@ -29,6 +29,9 @@ export interface Configuration {
       identityProviderUrl: string;
     };
   };
+  devHooks?: {
+    divertEmailTo?: string[];
+  };
 }
 
 export const CONFIGURATION = 'Configuration';

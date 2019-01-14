@@ -1,7 +1,7 @@
 import { anything, capture, instance, mock, reset, verify, when } from 'ts-mockito';
 import { IUser } from '../..';
 import { Configuration } from '../../configuration';
-import { GmailSender } from '../../gmail/gmail.sender';
+import { GmailSender } from '../../mail/gmail/gmail.sender';
 import { CredentialRepository, LoginCredentials, UserInvite, UserInviteRepository } from '../auth.repository';
 import { IInviteUserRequest, INVITE_CODE_EXPIRY, InviteUserService } from '../invite-user.service';
 import { AbstractUserService } from '../user.service';

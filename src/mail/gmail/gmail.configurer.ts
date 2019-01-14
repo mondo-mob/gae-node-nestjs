@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as passport from 'passport';
 import { StoredCredentialsRepository } from './stored.credentials.repository';
-import { Configuration, Context, createLogger } from '..';
-import { DatastoreProvider } from '../datastore/datastore.provider';
-import { newContext } from '../datastore/context';
-import { CONFIGURATION } from '../configuration';
+import { Configuration, Context, createLogger } from '../..';
+import { DatastoreProvider } from '../../datastore/datastore.provider';
+import { newContext } from '../../datastore/context';
+import { CONFIGURATION } from '../../configuration';
 
 // tslint:disable-next-line
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
