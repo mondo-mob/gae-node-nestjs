@@ -313,4 +313,54 @@ describe('InviteUserService', () => {
     });
   });
 
+  describe('getInvitedUser', () => {
+    let userInvite: UserInvite;
+    let user: IUser;
+
+    beforeEach(() => {
+      userInvite = {
+        id: '12345',
+        email: 'test@example.com',
+        createdAt: new Date(),
+        roles: ['admin'],
+        userId: 'user-123',
+      };
+
+      user = {
+        id: '12345',
+        email: 'test@example.com',
+        enabled: false,
+        roles: [],
+      };
+    });
+
+    it('should get the invited user', async () => {
+      when(userInviteRepository.get(context, '12345')).thenResolve(userInvite);
+      when(userService.get(context, userInvite.userId)).thenResolve(user);
+
+      const result = await inviteUserService.getInvitedUser(context, '12345');
+
+      expect(result).toBe(user);
+    });
+
+    it('should not return anything when invite does not exist', async () => {
+      when(userInviteRepository.get(context, '12345')).thenResolve(undefined);
+
+      const result = await inviteUserService.getInvitedUser(context, '12345');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should not return anything when invite hasExpired', async () => {
+      userInvite.createdAt = new Date(Date.now() - INVITE_CODE_EXPIRY * 2);
+      when(userInviteRepository.get(context, '12345')).thenResolve(userInvite);
+      when(userService.get(context, userInvite.userId)).thenResolve(user);
+
+      const result = await inviteUserService.getInvitedUser(context, '12345');
+
+      expect(result).toBeUndefined();
+    });
+
+  });
+
 });
