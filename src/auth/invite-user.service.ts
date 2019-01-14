@@ -15,6 +15,7 @@ export const INVITE_CODE_EXPIRY = 7 * 24 * 60 * 60 * 1000;
 export interface IInviteUserResponse {
   user: IUser;
   inviteId?: string;
+  activateLink?: string;
 }
 
 export interface IInviteUserRequest {
@@ -54,7 +55,21 @@ export class InviteUserService {
     return this.inviteUserInternal(context, request, true);
   }
 
-protected async inviteUserInternal(context: Context, request: IInviteUserRequest, validateNew: boolean): Promise<IInviteUserResponse> {
+  async getInvitedUser(context: Context, code: string) {
+    const invite = await this.userInviteRepository.get(context, code);
+    if (!invite) {
+      return;
+    }
+
+    if (Date.now() - invite.createdAt.getTime() > INVITE_CODE_EXPIRY) {
+      this.logger.info(`User invite for ${invite.email} has expired. Was created ${invite.createdAt}.`);
+      return;
+    }
+
+    return this.userService.get(context, invite.userId);
+  }
+
+  protected async inviteUserInternal(context: Context, request: IInviteUserRequest, validateNew: boolean): Promise<IInviteUserResponse> {
     const { email, roles } = request;
 
     this.logger.info(`Inviting user with email: ${email}, roles: ${roles}, validateNew: ${validateNew}`);
@@ -95,25 +110,25 @@ protected async inviteUserInternal(context: Context, request: IInviteUserRequest
         userId: user.id,
       });
 
-      const address = `${this.configuration.host}/activate/${inviteId}`;
+      const activateLink = `${this.configuration.host}/activate/${inviteId}`;
 
       if (request.skipEmail) {
         this.logger.info('Skipping sending invitation email based on request option');
       } else {
-        this.logger.info(`Sending invitation email to ${email} with link ${address}`);
+        this.logger.info(`Sending invitation email to ${email} with link ${activateLink}`);
         await this.gmailSender.send(context, {
           to: email,
           subject: 'Activate account',
           html: `
         <html>
         <head></head>
-        <body><a href="${address}">Activate your account</a></body>
+        <body><a href="${activateLink}">Activate your account</a></body>
         </html>
       `,
         });
       }
 
-      return { user, inviteId };
+      return { user, inviteId, activateLink };
     }
   }
 
@@ -134,7 +149,6 @@ protected async inviteUserInternal(context: Context, request: IInviteUserRequest
   ) {
     const invite = await this.userInviteRepository.get(context, code);
     if (!invite) {
-
       throw new Error('Invalid invite code');
     }
 

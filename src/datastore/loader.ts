@@ -245,7 +245,7 @@ export class DatastoreLoader {
 
     const [results] = await this.datastore.get(keys);
     span.endSpan();
-    this.logger.info('Fetched entities by key ', { entities: prettyPrint });
+    this.logger.debug('Fetched entities by key ', { entities: prettyPrint });
 
     return keys.map(key =>
       results.find((result: any) => keysEqual(result[Datastore.KEY], key)),

@@ -30,7 +30,7 @@ export class ContextMiddleware implements NestMiddleware {
 
   resolve(...args: any[]): MiddlewareFunction | Promise<MiddlewareFunction> {
     return async (req: RequestWithContext, res, next) => {
-      this.logger.info(`[${req.method}]: ${req.originalUrl}`);
+      this.logger.debug(`[${req.method}]: ${req.originalUrl}`);
 
       const requestContext = newContext(this.datastoreProvider.datastore);
 
