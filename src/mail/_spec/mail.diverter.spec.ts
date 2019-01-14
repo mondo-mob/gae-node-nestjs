@@ -72,10 +72,10 @@ describe('MailDiverter', () => {
     };
     setupDivertedEmails(1);
 
-    diverter = new MailDiverter(config, aMailSender);
+    diverter = new MailDiverter(aMailSender, config);
     await diverter.send(context, mailOptions);
 
-    const [firstArg, secondArg] = capture(mockedMailSender.send).first();
+    const [, secondArg] = capture(mockedMailSender.send).first();
     expect(secondArg.to).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com'}]);
     expect(secondArg.cc).toEqual([]);
     expect(secondArg.bcc).toEqual([]);
@@ -89,10 +89,10 @@ describe('MailDiverter', () => {
     };
     setupDivertedEmails(1);
 
-    diverter = new MailDiverter(config, aMailSender);
+    diverter = new MailDiverter(aMailSender, config);
     await diverter.send(context, mailOptions);
 
-    const [firstArg, secondArg] = capture(mockedMailSender.send).first();
+    const [, secondArg] = capture(mockedMailSender.send).first();
     expect(secondArg.to).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actualTO.at.address.com'}]);
     expect(secondArg.cc).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actualCC.at.address.com'}]);
     expect(secondArg.bcc).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actualBCC.at.address.com'}]);
@@ -104,10 +104,10 @@ describe('MailDiverter', () => {
     };
     setupDivertedEmails(1);
 
-    diverter = new MailDiverter(config, aMailSender);
+    diverter = new MailDiverter(aMailSender, config);
     await diverter.send(context, mailOptions);
 
-    const [firstArg, secondArg] = capture(mockedMailSender.send).first();
+    const [, secondArg] = capture(mockedMailSender.send).first();
     expect(secondArg.to).toEqual([
       {address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com, actual2.at.another.com'},
     ]);
@@ -119,10 +119,10 @@ describe('MailDiverter', () => {
     };
     setupDivertedEmails(1);
 
-    diverter = new MailDiverter(config, aMailSender);
+    diverter = new MailDiverter(aMailSender, config);
     await diverter.send(context, mailOptions);
 
-    const [firstArg, secondArg] = capture(mockedMailSender.send).first();
+    const [, secondArg] = capture(mockedMailSender.send).first();
     expect(secondArg.to).toEqual([
       {address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com'},
     ]);
@@ -137,10 +137,10 @@ describe('MailDiverter', () => {
     };
     setupDivertedEmails(1);
 
-    diverter = new MailDiverter(config, aMailSender);
+    diverter = new MailDiverter(aMailSender, config);
     await diverter.send(context, mailOptions);
 
-    const [firstArg, secondArg] = capture(mockedMailSender.send).first();
+    const [, secondArg] = capture(mockedMailSender.send).first();
     expect(secondArg.to).toEqual([
       {address: 'divertTo0@test.com', name: 'Diverted from actual1.at.address.com, actual2.at.address.com, actual3.at.address.com'},
     ]);
@@ -156,10 +156,10 @@ describe('MailDiverter', () => {
     };
     setupDivertedEmails(1);
 
-    diverter = new MailDiverter(config, aMailSender);
+    diverter = new MailDiverter(aMailSender, config);
     await diverter.send(context, mailOptions);
 
-    const [firstArg, secondArg] = capture(mockedMailSender.send).first();
+    const [, secondArg] = capture(mockedMailSender.send).first();
     expect(secondArg.to).toEqual([
       {address: 'divertTo0@test.com', name: 'Diverted from actual1.at.address.com, actual2.at.address.com, actual3.at.address.com'},
     ]);
@@ -173,10 +173,10 @@ describe('MailDiverter', () => {
     };
     setupDivertedEmails(2);
 
-    diverter = new MailDiverter(config, aMailSender);
+    diverter = new MailDiverter(aMailSender, config);
     await diverter.send(context, mailOptions);
 
-    const [firstArg, secondArg] = capture(mockedMailSender.send).first();
+    const [, secondArg] = capture(mockedMailSender.send).first();
     expect(secondArg.to).toEqual([
       {address: 'divertTo0@test.com', name: 'Diverted from actualTO.at.address.com'},
       {address: 'divertTo1@test.com', name: 'Diverted from actualTO.at.address.com'},
@@ -193,7 +193,7 @@ describe('MailDiverter', () => {
 
   const verifyConstructionFails = () => {
     expect(() => {
-      new MailDiverter(config, aMailSender)
+      new MailDiverter(aMailSender, config)
     })
       .toThrowError('No divert-to email address(es) defined')
   };

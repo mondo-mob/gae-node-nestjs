@@ -12,8 +12,8 @@ export class MailDiverter implements MailSender {
   private logger: Logger;
 
   constructor(
+    private readonly mailSender: MailSender,
     @Inject('Configuration') private readonly configurationProvider: Configuration,
-    @Inject('MailSender') private readonly mailSender: MailSender,
   ) {
     this.logger = createLogger('mail-diverter');
     if (!this.configurationProvider.devHooks || isEmpty(this.configurationProvider.devHooks.divertEmailTo)) {
@@ -57,8 +57,7 @@ export class MailDiverter implements MailSender {
         return address.trim();
       }
       // Assuming it's an Address object
-      // @ts-ignore
-      return address.address.trim();
+      return (address as Address).address.trim();
     }).join(', ');
 
     const deAttedAddresses = replace(justAddresses, /@/g, '.at.');

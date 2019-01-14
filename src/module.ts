@@ -62,9 +62,10 @@ export interface Options {
         if (configurationProvider.environment === 'development') {
           return new LocalMailLogger();
         }
+        const gmailSender = new GmailSender(gmailConfigurer, configurationProvider);
         return (configurationProvider.devHooks && configurationProvider.devHooks.divertEmailTo)
-          ? new MailDiverter(configurationProvider, new GmailSender(gmailConfigurer, configurationProvider))
-          : new GmailSender(gmailConfigurer, configurationProvider);
+          ? new MailDiverter(gmailSender, configurationProvider)
+          : gmailSender;
       },
       inject: ['Configuration', GmailConfigurer],
     },
