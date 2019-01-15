@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Configuration } from '../index';
+import { CONFIGURATION, Configuration } from '../index';
 import * as GoogleCloudStorage from '@google-cloud/storage';
 import * as Logger from 'bunyan';
 import { Bucket, ConfigurationObject, Storage } from '@google-cloud/storage';
@@ -11,7 +11,7 @@ export class StorageProvider {
   private readonly _defaultBucket: Bucket;
   private readonly logger: Logger;
 
-  constructor(@Inject('Configuration') private readonly configurationProvider: Configuration) {
+  constructor(@Inject(CONFIGURATION) private readonly configurationProvider: Configuration) {
     this.logger = createLogger('storage');
     const config: ConfigurationObject = {};
     if (configurationProvider.isDevelopment()) {

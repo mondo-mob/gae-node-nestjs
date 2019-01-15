@@ -4,7 +4,7 @@ import { GmailConfigurer } from './gmail.configurer';
 import { createTransport, SentMessageInfo } from 'nodemailer';
 import { Options } from 'nodemailer/lib/mailer';
 import * as Logger from 'bunyan';
-import { Configuration } from '../../configuration';
+import { CONFIGURATION, Configuration } from '../../configuration';
 import { Context } from '../../datastore/context';
 import { createLogger } from '../../gcloud/logging';
 
@@ -14,7 +14,7 @@ export class GmailSender implements MailSender{
 
   constructor(
     private readonly gmailConfigurer: GmailConfigurer,
-    @Inject('Configuration') private readonly configurationProvider: Configuration,
+    @Inject(CONFIGURATION) private readonly configurationProvider: Configuration,
   ) {
     this.logger = createLogger('gmail-sender');
   }

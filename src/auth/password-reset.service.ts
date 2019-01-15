@@ -10,7 +10,7 @@ import { hashPassword } from './auth.service';
 import { Transactional } from '../datastore/transactional';
 import { createLogger } from '../gcloud/logging';
 import { Context } from '../datastore/context';
-import { Configuration } from '../index';
+import { CONFIGURATION, Configuration } from '../index';
 
 const DEFAULT_PASSWORD_TOKEN_EXPIRY = 24 * 60 * 60 * 1000;
 
@@ -23,7 +23,7 @@ export class PasswordResetService {
     private readonly authRepository: CredentialRepository,
     private readonly passwordResetRepository: PasswordResetRepository,
     private readonly gmailSender: GmailSender,
-    @Inject('Configuration') private readonly configuration: Configuration,
+    @Inject(CONFIGURATION) private readonly configuration: Configuration,
   ) {
     this.logger = createLogger('password-reset-service');
     this.tokenExpiry = configuration.passwordTokenExpiry || DEFAULT_PASSWORD_TOKEN_EXPIRY;

@@ -24,7 +24,7 @@ export {
   Roles,
 } from './auth/auth.guard';
 export * from './auth/user.service';
-export { MailSender } from './mail/mail.sender';
+export { MailSender, MAIL_SENDER } from './mail/mail.sender';
 export {
   PasswordResetRepository,
   UserInviteRepository,

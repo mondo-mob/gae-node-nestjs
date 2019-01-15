@@ -1,14 +1,14 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import * as Logger from 'bunyan';
 import * as uuid from 'node-uuid';
-import { GmailSender } from '../mail/gmail/gmail.sender';
-import { CredentialRepository, UserInviteRepository } from './auth.repository';
-import { hashPassword } from './auth.service';
+import { CONFIGURATION } from '../configuration';
+import { Context, IUser } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';
 import { createLogger } from '../gcloud/logging';
-import {Context, IUser} from '../datastore/context';
-import {Configuration, USER_SERVICE, UserService} from '../index';
-import { CONFIGURATION } from '../configuration';
+import { Configuration, MailSender, USER_SERVICE, UserService } from '../index';
+import { MAIL_SENDER } from '../mail/mail.sender';
+import { CredentialRepository, UserInviteRepository } from './auth.repository';
+import { hashPassword } from './auth.service';
 
 export const INVITE_CODE_EXPIRY = 7 * 24 * 60 * 60 * 1000;
 
@@ -30,7 +30,7 @@ export class InviteUserService {
 
   constructor(
     private readonly authRepository: CredentialRepository,
-    private readonly gmailSender: GmailSender,
+    @Inject(MAIL_SENDER) private readonly gmailSender: MailSender,
     @Inject(CONFIGURATION) private readonly configuration: Configuration,
     @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
     private readonly userInviteRepository: UserInviteRepository,

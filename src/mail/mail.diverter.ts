@@ -2,19 +2,19 @@ import {Inject, Injectable} from '@nestjs/common';
 import * as Logger from 'bunyan';
 import {isEmpty, replace} from 'lodash';
 import {Address, Options} from 'nodemailer/lib/mailer';
-import {Configuration} from '../configuration';
+import { CONFIGURATION, Configuration } from '../configuration';
 import {Context} from '../datastore/context';
 import {createLogger} from '../gcloud/logging';
 import {MailSender} from './mail.sender';
 
 @Injectable()
 export class MailDiverter implements MailSender {
-  private logger: Logger = createLogger('mail-diverter');
-  private subjectPrefix: string;
+  private readonly logger: Logger = createLogger('mail-diverter');
+  private readonly subjectPrefix: string;
 
   constructor(
     private readonly mailSender: MailSender,
-    @Inject('Configuration') private readonly configurationProvider: Configuration,
+    @Inject(CONFIGURATION) private readonly configurationProvider: Configuration,
   ) {
     const { devHooks } = this.configurationProvider;
     if (!devHooks || isEmpty(devHooks.divertEmailTo)) {

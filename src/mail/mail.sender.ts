@@ -4,3 +4,5 @@ import {Context, IUser} from '..';
 export interface MailSender {
   send(context: Context<IUser>, mailOptions: Options): Promise<void>;
 }
+
+export const MAIL_SENDER = 'MailSender';
