@@ -43,8 +43,12 @@ export class GmailSender implements MailSender {
       };
       const transporter = createTransport(transport);
 
-      this.logger.info('Sending email to: %o, cc: %o, bcc: %o with subject: %s',
-        mailOptions.to, mailOptions.cc, mailOptions.bcc, mailOptions.subject);
+      this.logger.info({
+          to: mailOptions.to,
+          cc: mailOptions.cc,
+          bcc: mailOptions.bcc,
+          subject: mailOptions.subject,
+        }, 'Sending email: ');
 
       await new Promise((resolve, reject) =>
         transporter.sendMail(
