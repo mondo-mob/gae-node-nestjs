@@ -7,10 +7,10 @@ import { MailSender } from './mail.sender';
 
 @Injectable()
 export class LocalMailLogger implements MailSender {
-  private readonly logger: Logger;
+  private readonly logger: Logger = createLogger('local-mail-logger');
 
   constructor() {
-    this.logger = createLogger('gmail-sender');
+    this.logger.info('MailSender instance is LocalMailLogger');
   }
 
   async send(context: Context, mailOptions: Options) {

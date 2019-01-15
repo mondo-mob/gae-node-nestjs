@@ -21,6 +21,7 @@ export class MailDiverter implements MailSender {
       throw new Error('No divert-to email address(es) defined');
     }
     this.subjectPrefix = devHooks.emailSubjectPrefix && `${devHooks.emailSubjectPrefix}: ` || '';
+    this.logger.info('MailSender instance is MailDiverter');
     this.logger.info(`Configuring mail diversion with subject prefix '${this.subjectPrefix}' to: ${devHooks.divertEmailTo}`)
   }
 

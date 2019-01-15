@@ -9,14 +9,14 @@ import { Context } from '../../datastore/context';
 import { createLogger } from '../../gcloud/logging';
 
 @Injectable()
-export class GmailSender implements MailSender{
-  private logger: Logger;
+export class GmailSender implements MailSender {
+  private logger: Logger = createLogger('gmail-sender');
 
   constructor(
     private readonly gmailConfigurer: GmailConfigurer,
     @Inject(CONFIGURATION) private readonly configurationProvider: Configuration,
   ) {
-    this.logger = createLogger('gmail-sender');
+    this.logger.info('Created GmailSender');
   }
 
   async send(context: Context, mailOptions: Options) {
@@ -42,6 +42,9 @@ export class GmailSender implements MailSender{
         auth,
       };
       const transporter = createTransport(transport);
+
+      this.logger.info(`Sending email to: [${mailOptions.to}], cc: [${mailOptions.cc}], bcc: ` +
+        `[${mailOptions.bcc}] with subject: ${mailOptions.subject}`);
 
       await new Promise((resolve, reject) =>
         transporter.sendMail(
