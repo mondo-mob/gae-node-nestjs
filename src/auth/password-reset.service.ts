@@ -4,7 +4,7 @@ import * as uuid from 'node-uuid';
 import { Context } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';
 import { createLogger } from '../gcloud/logging';
-import { Configuration, MAIL_SENDER, MailSender } from '../index';
+import { CONFIGURATION, Configuration, MAIL_SENDER, MailSender } from '../index';
 import { CredentialRepository, PasswordResetRepository, } from './auth.repository';
 import { hashPassword } from './auth.service';
 
@@ -18,8 +18,8 @@ export class PasswordResetService {
   constructor(
     private readonly authRepository: CredentialRepository,
     private readonly passwordResetRepository: PasswordResetRepository,
+    @Inject(CONFIGURATION) private readonly configuration: Configuration,
     @Inject(MAIL_SENDER) private readonly mailSender: MailSender,
-    @Inject('Configuration') private readonly configuration: Configuration,
   ) {
     this.logger = createLogger('password-reset-service');
     this.tokenExpiry = configuration.passwordTokenExpiry || DEFAULT_PASSWORD_TOKEN_EXPIRY;

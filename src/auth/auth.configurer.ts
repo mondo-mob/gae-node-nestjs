@@ -64,7 +64,7 @@ export class AuthConfigurer {
             clientSecret: this.configuration.auth.google.secret,
             callbackURL: `${
               this.configuration.host
-              }/auth/signin/google/callback`,
+            }/auth/signin/google/callback`,
           },
           this.validateGmail,
         ),
