@@ -4,7 +4,7 @@ import * as uuid from 'node-uuid';
 import { Context } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';
 import { createLogger } from '../gcloud/logging';
-import { CONFIGURATION, Configuration, MAIL_SENDER, MailSender } from '../index';
+import { Configuration, MAIL_SENDER, MailSender } from '../index';
 import { CredentialRepository, PasswordResetRepository, } from './auth.repository';
 import { hashPassword } from './auth.service';
 
