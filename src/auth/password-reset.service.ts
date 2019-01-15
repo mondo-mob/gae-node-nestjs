@@ -19,7 +19,7 @@ export class PasswordResetService {
     private readonly authRepository: CredentialRepository,
     private readonly passwordResetRepository: PasswordResetRepository,
     @Inject(MAIL_SENDER) private readonly mailSender: MailSender,
-    @Inject(CONFIGURATION) private readonly configuration: Configuration,
+    @Inject('Configuration') private readonly configuration: Configuration,
   ) {
     this.logger = createLogger('password-reset-service');
     this.tokenExpiry = configuration.passwordTokenExpiry || DEFAULT_PASSWORD_TOKEN_EXPIRY;
