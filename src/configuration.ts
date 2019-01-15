@@ -30,6 +30,7 @@ export interface Configuration {
     };
   };
   devHooks?: {
+    disableLocalMailLogger?: boolean;
     divertEmailTo?: string[];
     emailSubjectPrefix?: string;
   };

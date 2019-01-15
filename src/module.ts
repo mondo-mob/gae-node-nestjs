@@ -56,15 +56,15 @@ export interface Options {
     {
       provide: GmailSender,
       useFactory: (
-        configurationProvider: Configuration,
+        config: Configuration,
         gmailConfigurer: GmailConfigurer,
       ) => {
-        if (configurationProvider.environment === 'development') {
+        if (config.environment === 'development' && !(config.devHooks && config.devHooks.disableLocalMailLogger)) {
           return new LocalMailLogger();
         }
-        const gmailSender = new GmailSender(gmailConfigurer, configurationProvider);
-        return (configurationProvider.devHooks && configurationProvider.devHooks.divertEmailTo)
-          ? new MailDiverter(gmailSender, configurationProvider)
+        const gmailSender = new GmailSender(gmailConfigurer, config);
+        return (config.devHooks && config.devHooks.divertEmailTo)
+          ? new MailDiverter(gmailSender, config)
           : gmailSender;
       },
       inject: ['Configuration', GmailConfigurer],
