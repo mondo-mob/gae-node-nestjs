@@ -6,7 +6,7 @@ import * as passport from 'passport';
 import * as Logger from 'bunyan';
 import { DatastoreProvider } from '../datastore/datastore.provider';
 import { newContext } from '../datastore/context';
-import { CONFIGURATION, Configuration, IUser } from '../index';
+import { Configuration, IUser } from '../index';
 import { createLogger } from '../gcloud/logging';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { OAuth2Strategy as GoogleStrategy } from 'passport-google-oauth';
@@ -24,7 +24,7 @@ export class AuthConfigurer {
 
   constructor(
     datastoreProvider: DatastoreProvider,
-    @Inject(CONFIGURATION) private readonly configuration: Configuration,
+    @Inject('Configuration') private readonly configuration: Configuration,
     @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
     private readonly authService: AuthService,
   ) {
@@ -64,7 +64,7 @@ export class AuthConfigurer {
             clientSecret: this.configuration.auth.google.secret,
             callbackURL: `${
               this.configuration.host
-            }/auth/signin/google/callback`,
+              }/auth/signin/google/callback`,
           },
           this.validateGmail,
         ),
