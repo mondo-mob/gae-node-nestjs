@@ -60,6 +60,8 @@ export interface Options {
         config: Configuration,
         gmailConfigurer: GmailConfigurer,
       ) => {
+        // tslint:disable-next-line
+        console.log('Configuring mail sender');
         if (config.environment === 'development' && !(config.devHooks && config.devHooks.disableLocalMailLogger)) {
           return new LocalMailLogger();
         }
