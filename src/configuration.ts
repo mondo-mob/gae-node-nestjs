@@ -31,6 +31,7 @@ export interface Configuration {
   };
   devHooks?: {
     divertEmailTo?: string[];
+    emailSubjectPrefix?: string;
   };
 }
 

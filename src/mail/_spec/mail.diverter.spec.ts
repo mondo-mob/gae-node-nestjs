@@ -69,16 +69,36 @@ describe('MailDiverter', () => {
   it('should divert single email string to alternate address', async () => {
     mailOptions = {
       to: 'actual@address.com',
+      subject: 'original subject',
     };
     setupDivertedEmails(1);
 
     diverter = new MailDiverter(aMailSender, config);
     await diverter.send(context, mailOptions);
 
-    const [, secondArg] = capture(mockedMailSender.send).first();
-    expect(secondArg.to).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com'}]);
-    expect(secondArg.cc).toEqual([]);
-    expect(secondArg.bcc).toEqual([]);
+    const [, actualMailOptions] = capture(mockedMailSender.send).first();
+    expect(actualMailOptions.to).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com'}]);
+    expect(actualMailOptions.cc).toEqual([]);
+    expect(actualMailOptions.bcc).toEqual([]);
+    expect(actualMailOptions.subject).toEqual(mailOptions.subject);
+  });
+
+  it('should divert single email and add subject prefix when subject prefix supplied in config', async () => {
+    mailOptions = {
+      to: 'actual@address.com',
+      subject: 'original subject',
+    };
+    setupDivertedEmails(1);
+    config.devHooks!.emailSubjectPrefix = 'TEST';
+
+    diverter = new MailDiverter(aMailSender, config);
+    await diverter.send(context, mailOptions);
+
+    const [, actualMailOptions] = capture(mockedMailSender.send).first();
+    expect(actualMailOptions.subject).toEqual('TEST: original subject');
+    expect(actualMailOptions.to).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com'}]);
+    expect(actualMailOptions.cc).toEqual([]);
+    expect(actualMailOptions.bcc).toEqual([]);
   });
 
   it('should divert to, cc and bcc to alternate address', async () => {
@@ -86,16 +106,18 @@ describe('MailDiverter', () => {
       to: 'actualTO@address.com',
       cc: 'actualCC@address.com',
       bcc: 'actualBCC@address.com',
+      subject: 'original subject',
     };
     setupDivertedEmails(1);
 
     diverter = new MailDiverter(aMailSender, config);
     await diverter.send(context, mailOptions);
 
-    const [, secondArg] = capture(mockedMailSender.send).first();
-    expect(secondArg.to).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actualTO.at.address.com'}]);
-    expect(secondArg.cc).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actualCC.at.address.com'}]);
-    expect(secondArg.bcc).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actualBCC.at.address.com'}]);
+    const [, actualMailOptions] = capture(mockedMailSender.send).first();
+    expect(actualMailOptions.to).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actualTO.at.address.com'}]);
+    expect(actualMailOptions.cc).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actualCC.at.address.com'}]);
+    expect(actualMailOptions.bcc).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actualBCC.at.address.com'}]);
+    expect(actualMailOptions.subject).toEqual(mailOptions.subject);
   });
 
   it('should divert multiple email string to alternate address', async () => {
@@ -107,8 +129,8 @@ describe('MailDiverter', () => {
     diverter = new MailDiverter(aMailSender, config);
     await diverter.send(context, mailOptions);
 
-    const [, secondArg] = capture(mockedMailSender.send).first();
-    expect(secondArg.to).toEqual([
+    const [, actualMailOptions] = capture(mockedMailSender.send).first();
+    expect(actualMailOptions.to).toEqual([
       {address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com, actual2.at.another.com'},
     ]);
   });
@@ -122,8 +144,8 @@ describe('MailDiverter', () => {
     diverter = new MailDiverter(aMailSender, config);
     await diverter.send(context, mailOptions);
 
-    const [, secondArg] = capture(mockedMailSender.send).first();
-    expect(secondArg.to).toEqual([
+    const [, actualMailOptions] = capture(mockedMailSender.send).first();
+    expect(actualMailOptions.to).toEqual([
       {address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com'},
     ]);
   });
@@ -140,8 +162,8 @@ describe('MailDiverter', () => {
     diverter = new MailDiverter(aMailSender, config);
     await diverter.send(context, mailOptions);
 
-    const [, secondArg] = capture(mockedMailSender.send).first();
-    expect(secondArg.to).toEqual([
+    const [, actualMailOptions] = capture(mockedMailSender.send).first();
+    expect(actualMailOptions.to).toEqual([
       {address: 'divertTo0@test.com', name: 'Diverted from actual1.at.address.com, actual2.at.address.com, actual3.at.address.com'},
     ]);
   });
@@ -159,8 +181,8 @@ describe('MailDiverter', () => {
     diverter = new MailDiverter(aMailSender, config);
     await diverter.send(context, mailOptions);
 
-    const [, secondArg] = capture(mockedMailSender.send).first();
-    expect(secondArg.to).toEqual([
+    const [, actualMailOptions] = capture(mockedMailSender.send).first();
+    expect(actualMailOptions.to).toEqual([
       {address: 'divertTo0@test.com', name: 'Diverted from actual1.at.address.com, actual2.at.address.com, actual3.at.address.com'},
     ]);
   });
@@ -176,16 +198,16 @@ describe('MailDiverter', () => {
     diverter = new MailDiverter(aMailSender, config);
     await diverter.send(context, mailOptions);
 
-    const [, secondArg] = capture(mockedMailSender.send).first();
-    expect(secondArg.to).toEqual([
+    const [, actualMailOptions] = capture(mockedMailSender.send).first();
+    expect(actualMailOptions.to).toEqual([
       {address: 'divertTo0@test.com', name: 'Diverted from actualTO.at.address.com'},
       {address: 'divertTo1@test.com', name: 'Diverted from actualTO.at.address.com'},
       ]);
-    expect(secondArg.cc).toEqual([
+    expect(actualMailOptions.cc).toEqual([
       {address: 'divertTo0@test.com', name: 'Diverted from actualCC.at.address.com'},
       {address: 'divertTo1@test.com', name: 'Diverted from actualCC.at.address.com'},
     ]);
-    expect(secondArg.bcc).toEqual([
+    expect(actualMailOptions.bcc).toEqual([
       {address: 'divertTo0@test.com', name: 'Diverted from actualBCC.at.address.com'},
       {address: 'divertTo1@test.com', name: 'Diverted from actualBCC.at.address.com'},
     ]);
