@@ -87,7 +87,7 @@ export interface Options {
     PasswordResetRepository,
     PasswordResetService,
     InviteUserService,
-    GmailSender,
+    MAIL_SENDER,
   ],
   controllers: [AuthController, GmailController],
 })
