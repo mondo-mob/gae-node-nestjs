@@ -9,7 +9,7 @@ import { mockContext } from './auth.service.spec';
 
 describe('InviteUserService', () => {
   const credentialRepository = mock(CredentialRepository);
-  const gmailSender = mock(GmailSender);
+  const mailSender = mock(GmailSender);
   const userInviteRepository = mock(UserInviteRepository);
   const userService = mock(AbstractUserService);
   const configuration = {
@@ -21,13 +21,13 @@ describe('InviteUserService', () => {
 
   beforeEach(() => {
     reset(credentialRepository);
-    reset(gmailSender);
+    reset(mailSender);
     reset(userInviteRepository);
     reset(userService);
 
     inviteUserService = new InviteUserService(
         instance(credentialRepository),
-        instance(gmailSender),
+        instance(mailSender),
         configuration,
         instance(userService),
         instance(userInviteRepository),
@@ -81,7 +81,7 @@ describe('InviteUserService', () => {
 
       verify(userService.create(anything(), anything())).never();
       const [, invite] = capture(userInviteRepository.save).last();
-      const [, mail] = capture(gmailSender.send).last();
+      const [, mail] = capture(mailSender.send).last();
 
       expect(result).toEqual({
         user: existingUser,
@@ -107,7 +107,7 @@ describe('InviteUserService', () => {
 
       const [, createRequest] = capture(userService.create).last();
       const [, invite] = capture(userInviteRepository.save).last();
-      const [, mail] = capture(gmailSender.send).last();
+      const [, mail] = capture(mailSender.send).last();
 
       expect(result).toEqual({
         user: createdUser,
@@ -138,7 +138,7 @@ describe('InviteUserService', () => {
 
       const [, createRequest] = capture(userService.create).last();
       const [, invite] = capture(userInviteRepository.save).last();
-      verify(gmailSender.send(context, anything())).never();
+      verify(mailSender.send(context, anything())).never();
 
       expect(result).toEqual({
         user: createdUser,
@@ -192,7 +192,7 @@ describe('InviteUserService', () => {
 
       verify(userService.create(anything(), anything())).never();
       verify(userInviteRepository.save(anything(), anything())).never();
-      verify(gmailSender.send(context, anything())).never();
+      verify(mailSender.send(context, anything())).never();
       const [, , updateRequest] = capture(userService.update).last();
 
       expect(result).toEqual({
@@ -217,7 +217,7 @@ describe('InviteUserService', () => {
 
       const [, createRequest] = capture(userService.create).last();
       const [, invite] = capture(userInviteRepository.save).last();
-      verify(gmailSender.send(context, anything())).never();
+      verify(mailSender.send(context, anything())).never();
 
       expect(result).toEqual({
         user: createdUser,

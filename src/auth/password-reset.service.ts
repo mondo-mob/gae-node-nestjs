@@ -1,16 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as Logger from 'bunyan';
 import * as uuid from 'node-uuid';
-import { GmailSender } from '../mail/gmail/gmail.sender';
-import {
-  CredentialRepository,
-  PasswordResetRepository,
-} from './auth.repository';
-import { hashPassword } from './auth.service';
+import { Context } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';
 import { createLogger } from '../gcloud/logging';
-import { Context } from '../datastore/context';
-import { CONFIGURATION, Configuration } from '../index';
+import { CONFIGURATION, Configuration, MAIL_SENDER, MailSender } from '../index';
+import { CredentialRepository, PasswordResetRepository, } from './auth.repository';
+import { hashPassword } from './auth.service';
 
 const DEFAULT_PASSWORD_TOKEN_EXPIRY = 24 * 60 * 60 * 1000;
 
@@ -22,7 +18,7 @@ export class PasswordResetService {
   constructor(
     private readonly authRepository: CredentialRepository,
     private readonly passwordResetRepository: PasswordResetRepository,
-    private readonly gmailSender: GmailSender,
+    @Inject(MAIL_SENDER) private readonly mailSender: MailSender,
     @Inject(CONFIGURATION) private readonly configuration: Configuration,
   ) {
     this.logger = createLogger('password-reset-service');
@@ -67,7 +63,7 @@ export class PasswordResetService {
 
     const address = `${this.configuration.host}/confirm-reset/${id}`;
 
-    await this.gmailSender.send(context, {
+    await this.mailSender.send(context, {
       to: email,
       subject: 'Password reset',
       html: `

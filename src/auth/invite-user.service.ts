@@ -30,7 +30,7 @@ export class InviteUserService {
 
   constructor(
     private readonly authRepository: CredentialRepository,
-    @Inject(MAIL_SENDER) private readonly gmailSender: MailSender,
+    @Inject(MAIL_SENDER) private readonly mailSender: MailSender,
     @Inject(CONFIGURATION) private readonly configuration: Configuration,
     @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
     private readonly userInviteRepository: UserInviteRepository,
@@ -116,7 +116,7 @@ export class InviteUserService {
         this.logger.info('Skipping sending invitation email based on request option');
       } else {
         this.logger.info(`Sending invitation email to ${email} with link ${activateLink}`);
-        await this.gmailSender.send(context, {
+        await this.mailSender.send(context, {
           to: email,
           subject: 'Activate account',
           html: `
