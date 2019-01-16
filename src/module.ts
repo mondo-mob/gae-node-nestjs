@@ -22,7 +22,7 @@ import { GmailController } from './mail/gmail/gmail.controller';
 import { GmailSender } from './mail/gmail/gmail.sender';
 import { StoredCredentialsRepository } from './mail/gmail/stored.credentials.repository';
 import { MailDiverter } from './mail/mail.diverter';
-import { LocalMailLogger } from './mail/mail.local.logger';
+import { LoggingMailSenderStub } from './mail/mail.logging.stub';
 import { MAIL_SENDER } from './mail/mail.sender';
 
 interface ClassType { new (...args: any[]): any }
@@ -64,7 +64,7 @@ export interface Options {
         // tslint:disable-next-line
         console.log(`Configuring mail sender with devHooks: `, config.devHooks);
         if (config.environment === 'development' && !disableMailLogger) {
-          return new LocalMailLogger();
+          return new LoggingMailSenderStub();
         }
         const gmailSender = new GmailSender(gmailConfigurer, config);
         return (config.devHooks && config.devHooks.divertEmailTo)
