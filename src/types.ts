@@ -3,5 +3,5 @@ import { Mixed } from 'io-ts';
 
 export const t = {
   ...iots,
-  nullable: (type: Mixed) => t.union([type, t.undefined]),
+  nullable: <T>(type: iots.Type<T>) => t.union([type, t.null]),
 };
