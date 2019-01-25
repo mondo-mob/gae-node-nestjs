@@ -1,16 +1,18 @@
 /* tslint:disable:ban-types */
 import * as DatastoreStore from '@google-cloud/connect-datastore';
 import * as Datastore from '@google-cloud/datastore';
-import {OneOrMany} from '@google-cloud/datastore/entity';
-import {CookieOptions} from 'express';
+import { OneOrMany } from '@google-cloud/datastore/entity';
+import { CookieOptions, NextFunction, Response, RequestHandler } from 'express';
 import * as session from 'express-session';
 import * as csp from 'helmet-csp';
 import * as passport from 'passport';
-import {CsrfValidator} from './auth/csrf.interceptor';
-import {rootLogger} from './gcloud/logging';
+import { CsrfValidator } from './auth/csrf.interceptor';
+import { rootLogger } from './gcloud/logging';
+import { asArray } from './util/types';
+import { ServerResponse, IncomingMessage } from 'http';
 
 interface ServerOptions {
-  csp?: object,
+  csp?: object;
   csrf?: {
     ignorePaths: OneOrMany<string | RegExp>;
   };
@@ -30,23 +32,22 @@ interface Express {
   set(property: string, value: boolean): void;
 }
 
-export const configureExpress = (
-  expressApp: Express,
-  options: ServerOptions,
-) => {
+export const configureExpress = (expressApp: Express, options: ServerOptions) => {
   const SessionStore = DatastoreStore(session);
 
   expressApp.use(
-    csp(options.csp || {
-      directives: {
-        defaultSrc: ['\'none\''],
-        scriptSrc: ['\'self\''],
-        styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
-        fontSrc: ['\'self\'', 'https://fonts.gstatic.com'],
-        imgSrc: ['\'self\''],
-        connectSrc: ['\'self\'', 'https://www.googleapis.com'],
+    csp(
+      options.csp || {
+        directives: {
+          defaultSrc: ["'none'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+          imgSrc: ["'self'"],
+          connectSrc: ["'self'", 'https://www.googleapis.com'],
+        },
       },
-    }),
+    ),
   );
 
   // Force secure session cookie in app engine / prod
@@ -68,13 +69,27 @@ export const configureExpress = (
         } as any),
       }),
       secret: options.session.secret,
-      cookie: {...options.session.cookie, secure},
+      cookie: {
+        ...options.session.cookie,
+        secure,
+      },
     }),
   );
 
-  const {ignorePaths = [/^\/(?!tasks\/|system\/).*/]} = options.csrf || {};
+  const { ignorePaths = [/^\/(tasks\/|system\/).*/] } = options.csrf || {};
+
+  // Allows us to specify positive matches for ignoring rather than complex negative lookaheads
+  // See https://stackoverflow.com/questions/27117337/exclude-route-from-express-middleware
+  const unless = (exclusions: OneOrMany<string | RegExp>, middleware: RequestHandler) => {
+    return (req: any, res: Response, next: NextFunction) => {
+      const matchesExclusion = asArray(exclusions).some(path =>
+        typeof path.test === 'function' ? (path as RegExp).test(req.path) : path === req.path,
+      );
+      matchesExclusion ? next() : middleware(req, res, next);
+    };
+  };
 
   expressApp.use(passport.initialize());
   expressApp.use(passport.session());
-  expressApp.use(ignorePaths, CsrfValidator);
+  expressApp.use(unless(ignorePaths, CsrfValidator));
 };
