@@ -1,12 +1,8 @@
 import * as Logger from 'bunyan';
-import { google, cloudtasks_v2beta2 } from 'googleapis';
+import tasks from '@google-cloud/tasks'
 import fetch from 'node-fetch';
 import { Configuration } from '../';
 import { createLogger } from './logging';
-
-const cloudtasks = google.cloudtasks('v2beta2');
-const tasks = cloudtasks.projects.locations.queues
-  .tasks as cloudtasks_v2beta2.Resource$Projects$Locations$Queues$Tasks;
 
 export class TaskQueue<T extends Configuration> {
   private taskLogger: Logger;
@@ -27,36 +23,29 @@ export class TaskQueue<T extends Configuration> {
   }
 
   async appEngineQueue(taskName: string, payload: any) {
-    const client = await google.auth.getClient({
-      scopes: ['https://www.googleapis.com/auth/cloud-platform'],
-    });
+    const client = new tasks.v2beta3.CloudTasksClient();
 
     const projectId = this.configurationProvider.projectId;
     const location = this.configurationProvider.location;
 
     const body = JSON.stringify(payload);
-    const requestPayload = Buffer.from(body).toString('base64');
-    await tasks.create(
-      {
-        auth: client,
-        parent: `projects/${projectId}/locations/${location}/queues/${
-          this.queueName
-        }`,
-        requestBody: {
-          task: {
-            appEngineHttpRequest: {
-              relativeUrl: `/tasks/${taskName}`,
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              payload: requestPayload,
-              httpMethod: 'POST',
-            },
-          },
+
+    const parent = `projects/${projectId}/locations/${location}/queues/${this.queueName}`;
+    const task = {
+      appEngineHttpRequest: {
+        relativeUri: `/tasks/${taskName}`,
+        headers: {
+          'Content-Type': 'application/json',
         },
+        payload: body,
+        httpMethod: 'POST',
       },
-      {},
-    );
+    };
+
+    await client.createTask({
+      parent,
+      task,
+    });
   }
 
   async localQueue(taskName: string, payload: any) {
