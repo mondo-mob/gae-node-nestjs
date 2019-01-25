@@ -20,4 +20,3 @@ export { Configuration, CONFIGURATION } from './configuration';
 export * from './module';
 export * from './configure';
 export * from './interceptor';
-export { t } from './types';
