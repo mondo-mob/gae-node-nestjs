@@ -29,6 +29,7 @@ export class TaskQueue<T extends Configuration> {
     const location = this.configurationProvider.location;
 
     const body = JSON.stringify(payload);
+    const requestPayload = Buffer.from(body).toString('base64');
 
     const parent = `projects/${projectId}/locations/${location}/queues/${this.queueName}`;
     const task = {
@@ -37,7 +38,7 @@ export class TaskQueue<T extends Configuration> {
         headers: {
           'Content-Type': 'application/json',
         },
-        payload: body,
+        body: requestPayload,
         httpMethod: 'POST',
       },
     };
