@@ -1,10 +1,4 @@
-import {
-  createParamDecorator,
-  Injectable,
-  MiddlewareFunction,
-  NestMiddleware,
-  Inject,
-} from '@nestjs/common';
+import { createParamDecorator, Injectable, MiddlewareFunction, NestMiddleware, Inject } from '@nestjs/common';
 import * as Logger from 'bunyan';
 import * as _ from 'lodash';
 import { Request } from 'express';
@@ -30,17 +24,14 @@ export class ContextMiddleware implements NestMiddleware {
 
   resolve(...args: any[]): MiddlewareFunction | Promise<MiddlewareFunction> {
     return async (req: RequestWithContext, res, next) => {
-      this.logger.debug(`[${req.method}]: ${req.originalUrl}`);
+      this.logger.info(`[${req.method}]: ${req.originalUrl}`);
 
       const requestContext = newContext(this.datastoreProvider.datastore);
 
       const userId = _.get(req, 'session.passport.user.id');
 
       if (userId && !req.is('text/html')) {
-        requestContext.user = await this.userService.get(
-          requestContext,
-          userId,
-        );
+        requestContext.user = await this.userService.get(requestContext, userId);
       }
 
       req.context = requestContext;
