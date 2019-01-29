@@ -9,6 +9,7 @@ import { Configuration, MailSender, USER_SERVICE, UserService } from '../index';
 import { MAIL_SENDER } from '../mail/mail.sender';
 import { CredentialRepository, UserInviteRepository } from './auth.repository';
 import { hashPassword } from './auth.service';
+import { unique } from '../util/arrays';
 
 export const INVITE_CODE_EXPIRY = 7 * 24 * 60 * 60 * 1000;
 
@@ -69,7 +70,11 @@ export class InviteUserService {
     return this.userService.get(context, invite.userId);
   }
 
-  protected async inviteUserInternal(context: Context, request: IInviteUserRequest, validateNew: boolean): Promise<IInviteUserResponse> {
+  protected async inviteUserInternal(
+    context: Context,
+    request: IInviteUserRequest,
+    validateNew: boolean,
+  ): Promise<IInviteUserResponse> {
     const { email, roles } = request;
 
     this.logger.info(`Inviting user with email: ${email}, roles: ${roles}, validateNew: ${validateNew}`);
@@ -95,11 +100,10 @@ export class InviteUserService {
     if (auth) {
       this.logger.info(`User with email ${email} already has a login so does not need to be invited`);
       const updatedUser = await this.userService.update(context, user.id, {
-        roles: [...user.roles, ...roles],
+        roles: unique(user.roles, ...roles),
         enabled: true,
       });
       return { user: updatedUser };
-
     } else {
       const inviteId = uuid.v4();
       await this.userInviteRepository.save(context, {
@@ -141,12 +145,7 @@ export class InviteUserService {
    * @param password
    */
   @Transactional()
-  async activateAccount(
-    context: Context,
-    code: string,
-    name: string,
-    password: string,
-  ) {
+  async activateAccount(context: Context, code: string, name: string, password: string) {
     const invite = await this.userInviteRepository.get(context, code);
     if (!invite) {
       throw new Error('Invalid invite code');
