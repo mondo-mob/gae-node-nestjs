@@ -13,11 +13,7 @@ interface RepositoryOptions<T extends { id: any }> {
   index?: Index<Omit<T, 'id'>>;
 }
 
-export function buildExclusions<T>(
-  input: T,
-  schema: Index<T> = {},
-  path: string = '',
-): string[] {
+export function buildExclusions<T>(input: T, schema: Index<T> = {}, path: string = ''): string[] {
   if (schema === true) {
     return [];
   } else if (Array.isArray(input)) {
@@ -30,11 +26,7 @@ export function buildExclusions<T>(
       .value();
   } else if (typeof input === 'object') {
     const paths = _.flatMap<object, string>(input as any, (value, key) => {
-      return buildExclusions(
-        value,
-        (schema as any)[key],
-        `${path}${path.length > 0 ? '.' : ''}${key}`,
-      );
+      return buildExclusions(value, (schema as any)[key], `${path}${path.length > 0 ? '.' : ''}${key}`);
     });
 
     if (path) {
@@ -57,28 +49,19 @@ export const datastoreKey = new t.Type<DatastoreKey>(
 export const dateType = new t.Type<Date>(
   'DateType',
   (m): m is Date => m instanceof Date,
-  (m, c) =>
-    m instanceof Date ? t.success(m) : t.failure('Value is not date', c),
+  (m, c) => (m instanceof Date ? t.success(m) : t.failure('Value is not date', c)),
   a => a,
 );
 
 class LoadError extends Error {
   constructor(kind: string, id: string, errors: string[]) {
-    super(
-      `"${kind}" with id "${id}" failed to load due to ${
-        errors.length
-      } errors:\n${errors.join('\n')}`,
-    );
+    super(`"${kind}" with id "${id}" failed to load due to ${errors.length} errors:\n${errors.join('\n')}`);
   }
 }
 
 class SaveError extends Error {
   constructor(kind: string, id: string, errors: string[]) {
-    super(
-      `"${kind}" with id "${id}" failed to save due to ${
-        errors.length
-      } errors:\n${errors.join('\n')}`,
-    );
+    super(`"${kind}" with id "${id}" failed to save due to ${errors.length} errors:\n${errors.join('\n')}`);
   }
 }
 
@@ -94,15 +77,17 @@ export class Repository<T extends { id: string }> {
     this.validator = validator;
   }
 
+  async getRequired(context: Context, id: string): Promise<T> {
+    const result = await this.get(context, id);
+    if (!result) {
+      throw new LoadError(this.kind, id, ['invalid id']);
+    }
+    return result;
+  }
+
   async get(context: Context, id: string): Promise<T | undefined>;
-  async get(
-    context: Context,
-    id: ReadonlyArray<string>,
-  ): Promise<ReadonlyArray<T> | undefined>;
-  async get(
-    context: Context,
-    ids: string | ReadonlyArray<string>,
-  ): Promise<OneOrMany<T | undefined>> {
+  async get(context: Context, id: ReadonlyArray<string>): Promise<ReadonlyArray<T> | undefined>;
+  async get(context: Context, ids: string | ReadonlyArray<string>): Promise<OneOrMany<T | undefined>> {
     const idArray = asArray(ids);
     const allKeys = idArray.map(this.key);
 
@@ -123,66 +108,37 @@ export class Repository<T extends { id: string }> {
     }
   }
 
-  async query(
-    context: Context,
-    options: Partial<QueryOptions<T>> = {},
-  ): Promise<[ReadonlyArray<T>, QueryInfo]> {
+  async query(context: Context, options: Partial<QueryOptions<T>> = {}): Promise<[ReadonlyArray<T>, QueryInfo]> {
     const [results, queryInfo] = await context.datastore.executeQuery<T>(this.kind, options);
 
-    return [results.map<any>(value =>
-      this.validate(value[Datastore.KEY].name!, _.omit(value, Datastore.KEY)),
-    ), queryInfo];
+    return [
+      results.map<any>(value => this.validate(value[Datastore.KEY].name!, _.omit(value, Datastore.KEY))),
+      queryInfo,
+    ];
   }
 
   async save(context: Context, entities: T): Promise<T>;
-  async save(
-    context: Context,
-    entities: ReadonlyArray<T>,
-  ): Promise<ReadonlyArray<T>>;
+  async save(context: Context, entities: ReadonlyArray<T>): Promise<ReadonlyArray<T>>;
   async save(context: Context, entities: OneOrMany<T>): Promise<OneOrMany<T>> {
     return this.applyMutation(context, entities, (loader, e) => loader.save(e));
   }
 
   async update(context: Context, entities: T): Promise<T>;
-  async update(
-    context: Context,
-    entities: ReadonlyArray<T>,
-  ): Promise<ReadonlyArray<T>>;
-  async update(
-    context: Context,
-    entities: OneOrMany<T>,
-  ): Promise<OneOrMany<T>> {
-    return this.applyMutation(context, entities, (loader, e) =>
-      loader.update(e),
-    );
+  async update(context: Context, entities: ReadonlyArray<T>): Promise<ReadonlyArray<T>>;
+  async update(context: Context, entities: OneOrMany<T>): Promise<OneOrMany<T>> {
+    return this.applyMutation(context, entities, (loader, e) => loader.update(e));
   }
 
   async insert(context: Context, entities: T): Promise<T>;
-  async insert(
-    context: Context,
-    entities: ReadonlyArray<T>,
-  ): Promise<ReadonlyArray<T>>;
-  async insert(
-    context: Context,
-    entities: OneOrMany<T>,
-  ): Promise<OneOrMany<T>> {
-    return this.applyMutation(context, entities, (loader, e) =>
-      loader.insert(e),
-    );
+  async insert(context: Context, entities: ReadonlyArray<T>): Promise<ReadonlyArray<T>>;
+  async insert(context: Context, entities: OneOrMany<T>): Promise<OneOrMany<T>> {
+    return this.applyMutation(context, entities, (loader, e) => loader.insert(e));
   }
 
   async upsert(context: Context, entities: T): Promise<T>;
-  async upsert(
-    context: Context,
-    entities: ReadonlyArray<T>,
-  ): Promise<ReadonlyArray<T>>;
-  async upsert(
-    context: Context,
-    entities: OneOrMany<T>,
-  ): Promise<OneOrMany<T>> {
-    return this.applyMutation(context, entities, (loader, e) =>
-      loader.upsert(e),
-    );
+  async upsert(context: Context, entities: ReadonlyArray<T>): Promise<ReadonlyArray<T>>;
+  async upsert(context: Context, entities: OneOrMany<T>): Promise<OneOrMany<T>> {
+    return this.applyMutation(context, entities, (loader, e) => loader.upsert(e));
   }
 
   /**
@@ -218,11 +174,7 @@ export class Repository<T extends { id: string }> {
   };
 
   private validate = (id: string, value: object): T => {
-    const entity = {
-      ...(this.options.defaultValues as any),
-      ...value,
-      id,
-    };
+    const entity = { ...(this.options.defaultValues as any), ...value, id };
 
     const validation = this.validator.decode(entity);
 
@@ -237,10 +189,7 @@ export class Repository<T extends { id: string }> {
   private async applyMutation(
     context: Context,
     entities: OneOrMany<T>,
-    mutation: (
-      loader: DatastoreLoader,
-      entities: ReadonlyArray<DatastorePayload<T>>,
-    ) => Promise<any>,
+    mutation: (loader: DatastoreLoader, entities: ReadonlyArray<DatastorePayload<T>>) => Promise<any>,
   ): Promise<OneOrMany<T>> {
     const entitiesToSave = asArray(entities)
       .map(entity => {
