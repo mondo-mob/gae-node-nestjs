@@ -48,16 +48,16 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
               display: block;
               Margin: 0 auto !important;
               /* makes it centered */
-              max-width: 620px;
+              max-width: 580px;
               padding: 10px;
-              width: 620px; }
+              width: 580px; }
   
           /* This should also be a block element, so that it will fill 100% of the .container */
           .content {
               box-sizing: border-box;
               display: block;
               Margin: 0 auto;
-              max-width: 600px;
+              max-width: 580px;
               padding: 10px; }
   
           /* -------------------------------------
@@ -65,7 +65,6 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
           ------------------------------------- */
           .main {
               background: #fff;
-              margin-top: -10px;
               border-radius: 4px;
               width: 100%; }
   
@@ -134,15 +133,15 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
           .btn table {
               width: auto; }
           .btn table td {
-              background-color: #000;
+              background-color: #ffffff;
               border-radius: 4px;
               text-align: center; }
           .btn a {
-              background-color: #000;
-              border: solid 1px #ffde03;
+              background-color: #ffffff;
+              border: solid 1px #337ab7;
               border-radius: 4px;
               box-sizing: border-box;
-              color: #ffde03;
+              color: #337ab7;
               cursor: pointer;
               display: inline-block;
               font-size: 14px;
@@ -152,12 +151,12 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
               text-decoration: none; }
   
           .btn-primary table td {
-              background-color: #ffde03; }
+              background-color: #337ab7; }
   
           .btn-primary a {
-              background-color: #ffde03;
-              border-color: #ffde03;
-              color: #000; }
+              background-color: #337ab7;
+              border-color: #337ab7;
+              color: #ffffff; }
   
           /* -------------------------------------
               OTHER STYLES THAT MIGHT BE USEFUL
@@ -262,10 +261,10 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
                   line-height: inherit !important;
                   text-decoration: none !important; }
               .btn-primary table td:hover {
-                  background-color: rgb(178, 155, 2) !important; }
+                  background-color: #337ab7 !important; }
               .btn-primary a:hover {
-                  background-color: rgb(178, 155, 2) !important;
-                  border-color: rgb(178, 155, 2) !important; } }
+                  background-color: #337ab7 !important;
+                  border-color: #337ab7 !important; } }
   
       </style>
   </head>
@@ -276,7 +275,6 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
           <td class="container">
               <!-- START CENTERED WHITE CONTAINER -->
               <div class="content">
-              <img width="600" height="150" style="margin-bottom: -20px;" alt="Virtual Coaching" src="cid:emailHeaderImage"/>
                   <table class="main">
   
                       <!-- START MAIN CONTENT AREA -->
@@ -313,9 +311,7 @@ export const mainButton = (text: string, link: string) => /*html*/ `
                 <table border="0" cellpadding="0" cellspacing="0">
                     <tbody>
                     <tr>
-                        <td>
-                            <a href="${link}" target="_blank">${text}</a>
-                        </td>
+                        <td><a href="${link}" target="_blank">${text}</a></td>
                     </tr>
                     </tbody>
                 </table>
