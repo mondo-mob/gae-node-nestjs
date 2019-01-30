@@ -10,6 +10,7 @@ import { MAIL_SENDER } from '../mail/mail.sender';
 import { CredentialRepository, UserInviteRepository } from './auth.repository';
 import { hashPassword } from './auth.service';
 import { unique } from '../util/arrays';
+import { userInviteEmail } from '../mail-templates/invite';
 
 export const INVITE_CODE_EXPIRY = 7 * 24 * 60 * 60 * 1000;
 
@@ -120,15 +121,11 @@ export class InviteUserService {
         this.logger.info('Skipping sending invitation email based on request option');
       } else {
         this.logger.info(`Sending invitation email to ${email} with link ${activateLink}`);
+        const title = 'activate your account';
         await this.mailSender.send(context, {
           to: email,
-          subject: 'Activate account',
-          html: `
-        <html>
-        <head></head>
-        <body><a href="${activateLink}">Activate your account</a></body>
-        </html>
-      `,
+          subject: title,
+          html: userInviteEmail(title, activateLink),
         });
       }
 
