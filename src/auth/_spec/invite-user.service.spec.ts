@@ -26,11 +26,11 @@ describe('InviteUserService', () => {
     reset(userService);
 
     inviteUserService = new InviteUserService(
-        instance(credentialRepository),
-        instance(mailSender),
-        configuration,
-        instance(userService),
-        instance(userInviteRepository),
+      instance(credentialRepository),
+      instance(mailSender),
+      configuration,
+      instance(userService),
+      instance(userInviteRepository),
     );
   });
 
@@ -41,7 +41,7 @@ describe('InviteUserService', () => {
       inviteRequest = {
         email: 'test@example.com',
         roles: [],
-      }
+      };
     });
 
     it('should throw an error if the email address already exists', async () => {
@@ -49,21 +49,21 @@ describe('InviteUserService', () => {
         id: '123',
       } as LoginCredentials);
 
-      await expect(
-        inviteUserService.inviteUser(context, inviteRequest),
-      ).rejects.toHaveProperty('message', 'Email already exists');
+      await expect(inviteUserService.inviteUser(context, inviteRequest)).rejects.toHaveProperty(
+        'message',
+        'Email already exists',
+      );
     });
 
-    it('should throw an error if roles contains \'super\'', async () => {
+    it("should throw an error if roles contains 'super'", async () => {
       inviteRequest.roles = ['admin', 'super'];
 
-      when(credentialRepository.get(context, inviteRequest.email)).thenResolve(
-        undefined,
-      );
+      when(credentialRepository.get(context, inviteRequest.email)).thenResolve(undefined);
 
-      await expect(
-        inviteUserService.inviteUser(context, inviteRequest),
-      ).rejects.toHaveProperty('message', 'Cannot assign super role to users');
+      await expect(inviteUserService.inviteUser(context, inviteRequest)).rejects.toHaveProperty(
+        'message',
+        'Cannot assign super role to users',
+      );
     });
 
     it('should generate an invite for existing user and send email', async () => {
@@ -94,6 +94,7 @@ describe('InviteUserService', () => {
 
     it('should generate an invite for new user and send email', async () => {
       inviteRequest.roles = ['admin'];
+      inviteRequest.name = 'Jim Bo';
       const createdUser = {
         id: 'user-123',
         email: inviteRequest.email,
@@ -116,6 +117,7 @@ describe('InviteUserService', () => {
       });
       expect(createRequest).toEqual({
         email: inviteRequest.email,
+        name: inviteRequest.name,
         enabled: false,
       });
       expect((invite as any).userId).toBe(createdUser.id);
@@ -151,7 +153,6 @@ describe('InviteUserService', () => {
       });
       expect((invite as any).userId).toBe(createdUser.id);
     });
-
   });
 
   describe('inviteUserIfRequired', () => {
@@ -161,7 +162,7 @@ describe('InviteUserService', () => {
       inviteRequest = {
         email: 'test@example.com',
         roles: [],
-      }
+      };
     });
 
     it('should update existing user and not generate invite when user has auth', async () => {
@@ -234,11 +235,10 @@ describe('InviteUserService', () => {
 
   describe('activateAccount', () => {
     it('should error if invite code does not exist', async () => {
-
-      await expect(
-        inviteUserService.activateAccount(context, '12345', 'Test User', 'password'),
-      ).rejects.toHaveProperty('message', 'Invalid invite code');
-
+      await expect(inviteUserService.activateAccount(context, '12345', 'Test User', 'password')).rejects.toHaveProperty(
+        'message',
+        'Invalid invite code',
+      );
     });
 
     it('should error if invite code has expired', async () => {
@@ -250,9 +250,10 @@ describe('InviteUserService', () => {
         userId: 'user-123',
       });
 
-      await expect(
-        inviteUserService.activateAccount(context, '12345', 'Test User', 'password'),
-      ).rejects.toHaveProperty('message', 'Invite code has expired');
+      await expect(inviteUserService.activateAccount(context, '12345', 'Test User', 'password')).rejects.toHaveProperty(
+        'message',
+        'Invite code has expired',
+      );
     });
 
     it('should error if the account has been created', async () => {
@@ -268,9 +269,10 @@ describe('InviteUserService', () => {
         id: 'test@example.com',
       } as LoginCredentials);
 
-      await expect(
-        inviteUserService.activateAccount(context, '12345', 'Test User', 'password'),
-      ).rejects.toHaveProperty('message', 'Account already registered');
+      await expect(inviteUserService.activateAccount(context, '12345', 'Test User', 'password')).rejects.toHaveProperty(
+        'message',
+        'Account already registered',
+      );
     });
 
     it('should activate the user account', async () => {
@@ -292,12 +294,7 @@ describe('InviteUserService', () => {
         ...expectedUpdates,
       });
 
-      const user = await inviteUserService.activateAccount(
-        context,
-        '12345',
-        'Test User',
-        'password',
-      );
+      const user = await inviteUserService.activateAccount(context, '12345', 'Test User', 'password');
 
       verify(userInviteRepository.delete(context, '12345')).once();
 
@@ -360,7 +357,5 @@ describe('InviteUserService', () => {
 
       expect(result).toBeUndefined();
     });
-
   });
-
 });

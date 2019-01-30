@@ -13,7 +13,7 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
               border: none;
               -ms-interpolation-mode: bicubic;
               max-width: 100%; }
-  
+
           body {
               background-color: #f6f6f6;
               font-family: sans-serif;
@@ -24,7 +24,7 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
               padding: 0;
               -ms-text-size-adjust: 100%;
               -webkit-text-size-adjust: 100%; }
-  
+
           table {
               border-collapse: separate;
               mso-table-lspace: 0pt;
@@ -34,16 +34,17 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
               font-family: sans-serif;
               font-size: 14px;
               vertical-align: top; }
-  
+
           /* -------------------------------------
               BODY & CONTAINER
           ------------------------------------- */
-  
+
           .body {
               background-color: #f6f6f6;
               width: 100%; }
-  
-          /* Set a max-width, and make it display as block so it will automatically stretch to that width, but will also shrink down on a phone or something */
+
+          /* Set a max-width, and make it display as block so it will automatically stretch to that width,
+          but will also shrink down on a phone or something */
           .container {
               display: block;
               Margin: 0 auto !important;
@@ -51,7 +52,7 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
               max-width: 580px;
               padding: 10px;
               width: 580px; }
-  
+
           /* This should also be a block element, so that it will fill 100% of the .container */
           .content {
               box-sizing: border-box;
@@ -59,7 +60,7 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
               Margin: 0 auto;
               max-width: 580px;
               padding: 10px; }
-  
+
           /* -------------------------------------
               HEADER, FOOTER, MAIN
           ------------------------------------- */
@@ -67,11 +68,11 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
               background: #fff;
               border-radius: 4px;
               width: 100%; }
-  
+
           .wrapper {
               box-sizing: border-box;
               padding: 20px; }
-  
+
           .footer {
               clear: both;
               padding-top: 10px;
@@ -84,7 +85,7 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
               color: #999999;
               font-size: 12px;
               text-align: center; }
-  
+
           /* -------------------------------------
               TYPOGRAPHY
           ------------------------------------- */
@@ -98,12 +99,12 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
               line-height: 1.4;
               margin: 0;
               Margin-bottom: 30px; }
-  
+
           h1 {
               font-size: 35px;
               font-weight: 300;
               text-align: center; }
-  
+
           p,
           ul,
           ol {
@@ -117,11 +118,11 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
           ol li {
               list-style-position: inside;
               margin-left: 5px; }
-  
+
           a {
               color: #337ab7;
               text-decoration: underline; }
-  
+
           /* -------------------------------------
               BUTTONS
           ------------------------------------- */
@@ -149,42 +150,42 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
               margin: 0;
               padding: 12px 25px;
               text-decoration: none; }
-  
+
           .btn-primary table td {
               background-color: #337ab7; }
-  
+
           .btn-primary a {
               background-color: #337ab7;
               border-color: #337ab7;
               color: #ffffff; }
-  
+
           /* -------------------------------------
               OTHER STYLES THAT MIGHT BE USEFUL
           ------------------------------------- */
           .last {
               margin-bottom: 0; }
-  
+
           .first {
               margin-top: 0; }
-  
+
           .align-center {
               text-align: center; }
-  
+
           .align-right {
               text-align: right; }
-  
+
           .align-left {
               text-align: left; }
-  
+
           .clear {
               clear: both; }
-  
+
           .mt0 {
               margin-top: 0; }
-  
+
           .mb0 {
               margin-bottom: 0; }
-  
+
           .preheader {
               color: transparent;
               display: none;
@@ -196,15 +197,15 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
               mso-hide: all;
               visibility: hidden;
               width: 0; }
-  
+
           .powered-by a {
               text-decoration: none; }
-  
+
           hr {
               border: 0;
               border-bottom: 1px solid #f6f6f6;
               Margin: 20px 0; }
-  
+
           /* -------------------------------------
               RESPONSIVE AND MOBILE FRIENDLY STYLES
           ------------------------------------- */
@@ -239,7 +240,7 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
                   height: auto !important;
                   max-width: 100% !important;
                   width: auto !important; }}
-  
+
           /* -------------------------------------
               PRESERVE THESE STYLES IN THE HEAD
           ------------------------------------- */
@@ -265,7 +266,7 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
               .btn-primary a:hover {
                   background-color: #337ab7 !important;
                   border-color: #337ab7 !important; } }
-  
+
       </style>
   </head>
   <body class="">
@@ -276,7 +277,7 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
               <!-- START CENTERED WHITE CONTAINER -->
               <div class="content">
                   <table class="main">
-  
+
                       <!-- START MAIN CONTENT AREA -->
                       <tr>
                           <td class="wrapper">
@@ -290,7 +291,7 @@ export const standardEmail = (title: string, content: string) => /*html*/ `
                           </td>
                       </tr>
                       <!-- END MAIN CONTENT AREA -->
-  
+
                   </table>
               </div>
               <!-- END CENTERED WHITE CONTAINER -->

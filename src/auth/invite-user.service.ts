@@ -23,6 +23,10 @@ export interface IInviteUserResponse {
 export interface IInviteUserRequest {
   email: string;
   roles: string[];
+  /**
+   * If a name is supplied, it is saved only when creating a new user
+   */
+  name?: string;
   skipEmail?: boolean;
 }
 
@@ -94,6 +98,7 @@ export class InviteUserService {
     if (!user) {
       user = await this.userService.create(context, {
         email,
+        name: request.name,
         enabled: false,
       });
     }
