@@ -43,11 +43,7 @@ export class AuthResolver {
 
   @AllowAnonymous()
   @Mutation()
-  async resetPassword(
-    _req: void,
-    { email }: { email: string },
-    context: Context,
-  ) {
+  async resetPassword(_req: void, { email }: { email: string }, context: Context) {
     return await this.passwordResetService.resetPassword(context, email);
   }
 
@@ -58,21 +54,16 @@ export class AuthResolver {
     { code, newPassword }: { code: string; newPassword: string },
     context: Context,
   ) {
-    return await this.passwordResetService.confirmResetPassword(
-      context,
-      code,
-      newPassword,
-    );
+    return await this.passwordResetService.confirmResetPassword(context, code, newPassword);
   }
 
   @Roles('admin')
   @Mutation()
-  async inviteUser(
-    _req: void,
-    { email, roles }: { email: string; roles: string[] },
-    context: Context,
-  ) {
-    return await this.inviteUserService.inviteUser(context, { email, roles });
+  async inviteUser(_req: void, { email, roles }: { email: string; roles: string[] }, context: Context) {
+    const {
+      user: { id },
+    } = await this.inviteUserService.inviteUser(context, { email, roles });
+    return id;
   }
 
   @AllowAnonymous()

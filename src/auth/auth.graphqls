@@ -1,20 +1,20 @@
 type Credentials {
-    username: String
-    type: String
+  username: String
+  type: String
 }
 
 extend type User {
-    credentials: Credentials
+  credentials: Credentials
 }
 
 type Mutation {
-    signIn(email: String!, password: String!): User
-    resetPassword(email: String!): Boolean
-    confirmResetPassword(code: String!, newPassword: String!): Boolean
-    inviteUser(email: String!, roles: [String!]): Boolean
-    activateAccount(code: String!, name: String!, password: String!): Boolean
+  signIn(email: String!, password: String!): User
+  resetPassword(email: String!): Boolean
+  confirmResetPassword(code: String!, newPassword: String!): Boolean
+  inviteUser(email: String!, roles: [String!]): String
+  activateAccount(code: String!, name: String!, password: String!): Boolean
 }
 
 type Query {
-    me: User
+  me: User
 }
