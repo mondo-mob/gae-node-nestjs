@@ -50,8 +50,8 @@ export class GmailConfigurer {
   authenticate() {
     const options = {
       scope: [
-        'https://www.googleapis.com/auth/plus.me',
         'https://mail.google.com/',
+        'openid profile',
       ],
       prompt: 'consent',
       accessType: 'offline',

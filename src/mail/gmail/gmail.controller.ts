@@ -32,8 +32,7 @@ export class GmailController {
       if (!request.user) {
         response.send('Gmail OAuth setup FAILED.');
       } else if (!request.user.refreshToken) {
-        response.send('Gmail OAuth incomplete - credentials have not been saved. Perhaps Google+ API has not been enabled. ' +
-            'Please enable and wait a few minutes before retrying.')
+        response.send('Gmail OAuth incomplete - credentials have not been saved.')
       } else {
         response.send('Gmail OAuth completed!');
       }
