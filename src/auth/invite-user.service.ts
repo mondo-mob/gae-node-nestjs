@@ -121,7 +121,7 @@ export class InviteUserService {
         this.logger.info('Skipping sending invitation email based on request option');
       } else {
         this.logger.info(`Sending invitation email to ${email} with link ${activateLink}`);
-        const title = 'activate your account';
+        const title = 'Activate your account';
         await this.mailSender.send(context, {
           to: email,
           subject: title,
