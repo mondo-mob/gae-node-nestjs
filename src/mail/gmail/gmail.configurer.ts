@@ -26,6 +26,7 @@ export class GmailConfigurer {
             clientID: this.configuration.auth.google.clientId,
             clientSecret: this.configuration.auth.google.secret,
             callbackURL: `${this.configuration.host}/system/gmail/setup/oauth2callback`,
+            userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo',
           },
           // tslint:disable-next-line:ban-types
           (accessToken: string, refreshToken: string, profile: object, done: Function) => {
