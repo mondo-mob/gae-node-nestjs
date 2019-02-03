@@ -17,7 +17,9 @@ export class GmailController {
   @Get('setup')
   setupGmailOAuth(@Req() request: Request, @Res() response: Response) {
     const authenticateRet = this.gmailConfigurer.authenticate();
-    authenticateRet(request, response);
+    authenticateRet(request, response, (err: any) => {
+      this.logger.error(err);
+    });
   }
 
   @Get('setup/oauth2callback')
