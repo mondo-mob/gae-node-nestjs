@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Next,
-  Post,
-  Req,
-  Res,
-  HttpException,
-} from '@nestjs/common';
+import { Controller, Get, Next, Post, Req, Res, HttpException } from '@nestjs/common';
 import * as Logger from 'bunyan';
 import { AuthConfigurer } from './auth.configurer';
 import { AllowAnonymous } from './auth.guard';
@@ -22,11 +14,7 @@ export class AuthController {
 
   @AllowAnonymous()
   @Post('signin/local')
-  signIn(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Next() next: (err: Error) => void,
-  ) {
+  signIn(@Req() req: Request, @Res() res: Response, @Next() next: (err: Error) => void) {
     this.authConfigurer.authenticateLocal()(req, res, (result?: Error) => {
       if (result) {
         if (result instanceof HttpException) {
@@ -43,11 +31,7 @@ export class AuthController {
 
   @AllowAnonymous()
   @Get('signin/google')
-  signInGoogle(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Next() next: () => void,
-  ) {
+  signInGoogle(@Req() req: Request, @Res() res: Response, @Next() next: () => void) {
     this.authConfigurer.beginAuthenticateGoogle()(req, res, next);
   }
 
@@ -59,20 +43,14 @@ export class AuthController {
         res.redirect(`/`);
       } else {
         this.logger.warn('Login with google failed', err);
-        res.redirect(
-          `/signin?error=${encodeURIComponent('Login with google failed.')}`,
-        );
+        res.redirect(`/signin?error=${encodeURIComponent('Login with google failed.')}`);
       }
     });
   }
 
   @AllowAnonymous()
   @Get('signin/saml')
-  signInSaml(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Next() next: () => void,
-  ) {
+  signInSaml(@Req() req: Request, @Res() res: Response, @Next() next: () => void) {
     this.logger.info('Redirecting to SAML Identity Provider');
     this.authConfigurer.beginAuthenticateSaml()(req, res, next);
   }
@@ -87,9 +65,27 @@ export class AuthController {
         res.redirect('/');
       } else {
         this.logger.warn('Login with SAML failed', err);
-        res.redirect(
-          `/signin?error=${encodeURIComponent('Login with SAML failed.')}`,
-        );
+        res.redirect(`/signin?error=${encodeURIComponent('Login with SAML failed.')}`);
+      }
+    });
+  }
+
+  @AllowAnonymous()
+  @Get('signin/auth0')
+  signInAuth0(@Req() req: Request, @Res() res: Response, @Next() next: () => void) {
+    this.authConfigurer.beginAuthenticateAuth0()(req, res, next);
+  }
+
+  @AllowAnonymous()
+  @Get('signin/auth0/callback')
+  completeSignInAuth0(@Req() req: Request, @Res() res: Response) {
+    this.authConfigurer.completeAuthenticateAuth0()(req, res, (err: any) => {
+      this.logger.info(err);
+      if (req.user) {
+        res.redirect(`/`);
+      } else {
+        this.logger.warn('Login with auth0 failed', err);
+        res.redirect(`/signin?error=${encodeURIComponent('Login with auth0 failed.')}`);
       }
     });
   }

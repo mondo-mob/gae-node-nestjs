@@ -28,6 +28,12 @@ export interface Configuration {
       cert: string;
       identityProviderUrl: string;
     };
+    auth0?: {
+      enabled?: boolean;
+      domain: string;
+      clientId: string;
+      secret: string;
+    }
   };
   devHooks?: {
     disableLocalMailLogger?: boolean;
