@@ -226,6 +226,43 @@ export class AuthService {
     return user;
   }
 
+  @Transactional()
+  async validateUserAuth0(context: Context, email: string, roles: string[]) {
+    this.logger.info('Validating Auth0 user profile');
+
+    this.logger.info(`Looking up user by email ${email}`);
+    const account = await this.authRepository.get(context, email);
+
+    if (!account) {
+      this.logger.info('No account found, creating it.');
+
+      const createdUser = await this.userService.create(context, {
+        roles,
+        email,
+      });
+
+      await this.authRepository.save(context, {
+        id: email,
+        type: 'auth0',
+        userId: createdUser.id,
+      });
+
+      return createdUser;
+    }
+
+    if (account.type !== 'auth0') {
+      throw new CredentialsNotFoundError();
+    }
+
+    const user = await this.userService.get(context, account.userId);
+
+    if (!user) {
+      throw new UserNotFoundError();
+    }
+
+    return user;
+  }
+
   /**
    * Create a new user account
    *

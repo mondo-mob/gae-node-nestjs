@@ -52,6 +52,11 @@ const loginCredentials = t.clean(t.union([
     userId: t.string,
     type: t.literal('saml'),
   }),
+  t.interface({
+    id: t.string, // username
+    userId: t.string,
+    type: t.literal('auth0'),
+  }),
 ]));
 
 export type LoginCredentials = t.TypeOf<typeof loginCredentials>;
