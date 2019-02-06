@@ -61,19 +61,22 @@ function isUserAllowedAccess(
   context: ExecutionContext,
   user?: IUser,
 ): boolean {
+  if (!user) {
+    return false;
+  }
+
   const roles = reflectValue(reflector, 'roles', context, []);
-
-  if (user) {
-    const { roles: userRoles = [] } = user;
-
-    if (roles.length > 0) {
-      return roles.some(role => userRoles.includes(role));
-    }
-
+  if (!roles.length) {
     return true;
   }
 
-  return false;
+  const { roles: userRoles = [] } = user;
+  const allowed = roles.some(role => userRoles.includes(role));
+  if (!allowed) {
+    logger.warn('User does not have the required role');
+  }
+
+  return allowed;
 }
 
 function isSystemCall(
