@@ -260,6 +260,9 @@ export class AuthService {
       throw new UserNotFoundError();
     }
 
+    user.roles = roles;
+    await this.userService.update(context, user.id, user);
+
     return user;
   }
 

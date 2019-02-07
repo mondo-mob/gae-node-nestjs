@@ -192,6 +192,10 @@ export class AuthConfigurer {
     const { email } = decoded;
     const roles = decoded[`${this.configuration.auth.auth0!.namespace}roles`];
 
+    if (!roles || !roles.length) {
+      this.logger.warn(`No roles were provided by auth0 for ${email}`);
+    }
+
     try {
       const user = await this.authService.validateUserAuth0(newContext(this.datastore), email, roles);
       if (!user) {
