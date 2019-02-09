@@ -1,8 +1,8 @@
 // tslint:disable:only-arrow-functions
 
-import { Context } from './context';
+import { Context, IUser } from './context';
 
-type WithContext = (context: Context, ...args: any[]) => Promise<any>;
+type WithContext = (context: Context<IUser>, ...args: any[]) => Promise<any>;
 
 /**
  * Run block of code within a transaction
