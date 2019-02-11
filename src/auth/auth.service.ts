@@ -238,6 +238,7 @@ export class AuthService {
 
       const createdUser = await this.userService.create(context, {
         roles,
+        orgId,
         email,
       });
 

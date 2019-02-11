@@ -10,6 +10,7 @@ export interface IUserUpdates {
   name?: string;
   enabled?: boolean;
   roles?: ReadonlyArray<string>;
+  orgId?: string;
 }
 
 export interface IUserCreateRequest extends IUserUpdates {
