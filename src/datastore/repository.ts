@@ -1,12 +1,12 @@
+import { Datastore } from '@google-cloud/datastore';
+import { entity as Entity } from '@google-cloud/datastore/build/src/entity';
+import { RunQueryInfo } from '@google-cloud/datastore/build/src/query';
 import * as t from 'io-ts';
-import * as Datastore from '@google-cloud/datastore';
-import { DatastoreKey, DatastorePayload } from '@google-cloud/datastore/entity';
 import { reporter } from 'io-ts-reporters';
-import { DatastoreLoader, Index, QueryOptions } from './loader';
 import * as _ from 'lodash';
 import { asArray, Omit, OneOrMany } from '../util/types';
 import { Context } from './context';
-import { QueryInfo } from '@google-cloud/datastore/query';
+import { DatastoreLoader, Index, QueryOptions, DatastorePayload } from './loader';
 
 interface RepositoryOptions<T extends { id: any }> {
   defaultValues?: Partial<Omit<T, 'id'>>;
@@ -39,11 +39,11 @@ export function buildExclusions<T>(input: T, schema: Index<T> = {}, path: string
   return [path];
 }
 
-export const datastoreKey = new t.Type<DatastoreKey>(
-  'DatastoreKey',
-  (input): input is DatastoreKey => typeof input === 'object',
-  input => t.success(input as DatastoreKey),
-  (value: DatastoreKey) => value,
+export const datastoreKey = new t.Type<Entity.Key>(
+  'Entity.Key',
+  (input): input is Entity.Key => typeof input === 'object',
+  input => t.success(input as Entity.Key),
+  (value: Entity.Key) => value,
 );
 
 export const dateType = new t.Type<Date>(
@@ -108,11 +108,11 @@ export class Repository<T extends { id: string }> {
     }
   }
 
-  async query(context: Context, options: Partial<QueryOptions<T>> = {}): Promise<[ReadonlyArray<T>, QueryInfo]> {
+  async query(context: Context, options: Partial<QueryOptions<T>> = {}): Promise<[ReadonlyArray<T>, RunQueryInfo]> {
     const [results, queryInfo] = await context.datastore.executeQuery<T>(this.kind, options);
 
     return [
-      results.map<any>(value => this.validate(value[Datastore.KEY].name!, _.omit(value, Datastore.KEY))),
+      results.map<any>(value => this.validate(value[Entity.KEY_SYMBOL].name!, _.omit(value, Datastore.KEY))),
       queryInfo,
     ];
   }
@@ -169,7 +169,7 @@ export class Repository<T extends { id: string }> {
     await context.datastore.delete(allIds);
   }
 
-  public key = (name: string): DatastoreKey => {
+  public key = (name: string): Entity.Key => {
     return this.datastore.key([this.kind, name]);
   };
 

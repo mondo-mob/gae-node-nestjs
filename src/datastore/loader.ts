@@ -1,25 +1,20 @@
-import * as DataLoader from 'dataloader';
-import * as Datastore from '@google-cloud/datastore';
-import { DatastoreKey, DatastorePayload } from '@google-cloud/datastore/entity';
-import {
-  OrderOptions,
-  QueryInfo,
-} from '@google-cloud/datastore/query';
-import { DatastoreTransaction } from '@google-cloud/datastore/transaction';
-import * as _ from 'lodash';
+import { Datastore, Transaction } from '@google-cloud/datastore';
+import { entity as Entity } from '@google-cloud/datastore/build/src/entity';
+import { OrderOptions, RunQueryInfo } from '@google-cloud/datastore/build/src/query';
 import * as trace from '@google-cloud/trace-agent';
-import { createLogger } from '../gcloud/logging';
 import * as Logger from 'bunyan';
-import { CommitResult } from '@google-cloud/datastore/request';
+import * as DataLoader from 'dataloader';
+import * as _ from 'lodash';
+import { createLogger } from '../gcloud/logging';
 import { asArray, OneOrMany } from '../util/types';
 import { Context } from './context';
 import { buildFilters, Filters } from './filters';
 
-const keysEqual = (key1: DatastoreKey, key2: DatastoreKey) => {
+const keysEqual = (key1: Entity.Key, key2: Entity.Key) => {
   return _.isEqual(key1.path, key2.path);
 };
 
-const countEntities = (keys: DatastoreKey[]) => {
+const countEntities = (keys: Entity.Key[]) => {
   const result = keys.reduce<Record<string, number>>((prev, current) => {
     if (!prev[current.kind]) {
       prev[current.kind] = 1;
@@ -49,37 +44,42 @@ export interface QueryOptions<T> {
   groupBy: OneOrMany<keyof T & string>;
   start: string;
   end: string;
-  hasAnscestor: DatastoreKey;
+  hasAnscestor: Entity.Key;
   offset: number;
   limit: number;
 }
+export interface DatastorePayload<T> {
+  key: Entity.Key;
+  data: T | object;
+  excludeFromIndexes?: string[];
+}
 
 export type WithDatstoreKey<T> = T & {
-  [Datastore.KEY]: DatastoreKey;
+  [Entity.KEY_SYMBOL]: Entity.Key;
 };
 
 function isTransaction(
-  datastore: Datastore | DatastoreTransaction,
-): datastore is DatastoreTransaction {
+  datastore: Datastore | Transaction,
+): datastore is Transaction {
   return (datastore as any).commit !== undefined;
 }
 
 export class DatastoreLoader {
-  private readonly loader: DataLoader<DatastoreKey, object>;
-  private readonly datastore: Datastore | DatastoreTransaction;
+  private readonly loader: DataLoader<Entity.Key, object>;
+  private readonly datastore: Datastore | Transaction;
   private readonly parentContext: Context;
   private readonly logger: Logger;
 
-  constructor(datastore: Datastore | DatastoreTransaction, context: Context) {
+  constructor(datastore: Datastore | Transaction, context: Context) {
     this.datastore = datastore;
     this.loader = new DataLoader(this.load, {
-      cacheKeyFn: (key: DatastoreKey) => key.path.join(':'),
+      cacheKeyFn: (key: Entity.Key) => key.path.join(':'),
     });
     this.parentContext = context;
     this.logger = createLogger('loader');
   }
 
-  public async get(id: DatastoreKey[]): Promise<object[]> {
+  public async get(id: Entity.Key[]): Promise<object[]> {
     return await this.loader.loadMany(id);
   }
 
@@ -95,15 +95,15 @@ export class DatastoreLoader {
   ): Promise<void> {
     await this.applyBatched(
       entities,
-      (datastore, chunk) => datastore.save(chunk) as Promise<CommitResult>,
+      (datastore, chunk) => datastore.save(chunk),
       (loader, { key, data }) => loader.prime(key, data),
     );
   }
 
-  public async delete(entities: ReadonlyArray<DatastoreKey>): Promise<void> {
+  public async delete(entities: ReadonlyArray<Entity.Key>): Promise<void> {
     await this.applyBatched(
       entities,
-      (datastore, chunk) => datastore.delete(chunk) as Promise<CommitResult>,
+      (datastore, chunk) => datastore.delete(chunk) as Promise<any>,
       (loader, key) => loader.clear(key),
     );
   }
@@ -113,7 +113,7 @@ export class DatastoreLoader {
   ): Promise<void> {
     await this.applyBatched(
       entities,
-      (datastore, chunk) => datastore.save(chunk) as Promise<CommitResult>,
+      (datastore, chunk) => datastore.save(chunk),
       (loader, { key, data }) => loader.prime(key, data),
     );
   }
@@ -123,7 +123,7 @@ export class DatastoreLoader {
   ): Promise<void> {
     await this.applyBatched(
       entities,
-      (datastore, chunk) => datastore.upsert(chunk) as Promise<CommitResult>,
+      (datastore, chunk) => datastore.upsert(chunk),
       (loader, { key, data }) => loader.prime(key, data),
     );
   }
@@ -133,7 +133,7 @@ export class DatastoreLoader {
   ): Promise<void> {
     await this.applyBatched(
       entities,
-      (datastore, chunk) => datastore.insert(chunk) as Promise<CommitResult>,
+      (datastore, chunk) => datastore.insert(chunk),
       (loader, { key, data }) => loader.prime(key, data),
     );
   }
@@ -141,7 +141,7 @@ export class DatastoreLoader {
   public async executeQuery<T>(
     kind: string,
     options: Partial<QueryOptions<T>>,
-  ): Promise<[WithDatstoreKey<T>[], QueryInfo]> {
+  ): Promise<[WithDatstoreKey<T>[], RunQueryInfo]> {
     let query = this.datastore.createQuery(kind);
 
     if (options.select) {
@@ -157,7 +157,7 @@ export class DatastoreLoader {
     }
 
     if (options.groupBy) {
-      query.groupBy(options.groupBy);
+      query.groupBy(asArray(options.groupBy));
     }
 
     if (options.start) {
@@ -221,10 +221,10 @@ export class DatastoreLoader {
   private async applyBatched<T>(
     values: ReadonlyArray<T>,
     operation: (
-      datastore: Datastore | DatastoreTransaction,
+      datastore: Datastore | Transaction,
       chunk: ReadonlyArray<T>,
     ) => Promise<any>,
-    updateLoader: (loader: DataLoader<DatastoreKey, {}>, value: T) => void,
+    updateLoader: (loader: DataLoader<Entity.Key, {}>, value: T) => void,
     batchSize: number = 100,
   ) {
     const entityChunks: T[][] = _.chunk(values, batchSize);
@@ -236,7 +236,7 @@ export class DatastoreLoader {
     values.forEach(value => updateLoader(this.loader, value));
   }
 
-  private load = async (keys: DatastoreKey[]): Promise<Array<any | Error>> => {
+  private load = async (keys: Entity.Key[]): Promise<Array<any | Error>> => {
     const span = trace.get().createChildSpan({
       name: 'load-keys',
     });

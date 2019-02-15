@@ -1,10 +1,10 @@
 import { asArray, OneOrMany } from '../util/types';
-import { QueryFilterOperator } from '@google-cloud/datastore/query';
+import { Operator } from '@google-cloud/datastore/build/src/query';
 
 export type Filter<T> = OneOrMany<T | ComplexFilter<T>>;
 
 export interface ComplexFilter<T> {
-  op: QueryFilterOperator;
+  op: Operator;
   value: T;
 }
 
@@ -19,7 +19,7 @@ export function isComplexFilter<T>(filter: Filter<T>): filter is ComplexFilter<T
 }
 
 interface Query {
-  filter(path: string, operation: QueryFilterOperator, value: any): this;
+  filter(path: string, operation: Operator, value: any): this;
   filter(path: string, value: any): this;
 }
 

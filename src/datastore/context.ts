@@ -1,5 +1,5 @@
 import { DatastoreLoader } from './loader';
-import * as Datastore from '@google-cloud/datastore';
+import { Datastore } from '@google-cloud/datastore';
 import { createParamDecorator } from '@nestjs/common';
 import _ = require('lodash');
 

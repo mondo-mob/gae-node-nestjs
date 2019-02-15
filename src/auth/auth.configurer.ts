@@ -1,4 +1,4 @@
-import * as Datastore from '@google-cloud/datastore';
+import { Datastore } from '@google-cloud/datastore';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as Logger from 'bunyan';
 import { decode } from "jsonwebtoken";

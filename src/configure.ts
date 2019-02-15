@@ -1,15 +1,13 @@
 /* tslint:disable:ban-types */
 import * as DatastoreStore from '@google-cloud/connect-datastore';
-import * as Datastore from '@google-cloud/datastore';
-import { OneOrMany } from '@google-cloud/datastore/entity';
-import { CookieOptions, NextFunction, Response, RequestHandler } from 'express';
+import { Datastore } from '@google-cloud/datastore';
+import { CookieOptions, NextFunction, RequestHandler, Response } from 'express';
 import * as session from 'express-session';
 import * as csp from 'helmet-csp';
 import * as passport from 'passport';
 import { CsrfValidator } from './auth/csrf.interceptor';
 import { rootLogger } from './gcloud/logging';
-import { asArray } from './util/types';
-import { ServerResponse, IncomingMessage } from 'http';
+import { asArray, OneOrMany } from './util/types';
 
 interface ServerOptions {
   csp?: object;
