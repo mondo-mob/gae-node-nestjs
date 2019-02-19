@@ -29,6 +29,12 @@ export class AuthController {
     });
   }
 
+  @Post('signout/local')
+  signOut(@Req() req: Request, @Res() res: Response, @Next() next: (err: Error) => void) {
+    req.logout();
+    res.redirect('/');
+  }
+
   @AllowAnonymous()
   @Get('signin/google')
   signInGoogle(@Req() req: Request, @Res() res: Response, @Next() next: () => void) {
