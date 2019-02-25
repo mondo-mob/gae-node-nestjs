@@ -1,3 +1,6 @@
+// tslint:disable-next-line:no-var-requires
+const rTracer = require('cls-rtracer');
+
 /* tslint:disable:ban-types */
 import * as DatastoreStore from '@google-cloud/connect-datastore';
 import { Datastore } from '@google-cloud/datastore';
@@ -90,4 +93,5 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
   expressApp.use(passport.initialize());
   expressApp.use(passport.session());
   expressApp.use(unless(ignorePaths, CsrfValidator));
+  expressApp.use(rTracer.expressMiddleware());
 };
