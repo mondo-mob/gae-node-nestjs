@@ -9,7 +9,7 @@ import { Writable } from 'stream';
 
 const traceLog = (message: any) => {
   const rid = rTracer.id();
-  return rid ? `[request-id:${rid}]: ${message}` : `[noid: ${process.pid}]: ${message}`;
+  return rid ? `[request-id:${rid}]: ${message}` : message;
 };
 
 let streams: Array<Logger.Stream> = [
