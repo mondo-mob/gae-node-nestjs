@@ -2,13 +2,7 @@ import { Context } from '../../datastore/context';
 import { DatastoreLoader } from '../../datastore/loader';
 import { CredentialRepository } from '../auth.repository';
 import { AuthService, hashPassword } from '../auth.service';
-import {
-  anyFunction,
-  instance,
-  mock,
-  reset,
-  when,
-} from 'ts-mockito';
+import { anyFunction, instance, mock, reset, when } from 'ts-mockito';
 import { Configuration } from '../../configuration';
 import { UserService } from '../user.service';
 import { omit } from 'lodash';
@@ -20,9 +14,7 @@ export const mockContext = () => {
     datastore: instance(datastoreLoader),
   } as Context;
 
-  when(datastoreLoader.inTransaction(anyFunction())).thenCall((cb: any) =>
-    cb(context),
-  );
+  when(datastoreLoader.inTransaction(anyFunction())).thenCall((cb: any) => cb(context));
 
   return context;
 };
@@ -37,23 +29,16 @@ describe('AuthService', () => {
 
   describe('validateUser', () => {
     it('should throw an error if account does not exist', async () => {
-      const authService = new AuthService(
-        instance(credentialRepository),
-        {} as UserService<any>,
-        {} as Configuration,
-      );
+      const authService = new AuthService(instance(credentialRepository), {} as UserService<any>, {} as Configuration);
 
-      await expect(
-        authService.validateUser(context, 'username', 'password'),
-      ).rejects.toHaveProperty('message', 'CredentialsNotFoundError');
+      await expect(authService.validateUser(context, 'username', 'password')).rejects.toHaveProperty(
+        'message',
+        'CredentialsNotFoundError',
+      );
     });
 
     it('should throw an error if the account is not associated with a password', async () => {
-      const authService = new AuthService(
-        instance(credentialRepository),
-        {} as UserService<any>,
-        {} as Configuration,
-      );
+      const authService = new AuthService(instance(credentialRepository), {} as UserService<any>, {} as Configuration);
 
       when(credentialRepository.get(context, 'username')).thenResolve({
         type: 'google',
@@ -61,17 +46,14 @@ describe('AuthService', () => {
         id: 'username',
       });
 
-      await expect(
-        authService.validateUser(context, 'username', 'password'),
-      ).rejects.toHaveProperty('message', 'CredentialsNotFoundError');
+      await expect(authService.validateUser(context, 'username', 'password')).rejects.toHaveProperty(
+        'message',
+        'CredentialsNotFoundError',
+      );
     });
 
     it('should throw an error if the password does not match', async () => {
-      const authService = new AuthService(
-        instance(credentialRepository),
-        {} as UserService<any>,
-        {} as Configuration,
-      );
+      const authService = new AuthService(instance(credentialRepository), {} as UserService<any>, {} as Configuration);
 
       when(credentialRepository.get(context, 'username')).thenResolve({
         type: 'password',
@@ -80,9 +62,10 @@ describe('AuthService', () => {
         password: await hashPassword('abc123'),
       });
 
-      await expect(
-        authService.validateUser(context, 'username', 'password'),
-      ).rejects.toHaveProperty('message', 'PasswordInvalidError');
+      await expect(authService.validateUser(context, 'username', 'password')).rejects.toHaveProperty(
+        'message',
+        'PasswordInvalidError',
+      );
     });
 
     it('should throw an error if the backing user does not exist', async () => {
@@ -101,9 +84,10 @@ describe('AuthService', () => {
         password: await hashPassword('password'),
       });
 
-      await expect(
-        authService.validateUser(context, 'username', 'password'),
-      ).rejects.toHaveProperty('message', 'UserNotFoundError');
+      await expect(authService.validateUser(context, 'username', 'password')).rejects.toHaveProperty(
+        'message',
+        'UserNotFoundError',
+      );
     });
 
     it('should return the user if validation succeeded', async () => {
@@ -122,9 +106,7 @@ describe('AuthService', () => {
         password: await hashPassword('password'),
       });
 
-      await expect(
-        authService.validateUser(context, 'username', 'password'),
-      ).resolves.toEqual({
+      await expect(authService.validateUser(context, 'username', 'password')).resolves.toEqual({
         id: '12345',
       });
     });
@@ -135,7 +117,7 @@ describe('AuthService', () => {
       id: '12345',
       emails: [
         {
-          type: 'account',
+          verified: true,
           value: 'test@example.com',
         },
       ],
@@ -143,26 +125,16 @@ describe('AuthService', () => {
     };
 
     it('should fail if the profile does not match the expected format', async () => {
-      const authService = new AuthService(
-        instance(credentialRepository),
-        {} as any,
-        {} as Configuration,
-      );
+      const authService = new AuthService(instance(credentialRepository), {} as any, {} as Configuration);
 
-      await expect(
-        authService.validateUserGoogle(context, omit(profile, 'id')),
-      ).rejects.toHaveProperty(
+      await expect(authService.validateUserGoogle(context, omit(profile, 'id'))).rejects.toHaveProperty(
         'message',
         'Expecting string at id but instead got: undefined.',
       );
     });
 
     it('should fail if there are no matching email addresses', async () => {
-      const authService = new AuthService(
-        instance(credentialRepository),
-        {} as any,
-        {} as Configuration,
-      );
+      const authService = new AuthService(instance(credentialRepository), {} as any, {} as Configuration);
 
       await expect(
         authService.validateUserGoogle(context, {
@@ -183,9 +155,10 @@ describe('AuthService', () => {
         } as Configuration,
       );
 
-      await expect(
-        authService.validateUserGoogle(context, profile),
-      ).rejects.toHaveProperty('message', 'CredentialsNotFoundError');
+      await expect(authService.validateUserGoogle(context, profile)).rejects.toHaveProperty(
+        'message',
+        'CredentialsNotFoundError',
+      );
     });
 
     it('should not create an account if the domain is not allowed', async () => {
@@ -198,15 +171,16 @@ describe('AuthService', () => {
           auth: {
             google: {
               signUpEnabled: true,
-              signUpDomains: [ 'test.com' ],
+              signUpDomains: ['test.com'],
             },
           },
         } as Configuration,
       );
 
-      await expect(
-        authService.validateUserGoogle(context, profile),
-      ).rejects.toHaveProperty('message', 'CredentialsNotFoundError');
+      await expect(authService.validateUserGoogle(context, profile)).rejects.toHaveProperty(
+        'message',
+        'CredentialsNotFoundError',
+      );
     });
 
     it('should create an account if creation is enabled', async () => {
@@ -219,8 +193,8 @@ describe('AuthService', () => {
           auth: {
             google: {
               signUpEnabled: true,
-              signUpDomains: [ 'example.com' ],
-              signUpRoles: [ 'user' ],
+              signUpDomains: ['example.com'],
+              signUpRoles: ['user'],
             },
           },
         } as Configuration,
@@ -231,9 +205,7 @@ describe('AuthService', () => {
         name: 'test',
         roles: ['user'],
       };
-      await expect(
-        authService.validateUserGoogle(context, profile),
-      ).resolves.toMatchObject(expectedResult);
+      await expect(authService.validateUserGoogle(context, profile)).resolves.toMatchObject(expectedResult);
     });
 
     it('should return the user if validation succeeded', async () => {
@@ -247,8 +219,8 @@ describe('AuthService', () => {
           auth: {
             google: {
               signUpEnabled: true,
-              signUpDomains: [ 'example.com' ],
-              signUpRoles: [ 'user '],
+              signUpDomains: ['example.com'],
+              signUpRoles: ['user '],
             },
           },
         } as Configuration,
@@ -260,9 +232,7 @@ describe('AuthService', () => {
         id: 'test@example.com',
       });
 
-      await expect(
-        authService.validateUserGoogle(context, profile),
-      ).resolves.toEqual({ id: '12345' });
+      await expect(authService.validateUserGoogle(context, profile)).resolves.toEqual({ id: '12345' });
     });
   });
 });

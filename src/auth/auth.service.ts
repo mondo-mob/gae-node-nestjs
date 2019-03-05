@@ -18,7 +18,7 @@ const userProfile = t.interface({
   emails: t.array(
     t.interface({
       value: t.string,
-      type: t.string,
+      verified: t.boolean,
     }),
   ),
   displayName: t.string,
@@ -67,11 +67,7 @@ export class AuthService {
    * @param username The username for the account TODO: Rename to email
    * @param password The users password
    */
-  async validateUser(
-    context: Context,
-    username: string,
-    password: string,
-  ): Promise<IUser> {
+  async validateUser(context: Context, username: string, password: string): Promise<IUser> {
     const account = await this.authRepository.get(context, username);
 
     if (!account) {
@@ -108,10 +104,8 @@ export class AuthService {
    * @param inputProfile The profile returned from Google
    */
   @Transactional()
-  async validateUserGoogle(
-    context: Context,
-    inputProfile: object,
-  ): Promise<IUser> {
+  async validateUserGoogle(context: Context, inputProfile: object): Promise<IUser> {
+    console.log(inputProfile);
     const validationResult = userProfile.decode(inputProfile);
 
     if (validationResult.isLeft()) {
@@ -119,15 +113,13 @@ export class AuthService {
     }
 
     const profile = validationResult.value;
-    const accountEmails = profile.emails.filter(
-      accountEmail => accountEmail.type === 'account',
-    );
+    const accountEmails = profile.emails.find(accountEmail => accountEmail.verified);
 
-    if (accountEmails.length === 0) {
+    if (!accountEmails) {
       throw new CredentialsNotFoundError();
     }
 
-    const email = accountEmails[0].value;
+    const email = accountEmails.value;
     const account = await this.authRepository.get(context, email);
 
     // If there is no account registered there are two options:
@@ -136,17 +128,13 @@ export class AuthService {
     //
     // Accounts created via google auth have the default roles list
     if (!account) {
-      if (
-        !this.configurationProvider.auth.google ||
-        !this.configurationProvider.auth.google.signUpEnabled
-      ) {
+      if (!this.configurationProvider.auth.google || !this.configurationProvider.auth.google.signUpEnabled) {
         throw new CredentialsNotFoundError();
       }
 
       const { domain } = emails.parseOneAddress(email) as emails.ParsedMailbox;
 
-      const signUpDomains =
-        this.configurationProvider.auth.google.signUpDomains || [];
+      const signUpDomains = this.configurationProvider.auth.google.signUpDomains || [];
       if (!signUpDomains.includes(domain)) {
         throw new CredentialsNotFoundError();
       }
@@ -279,12 +267,7 @@ export class AuthService {
    * @param account The user id to use for this set of credentials
    */
   @Transactional()
-  async createAccount(
-    context: Context,
-    email: string,
-    password: string,
-    account: string,
-  ): Promise<LoginCredentials> {
+  async createAccount(context: Context, email: string, password: string, account: string): Promise<LoginCredentials> {
     const existingCredentials = await this.authRepository.get(context, email);
 
     if (!existingCredentials) {
