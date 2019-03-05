@@ -56,6 +56,7 @@ export class AuthConfigurer {
             clientID: this.configuration.auth.google.clientId,
             clientSecret: this.configuration.auth.google.secret,
             callbackURL: `${this.configuration.host}/auth/signin/google/callback`,
+            userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo',
           },
           this.validateGmail,
         ),
