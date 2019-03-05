@@ -1,11 +1,11 @@
 import { Datastore } from '@google-cloud/datastore';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as Logger from 'bunyan';
-import { decode } from "jsonwebtoken";
+import { decode } from 'jsonwebtoken';
 import * as passport from 'passport';
 import { use } from 'passport';
 import { Profile, Strategy as Auth0Strategy } from 'passport-auth0';
-import { OAuth2Strategy as GoogleStrategy } from 'passport-google-oauth';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as SamlStrategy } from 'passport-saml';
 import { newContext } from '../datastore/context';
@@ -15,7 +15,7 @@ import { Configuration, IUser } from '../index';
 import { AuthService } from './auth.service';
 import { UserService, USER_SERVICE } from './user.service';
 
-const GOOGLE_SIGNIN = 'google-signin';
+const GOOGLE_SIGNIN = 'google';
 const SAML_SIGNIN = 'saml';
 const AUTH0_SIGNIN = 'auth0';
 const LOCAL_SIGNIN = 'local-signin';
@@ -51,7 +51,6 @@ export class AuthConfigurer {
 
     if (this.configuration.auth.google && this.configuration.auth.google.enabled) {
       use(
-        GOOGLE_SIGNIN,
         new GoogleStrategy(
           {
             clientID: this.configuration.auth.google.clientId,
