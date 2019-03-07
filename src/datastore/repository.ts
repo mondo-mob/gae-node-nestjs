@@ -8,7 +8,7 @@ import { asArray, Omit, OneOrMany } from '../util/types';
 import { Context } from './context';
 import { DatastoreLoader, Index, QueryOptions, DatastorePayload } from './loader';
 
-interface RepositoryOptions<T extends { id: any }> {
+export interface RepositoryOptions<T extends { id: any }> {
   defaultValues?: Partial<Omit<T, 'id'>>;
   index?: Index<Omit<T, 'id'>>;
 }

@@ -17,6 +17,8 @@ export { InviteUserService } from './auth/invite-user.service';
 export { AuthService, hashPassword } from './auth/auth.service';
 export { UserService } from './auth/user.service';
 export { Configuration, CONFIGURATION } from './configuration';
+export { SearchService } from './search/search.service';
+export { SearchableRepository } from './search/searchable.repository';
 export * from './module';
 export * from './configure';
 export * from './interceptor';

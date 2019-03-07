@@ -24,6 +24,7 @@ import { StoredCredentialsRepository } from './mail/gmail/stored.credentials.rep
 import { MailDiverter } from './mail/mail.diverter';
 import { LoggingMailSenderStub } from './mail/mail.logging.stub';
 import { MAIL_SENDER } from './mail/mail.sender';
+import { SearchService } from './search/search.service';
 
 interface ClassType { new (...args: any[]): any }
 type ClassTypeOrReference = ClassType | ForwardReference<any>;
@@ -48,6 +49,7 @@ export interface Options {
     AuthResolver,
     PasswordResetService,
     InviteUserService,
+    SearchService,
     GmailConfigurer,
     {
       provide: APP_FILTER,
@@ -89,6 +91,7 @@ export interface Options {
     PasswordResetService,
     InviteUserService,
     MAIL_SENDER,
+    SearchService,
   ],
   controllers: [AuthController, GmailController],
 })

@@ -5,6 +5,7 @@ export interface Configuration {
   projectId: string;
   location: string;
   host: string;
+  searchServiceEndpoint?: string;
   apiEndpoint?: string;
   gmailUser: string;
   passwordTokenExpiry?: number;
