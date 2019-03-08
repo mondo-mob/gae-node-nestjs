@@ -101,10 +101,10 @@ export class Repository<T extends { id: string }> {
       return result;
     });
 
-    if (validatedResults.length === 1) {
-      return validatedResults[0];
-    } else {
+    if (Array.isArray(ids)) {
       return validatedResults;
+    } else {
+      return validatedResults[0];
     }
   }
 
