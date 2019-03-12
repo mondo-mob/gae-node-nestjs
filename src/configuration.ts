@@ -15,6 +15,7 @@ export interface Configuration {
   auth: {
     local?: {
       enabled?: boolean;
+      autoLoginAfterActivate?: boolean;
     };
     google?: {
       enabled?: boolean;
@@ -35,7 +36,7 @@ export interface Configuration {
       clientId: string;
       secret: string;
       namespace: string;
-    }
+    };
   };
   devHooks?: {
     disableLocalMailLogger?: boolean;

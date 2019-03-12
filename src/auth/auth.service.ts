@@ -105,7 +105,6 @@ export class AuthService {
    */
   @Transactional()
   async validateUserGoogle(context: Context, inputProfile: object): Promise<IUser> {
-    console.log(inputProfile);
     const validationResult = userProfile.decode(inputProfile);
 
     if (validationResult.isLeft()) {

@@ -1,14 +1,19 @@
-import { Controller, Get, Next, Post, Req, Res, HttpException } from '@nestjs/common';
+import { Controller, Get, Next, Post, Req, Res, HttpException, Inject } from '@nestjs/common';
 import * as Logger from 'bunyan';
 import { AuthConfigurer } from './auth.configurer';
 import { AllowAnonymous } from './auth.guard';
 import { Request, Response } from 'express';
 import { createLogger } from '../gcloud/logging';
+import { InviteUserService, Ctxt, Context, Configuration } from '..';
 
 @Controller('auth')
 export class AuthController {
   private logger: Logger;
-  constructor(private readonly authConfigurer: AuthConfigurer) {
+  constructor(
+    private readonly authConfigurer: AuthConfigurer,
+    private readonly inviteUserService: InviteUserService,
+    @Inject('Configuration') private readonly configuration: Configuration,
+  ) {
     this.logger = createLogger('auth-controller');
   }
 
@@ -27,6 +32,40 @@ export class AuthController {
         });
       }
     });
+  }
+
+  @AllowAnonymous()
+  @Post('activate')
+  async activate(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Next() next: (err: Error) => void,
+    @Ctxt() context: Context,
+  ) {
+    const user = await this.inviteUserService.activateAccount(context, req.body.code, req.body.name, req.body.password);
+
+    if (user) {
+      // If autoLoginAfterActivate flag is set to true in config, then auto login the user after the successful activation.
+      if (this.configuration.auth.local && this.configuration.auth.local.autoLoginAfterActivate) {
+        req.body.username = user.email;
+        this.authConfigurer.authenticateLocal()(req, res, (result?: Error) => {
+          if (result) {
+            if (result instanceof HttpException) {
+              return res.status(result.getStatus()).send(result.getResponse());
+            }
+            next(result);
+          } else {
+            res.send({
+              result: 'Activated and logged in successfully',
+            });
+          }
+        });
+      } else {
+        res.send({
+          result: 'Activated successfully',
+        });
+      }
+    }
   }
 
   @Post('signout/local')
