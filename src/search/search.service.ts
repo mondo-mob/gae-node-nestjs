@@ -8,6 +8,11 @@ interface IndexEntry {
   fields: { [key: string]: string };
 }
 
+export interface Sort {
+  field: string,
+  descending?: boolean,
+}
+
 @Injectable()
 export class SearchService {
   private logger: Logger;
@@ -19,16 +24,19 @@ export class SearchService {
   index(entityName: string, entries: IndexEntry[]) {
     this.logger.info(`Indexing ${entries.length} ${entityName} entities`);
 
+    this.logger.info(JSON.stringify(entries));
+
     return this.post('/index', {
       entityName,
       entries,
     });
   }
 
-  async query(entityName: string, fields: { [key: string]: string | string[] }): Promise<ReadonlyArray<string>> {
+  async query(entityName: string, fields: { [key: string]: string | string[] }, sort?: Sort): Promise<ReadonlyArray<string>> {
     const resp = await this.post('/query', {
       entityName,
       fields,
+      sort,
     });
 
     const ids = await resp.json();
