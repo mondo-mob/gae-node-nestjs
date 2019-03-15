@@ -41,12 +41,9 @@ export class SearchService {
     });
   }
 
-  delete(entityName: string, ids: string[]) {
-    this.logger.info(`Deleting ${ids.length} ${entityName} entities`);
-
-    return this.post('/delete', {
+  deleteAll(entityName: string) {
+    return this.post('/deleteAll', {
       entityName,
-      ids,
     });
   }
 
