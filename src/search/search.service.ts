@@ -41,6 +41,15 @@ export class SearchService {
     });
   }
 
+  delete(entityName: string, ids: string[]) {
+    this.logger.info(`Deleting ${ids.length} ${entityName} entities`);
+
+    return this.post('/delete', {
+      entityName,
+      ids,
+    });
+  }
+
   async query(entityName: string, fields: SearchFields, sort?: Sort): Promise<ReadonlyArray<string>> {
     const resp = await this.post('/query', {
       entityName,
