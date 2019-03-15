@@ -15,7 +15,7 @@ export interface Sort {
 
 export declare type Operator = '=' | '!=';
 
-export interface Fields {
+export interface SearchFields {
   [key: string]: string | string[] | Predicate;
 }
 
@@ -35,15 +35,13 @@ export class SearchService {
   index(entityName: string, entries: IndexEntry[]) {
     this.logger.info(`Indexing ${entries.length} ${entityName} entities`);
 
-    this.logger.info(JSON.stringify(entries));
-
     return this.post('/index', {
       entityName,
       entries,
     });
   }
 
-  async query(entityName: string, fields: Fields, sort?: Sort): Promise<ReadonlyArray<string>> {
+  async query(entityName: string, fields: SearchFields, sort?: Sort): Promise<ReadonlyArray<string>> {
     const resp = await this.post('/query', {
       entityName,
       fields: this.normaliseFields(fields),
@@ -66,8 +64,8 @@ export class SearchService {
     });
   }
 
-  private normaliseFields(fields: Fields): Fields {
-    return Object.keys(fields).reduce((result: Fields, key) => {
+  private normaliseFields(fields: SearchFields): SearchFields {
+    return Object.keys(fields).reduce((result: SearchFields, key) => {
       result[key] = this.toPredicate(fields[key]);
       return result;
     }, {});

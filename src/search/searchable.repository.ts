@@ -4,7 +4,7 @@ import { Context } from '../datastore/context';
 import { Index } from '../datastore/loader';
 import { Repository, RepositoryOptions } from '../datastore/repository';
 import { asArray, Omit, OneOrMany } from '../util/types';
-import { Fields, SearchService, Sort } from './search.service';
+import { SearchFields, SearchService, Sort } from './search.service';
 
 interface SearchableRepositoryOptions<T extends { id: any }> extends RepositoryOptions<T> {
   searchIndex: Index<Omit<T, 'id'>>;
@@ -53,7 +53,7 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
     return savedEntities;
   }
 
-  async search(context: Context, searchFields: Fields, sort?: Sort) {
+  async search(context: Context, searchFields: SearchFields, sort?: Sort) {
     const ids = await this.searchService.query(this.kind, searchFields, sort);
     const requests = await this.get(context, ids);
     return requests!;
