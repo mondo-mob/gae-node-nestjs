@@ -4,7 +4,7 @@ import { Context } from '../datastore/context';
 import { Index } from '../datastore/loader';
 import { Repository, RepositoryOptions } from '../datastore/repository';
 import { asArray, Omit, OneOrMany } from '../util/types';
-import { SearchService, Sort } from './search.service';
+import { Fields, SearchService, Sort } from './search.service';
 
 interface SearchableRepositoryOptions<T extends { id: any }> extends RepositoryOptions<T> {
   searchIndex: Index<Omit<T, 'id'>>;
@@ -53,20 +53,22 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
     return savedEntities;
   }
 
-  async search(context: Context, searchFields: { [key: string]: string | string[] }, sort?: Sort) {
+  async search(context: Context, searchFields: Fields, sort?: Sort) {
     const ids = await this.searchService.query(this.kind, searchFields, sort);
     const requests = await this.get(context, ids);
     return requests!;
   }
 
   private index(entities: OneOrMany<T>) {
-    const entitiesArr = asArray(entities)
+    const entitiesArr = asArray(entities);
     const entries = entitiesArr.map(entity => {
-
-      const fields = Object.keys(this.options.searchIndex).reduce((obj: { [key: string]: object }, fieldName: string) => {
-        obj[fieldName] = entity[fieldName];
-        return obj;
-      }, {});
+      const fields = Object.keys(this.options.searchIndex).reduce(
+        (obj: { [key: string]: object }, fieldName: string) => {
+          obj[fieldName] = entity[fieldName];
+          return obj;
+        },
+        {},
+      );
 
       return {
         id: entity.id,
@@ -76,5 +78,4 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
 
     return this.searchService.index(this.kind, entries);
   }
-
 }

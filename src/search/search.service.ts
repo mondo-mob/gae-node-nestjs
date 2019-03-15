@@ -9,8 +9,19 @@ interface IndexEntry {
 }
 
 export interface Sort {
-  field: string,
-  descending?: boolean,
+  field: string;
+  descending?: boolean;
+}
+
+export declare type Operator = '=' | '!=';
+
+export interface Fields {
+  [key: string]: string | string[] | Predicate;
+}
+
+export interface Predicate {
+  op: Operator;
+  value: string | string[];
 }
 
 @Injectable()
@@ -32,10 +43,10 @@ export class SearchService {
     });
   }
 
-  async query(entityName: string, fields: { [key: string]: string | string[] }, sort?: Sort): Promise<ReadonlyArray<string>> {
+  async query(entityName: string, fields: Fields, sort?: Sort): Promise<ReadonlyArray<string>> {
     const resp = await this.post('/query', {
       entityName,
-      fields,
+      fields: this.normaliseFields(fields),
       sort,
     });
 
@@ -53,5 +64,23 @@ export class SearchService {
       method: 'POST',
       body: JSON.stringify(body),
     });
+  }
+
+  private normaliseFields(fields: Fields): Fields {
+    return Object.keys(fields).reduce((result: Fields, key) => {
+      result[key] = this.toPredicate(fields[key]);
+      return result;
+    }, {});
+  }
+
+  private toPredicate(input: string | string[] | Predicate): Predicate {
+    if ((input as any).op !== undefined) {
+      return input as Predicate;
+    }
+
+    return {
+      op: '=',
+      value: input as string | string[],
+    };
   }
 }
