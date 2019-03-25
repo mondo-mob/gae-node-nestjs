@@ -57,7 +57,7 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
   }
   expressApp.use(
     session({
-      saveUninitialized: true,
+      saveUninitialized: false,
       resave: false,
       store: new SessionStore({
         dataset: new Datastore({

@@ -1,0 +1,1 @@
+{"version":3,"file":"invite.js","sourceRoot":"","sources":["../../src/mail-templates/invite.ts"],"names":[],"mappings":";;AAAA,iCAAmD;AAEtC,QAAA,eAAe,GAAG,CAAC,KAAa,EAAE,IAAY,EAAE,EAAE;IAC7D,MAAM,OAAO,GAAY;;;;;;cAMb,iBAAU,CAAC,kBAAkB,EAAE,IAAI,CAAC;;GAE/C,CAAC;IAEF,OAAO,oBAAa,CAAC,KAAK,EAAE,OAAO,CAAC,CAAC;AACvC,CAAC,CAAC"}
