@@ -1,6 +1,10 @@
 /* tslint:disable:ban-types */
+import * as DatastoreStore from '@google-cloud/connect-datastore';
+import { Datastore } from '@google-cloud/datastore';
 import { CookieOptions, NextFunction, RequestHandler, Response } from 'express';
+import * as session from 'express-session';
 import * as csp from 'helmet-csp';
+import * as passport from 'passport';
 import { CsrfValidator } from './auth/csrf.interceptor';
 import { rootLogger } from './gcloud/logging';
 import { asArray, OneOrMany } from './util/types';
@@ -27,6 +31,8 @@ interface Express {
 }
 
 export const configureExpress = (expressApp: Express, options: ServerOptions) => {
+  const SessionStore = DatastoreStore(session);
+
   expressApp.use(
     csp(
       options.csp || {
@@ -50,6 +56,25 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
     rootLogger.info('Cookie secured for prod');
   }
   
+  expressApp.use(
+    session({
+      saveUninitialized: false,
+      resave: false,
+      store: new SessionStore({
+        dataset: new Datastore({
+          prefix: 'express-sessions',
+          apiEndpoint: options.session.apiEndpoint,
+          projectId: options.session.projectId,
+        } as any),
+      }),
+      secret: options.session.secret,
+      cookie: {
+        ...options.session.cookie,
+        secure,
+      },
+    }),
+  );
+
   const { ignorePaths = [/^\/(tasks\/|system\/).*/] } = options.csrf || {};
 
   // Allows us to specify positive matches for ignoring rather than complex negative lookaheads
@@ -63,5 +88,7 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
     };
   };
 
+  expressApp.use(passport.initialize());
+  expressApp.use(passport.session());
   expressApp.use(unless(ignorePaths, CsrfValidator));
 };
