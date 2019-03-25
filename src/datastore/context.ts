@@ -11,6 +11,7 @@ export interface IUserUpdates {
   enabled?: boolean;
   roles?: ReadonlyArray<string>;
   orgId?: string;
+  props?: any;
 }
 
 export interface IUserCreateRequest extends IUserUpdates {

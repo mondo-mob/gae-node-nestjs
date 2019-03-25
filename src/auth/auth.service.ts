@@ -214,7 +214,7 @@ export class AuthService {
   }
 
   @Transactional()
-  async validateUserAuth0(context: Context, email: string, orgId: string, roles: string[]) {
+  async validateUserAuth0(context: Context, email: string, orgId: string, roles: string[], props: any) {
     this.logger.info('Validating Auth0 user profile');
 
     this.logger.info(`Looking up user by email ${email}`);
@@ -227,6 +227,7 @@ export class AuthService {
         roles,
         orgId,
         email,
+        props,
       });
 
       await this.authRepository.save(context, {
@@ -250,6 +251,7 @@ export class AuthService {
 
     user.roles = roles;
     user.orgId = orgId;
+    user.props = props;
     await this.userService.update(context, user.id, user);
 
     return user;

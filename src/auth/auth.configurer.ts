@@ -190,15 +190,18 @@ export class AuthConfigurer {
   ) => {
     const decoded: any = decode(extraParams.id_token);
     const { email } = decoded;
-    const roles = decoded[`${this.configuration.auth.auth0!.namespace}roles`];
-    const orgId = decoded[`${this.configuration.auth.auth0!.namespace}orgId`];
+
+    const namespace = this.configuration.auth.auth0!.namespace;
+    const roles = decoded[`${namespace}roles`];
+    const orgId = decoded[`${namespace}orgId`];
+    const props = decoded[`${namespace}props`];
 
     if (!roles || !roles.length) {
       this.logger.warn(`No roles were provided by auth0 for ${email}`);
     }
 
     try {
-      const user = await this.authService.validateUserAuth0(newContext(this.datastore), email, orgId, roles);
+      const user = await this.authService.validateUserAuth0(newContext(this.datastore), email, orgId, roles, props);
       if (!user) {
         return done(new UnauthorizedException(), false);
       }
