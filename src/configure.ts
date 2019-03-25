@@ -1,7 +1,6 @@
 /* tslint:disable:ban-types */
 import { CookieOptions, NextFunction, RequestHandler, Response } from 'express';
 import * as csp from 'helmet-csp';
-import * as passport from 'passport';
 import { CsrfValidator } from './auth/csrf.interceptor';
 import { rootLogger } from './gcloud/logging';
 import { asArray, OneOrMany } from './util/types';
@@ -64,7 +63,5 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
     };
   };
 
-  expressApp.use(passport.initialize());
-  expressApp.use(passport.session());
   expressApp.use(unless(ignorePaths, CsrfValidator));
 };

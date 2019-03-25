@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const csp = require("helmet-csp");
-const passport = require("passport");
 const csrf_interceptor_1 = require("./auth/csrf.interceptor");
 const logging_1 = require("./gcloud/logging");
 const types_1 = require("./util/types");
@@ -29,8 +28,6 @@ exports.configureExpress = (expressApp, options) => {
             matchesExclusion ? next() : middleware(req, res, next);
         };
     };
-    expressApp.use(passport.initialize());
-    expressApp.use(passport.session());
     expressApp.use(unless(ignorePaths, csrf_interceptor_1.CsrfValidator));
 };
 //# sourceMappingURL=configure.js.map
