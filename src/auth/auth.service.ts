@@ -10,7 +10,7 @@ import { USER_SERVICE, UserService } from './user.service';
 import { Configuration, IUser } from '../index';
 import { Transactional } from '../datastore/transactional';
 import { createLogger } from '../gcloud/logging';
-import { Context, getCurrentContext } from '../datastore/context';
+import { Context } from '../datastore/context';
 import { CONFIGURATION } from '../configuration';
 
 const userProfile = t.interface({
@@ -67,8 +67,8 @@ export class AuthService {
    * @param username The username for the account TODO: Rename to email
    * @param password The users password
    */
-  async validateUser(username: string, password: string): Promise<IUser> {
-    const account = await this.authRepository.get(getCurrentContext(), username);
+  async validateUser(context: Context, username: string, password: string): Promise<IUser> {
+    const account = await this.authRepository.get(context, username);
 
     if (!account) {
       throw new CredentialsNotFoundError();
@@ -84,7 +84,7 @@ export class AuthService {
       throw new PasswordInvalidError();
     }
 
-    const user = await this.userService.get(getCurrentContext(), account.userId);
+    const user = await this.userService.get(context, account.userId);
 
     if (!user) {
       throw new UserNotFoundError();
@@ -104,7 +104,7 @@ export class AuthService {
    * @param inputProfile The profile returned from Google
    */
   @Transactional()
-  async validateUserGoogle(inputProfile: object): Promise<IUser> {
+  async validateUserGoogle(context: Context, inputProfile: object): Promise<IUser> {
     const validationResult = userProfile.decode(inputProfile);
 
     if (validationResult.isLeft()) {
@@ -119,7 +119,6 @@ export class AuthService {
     }
 
     const email = accountEmails.value;
-    const context = getCurrentContext();
     const account = await this.authRepository.get(context, email);
 
     // If there is no account registered there are two options:
@@ -176,11 +175,10 @@ export class AuthService {
    * @param profile The profile returned from SAML
    */
   @Transactional()
-  async validateUserSaml(profile: any): Promise<IUser> {
+  async validateUserSaml(context: Context, profile: any): Promise<IUser> {
     this.logger.info('Validating SAML user profile');
 
     const email = profile.email;
-    const context = getCurrentContext();
     this.logger.info(`Looking up user by email ${email}`);
     const account = await this.authRepository.get(context, email);
 
@@ -216,11 +214,10 @@ export class AuthService {
   }
 
   @Transactional()
-  async validateUserAuth0(email: string, orgId: string, roles: string[], props: any) {
+  async validateUserAuth0(context: Context, email: string, orgId: string, roles: string[], props: any) {
     this.logger.info('Validating Auth0 user profile');
 
     this.logger.info(`Looking up user by email ${email}`);
-    const context = getCurrentContext();
     const account = await this.authRepository.get(context, email);
 
     if (!account) {
