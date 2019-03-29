@@ -1,4 +1,5 @@
 /* tslint:disable:ban-types */
+import * as httpContext from 'express-cls-hooked';
 import * as DatastoreStore from '@google-cloud/connect-datastore';
 import { Datastore } from '@google-cloud/datastore';
 import { CookieOptions, NextFunction, RequestHandler, Response } from 'express';
@@ -87,6 +88,7 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
     };
   };
 
+  expressApp.use(httpContext.middleware);
   expressApp.use(passport.initialize());
   expressApp.use(passport.session());
   expressApp.use(unless(ignorePaths, CsrfValidator));

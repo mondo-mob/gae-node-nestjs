@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 import { AllowAnonymous, Roles } from './auth.guard';
 import { InviteUserService } from './invite-user.service';
 import { PasswordResetService } from './password-reset.service';
-import { Context, IUser } from '..';
+import { Context, IUser, getCurrentContext } from '..';
 
 @Resolver('User')
 export class AuthResolver {
@@ -16,8 +16,8 @@ export class AuthResolver {
   ) {}
 
   @Roles('admin')
-  async credentials({ id }: IUser, _args: {}, context: Context) {
-    const [maybeCredentials] = await this.credentialsRepository.query(context, {
+  async credentials({ id }: IUser, _args: {}) {
+    const [maybeCredentials] = await this.credentialsRepository.query(getCurrentContext(), {
       filters: {
         userId: id,
       },
@@ -35,7 +35,8 @@ export class AuthResolver {
 
   @AllowAnonymous()
   @Query('me')
-  async me(_req: void, _args: void, context: Context<IUser>) {
+  async me(_req: void, _args: void) {
+    const context: Context<IUser> = getCurrentContext();
     if (context.user) {
       return context.user;
     }
@@ -43,36 +44,28 @@ export class AuthResolver {
 
   @AllowAnonymous()
   @Mutation()
-  async resetPassword(_req: void, { email }: { email: string }, context: Context) {
-    return await this.passwordResetService.resetPassword(context, email);
+  async resetPassword(_req: void, { email }: { email: string }) {
+    return await this.passwordResetService.resetPassword(getCurrentContext(), email);
   }
 
   @AllowAnonymous()
   @Mutation()
-  async confirmResetPassword(
-    _req: void,
-    { code, newPassword }: { code: string; newPassword: string },
-    context: Context,
-  ) {
-    return await this.passwordResetService.confirmResetPassword(context, code, newPassword);
+  async confirmResetPassword(_req: void, { code, newPassword }: { code: string; newPassword: string }) {
+    return await this.passwordResetService.confirmResetPassword(getCurrentContext(), code, newPassword);
   }
 
   @Roles('admin')
   @Mutation()
-  async inviteUser(_req: void, { email, roles }: { email: string; roles: string[] }, context: Context) {
+  async inviteUser(_req: void, { email, roles }: { email: string; roles: string[] }) {
     const {
       user: { id },
-    } = await this.inviteUserService.inviteUser(context, { email, roles });
+    } = await this.inviteUserService.inviteUser(getCurrentContext(), { email, roles });
     return id;
   }
 
   @AllowAnonymous()
   @Mutation()
-  async activateAccount(
-    _req: void,
-    { code, name, password }: { code: string; name: string; password: string },
-    context: Context,
-  ) {
-    await this.inviteUserService.activateAccount(context, code, name, password);
+  async activateAccount(_req: void, { code, name, password }: { code: string; name: string; password: string }) {
+    await this.inviteUserService.activateAccount(getCurrentContext(), code, name, password);
   }
 }

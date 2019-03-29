@@ -36,6 +36,7 @@
     "commander": "^2.16.0",
     "dataloader": "^1.4.0",
     "email-addresses": "^3.0.1",
+    "express-cls-hooked": "^0.3.8",
     "express-session": "^1.15.6",
     "graphql": "^0.13.2",
     "graphql-iso-date": "^3.5.0",

@@ -3,7 +3,16 @@ export { Transactional } from './datastore/transactional';
 export { DatastoreProvider } from './datastore/datastore.provider';
 export { createLogger, rootLogger, BunyanLogger } from './gcloud/logging';
 export { StorageProvider } from './gcloud/storage.provider';
-export { Context, isContext, newContext, IUser, IUserUpdates, IUserCreateRequest, Ctxt } from './datastore/context';
+export {
+  Context,
+  isContext,
+  newContext,
+  IUser,
+  IUserUpdates,
+  IUserCreateRequest,
+  Ctxt,
+  getCurrentContext,
+} from './datastore/context';
 export { TaskQueue } from './gcloud/tasks';
 export { Filters, Filter } from './datastore/filters';
 export { CsrfValidator } from './auth/csrf.interceptor';
