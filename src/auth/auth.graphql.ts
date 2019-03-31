@@ -37,7 +37,7 @@ export class AuthResolver {
   @Query('me')
   async me(_req: void, _args: void) {
     const context: Context<IUser> = getCurrentContext();
-    if (context.user) {
+    if (context && context.user) {
       return context.user;
     }
   }

@@ -52,6 +52,8 @@ export const transaction = async <T>(context: Context, callback: (context: Conte
   return await callback(context);
 };
 
-export function getCurrentContext() {
-  return httpContext.get('currentContext');
+export class CurrentContext {
+  get() {
+    return httpContext.get('currentContext');
+  }
 }

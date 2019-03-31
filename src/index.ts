@@ -11,7 +11,7 @@ export {
   IUserUpdates,
   IUserCreateRequest,
   Ctxt,
-  getCurrentContext,
+  CurrentContext,
 } from './datastore/context';
 export { TaskQueue } from './gcloud/tasks';
 export { Filters, Filter } from './datastore/filters';
