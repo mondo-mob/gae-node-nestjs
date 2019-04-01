@@ -13,7 +13,7 @@ export interface Sort {
   descending?: boolean;
 }
 
-export declare type Operator = '=' | '!=';
+export declare type Operator = '=' | '!=' | '>' | '<' | '>=' | '<=';
 
 export interface SearchFields {
   [key: string]: string | string[] | Predicate;
@@ -21,7 +21,7 @@ export interface SearchFields {
 
 export interface Predicate {
   op: Operator;
-  value: string | string[];
+  value: string | string[] | number | Date;
 }
 
 @Injectable()
