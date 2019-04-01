@@ -53,7 +53,7 @@ export const transaction = async <T>(context: Context, callback: (context: Conte
 };
 
 export class CurrentContext {
-  get() {
+  static get(): Context<IUser> {
     return httpContext.get('currentContext');
   }
 }
