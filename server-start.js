@@ -166,7 +166,7 @@ function setupServer(logger, loggingStream, buildEvents) {
   });
   let child;
   const startServer = () => {
-    child = spawn('node', ['./dist/server.js', '--debug-brk']);
+    child = spawn('node', ['./dist/server.js', '--inspect']);
 
     child.stdout.on('data', data => {
       const string = data.toString('utf8').split('\n');
