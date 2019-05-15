@@ -1,18 +1,35 @@
 import { Response, NextFunction, RequestHandler } from 'express';
 import * as uuid from 'node-uuid';
+import { Request } from 'express-serve-static-core';
 
 const generateToken = () =>
   process.env.APP_ENGINE_ENVIRONMENT ? uuid.v4() : 'development';
 
-export const CsrfValidator: RequestHandler = (
+interface CsrfValidatorOptions {
+  sameSite: boolean;
+}
+
+const defaultValidatorOptions: CsrfValidatorOptions = {
+  sameSite: true,
+};
+
+interface RequestHandlerWithOptions {
+  // tslint:disable-next-line callable-types
+  (req: Request, res: Response, next: NextFunction, options: CsrfValidatorOptions): any;
+}
+
+export const CsrfValidator: RequestHandlerWithOptions = (
   req: any,
   res: Response,
   next: NextFunction,
+  options: CsrfValidatorOptions,
 ) => {
+  options = {...defaultValidatorOptions, ...options};
+
   if (req.session && !req.session.csrf) {
     req.session.csrf = generateToken();
     res.cookie('csrf-token', req.session.csrf, {
-      sameSite: true,
+      sameSite: options.sameSite,
     });
   }
 
@@ -35,4 +52,10 @@ export const CsrfValidator: RequestHandler = (
   res.status(403).send({
     message: 'Invalid CSRF token',
   });
+};
+
+export const CsrfValidatorWithOptions = (options: CsrfValidatorOptions) => {
+  return (req: any, res: Response, next: NextFunction): RequestHandler => {
+    return CsrfValidator(req, res, next, options);
+  }
 };

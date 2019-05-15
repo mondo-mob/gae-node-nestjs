@@ -5,14 +5,15 @@ import { CookieOptions, NextFunction, RequestHandler, Response } from 'express';
 import * as session from 'express-session';
 import * as csp from 'helmet-csp';
 import * as passport from 'passport';
-import { CsrfValidator } from './auth/csrf.interceptor';
+import { CsrfValidatorWithOptions } from './auth/csrf.interceptor';
 import { rootLogger } from './gcloud/logging';
 import { asArray, OneOrMany } from './util/types';
 
 interface ServerOptions {
   csp?: object;
   csrf?: {
-    ignorePaths: OneOrMany<string | RegExp>;
+    ignorePaths?: OneOrMany<string | RegExp>;
+    sameSite?: boolean;
   };
   session: {
     secret: string;
@@ -37,12 +38,12 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
     csp(
       options.csp || {
         directives: {
-          defaultSrc: ["'none'"],
-          scriptSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-          imgSrc: ["'self'"],
-          connectSrc: ["'self'", 'https://www.googleapis.com'],
+          defaultSrc: ['\'none\''],
+          scriptSrc: ['\'self\''],
+          styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
+          fontSrc: ['\'self\'', 'https://fonts.gstatic.com'],
+          imgSrc: ['\'self\''],
+          connectSrc: ['\'self\'', 'https://www.googleapis.com'],
         },
       },
     ),
@@ -55,6 +56,7 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
     secure = true;
     rootLogger.info('Cookie secured for prod');
   }
+
   expressApp.use(
     session({
       saveUninitialized: true,
@@ -74,7 +76,7 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
     }),
   );
 
-  const { ignorePaths = [/^\/(tasks\/|system\/).*/] } = options.csrf || {};
+  const { ignorePaths = [/^\/(tasks\/|system\/).*/], sameSite = true } = options.csrf || {};
 
   // Allows us to specify positive matches for ignoring rather than complex negative lookaheads
   // See https://stackoverflow.com/questions/27117337/exclude-route-from-express-middleware
@@ -89,5 +91,7 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
 
   expressApp.use(passport.initialize());
   expressApp.use(passport.session());
-  expressApp.use(unless(ignorePaths, CsrfValidator));
+
+  const csrfValidator = CsrfValidatorWithOptions({ sameSite });
+  expressApp.use(unless(ignorePaths, csrfValidator));
 };
