@@ -14,6 +14,7 @@ interface ServerOptions {
   csrf?: {
     ignorePaths?: OneOrMany<string | RegExp>;
     sameSite?: boolean;
+    disabled?: boolean;
   };
   session: {
     secret: string;
@@ -76,7 +77,7 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
     }),
   );
 
-  const { ignorePaths = [/^\/(tasks\/|system\/).*/], sameSite = true } = options.csrf || {};
+  const { ignorePaths = [/^\/(tasks\/|system\/).*/], sameSite = true, disabled: csrfDisabled = false } = options.csrf || {};
 
   // Allows us to specify positive matches for ignoring rather than complex negative lookaheads
   // See https://stackoverflow.com/questions/27117337/exclude-route-from-express-middleware
@@ -92,6 +93,9 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
   expressApp.use(passport.initialize());
   expressApp.use(passport.session());
 
-  const csrfValidator = CsrfValidatorWithOptions({ sameSite });
-  expressApp.use(unless(ignorePaths, csrfValidator));
+  if (!csrfDisabled) {
+    // Enable CSRF token validation
+    const csrfValidator = CsrfValidatorWithOptions({ sameSite });
+    expressApp.use(unless(ignorePaths, csrfValidator));
+  }
 };
