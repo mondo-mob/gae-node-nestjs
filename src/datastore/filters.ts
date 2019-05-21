@@ -10,7 +10,7 @@ export interface ComplexFilter<T> {
 
 export type Filters<T> = {
   [K in keyof T]?: T[K] extends Array<any>
-    ? Filter<Partial<T[K][0]>>
+    ? Filters<T[K][0]>
     : T[K] extends Date ? Filter<T[K]>
     : T[K] extends object ? Filters<T[K]> : Filter<T[K]>
 };
