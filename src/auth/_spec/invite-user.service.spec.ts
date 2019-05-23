@@ -412,7 +412,7 @@ describe('InviteUserService', () => {
 
       await expect(inviteUserService.getInvitedUser(context, '12345')).rejects.toHaveProperty(
         'message',
-        'Account activation expired',
+        'Account activation code expired',
       );
     });
   });

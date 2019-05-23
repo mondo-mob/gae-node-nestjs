@@ -71,7 +71,7 @@ export class InviteUserService {
 
     if (Date.now() - invite.createdAt.getTime() > activationExpiry) {
       this.logger.info(`User invite for ${invite.email} has expired. Was created ${invite.createdAt}.`);
-      throw new Error('Account activation expired');
+      throw new Error('Account activation code expired');
     }
 
     return this.userService.get(context, invite.userId);
