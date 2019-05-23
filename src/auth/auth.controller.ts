@@ -1,7 +1,7 @@
-import { Controller, Get, Next, Post, Req, Res, HttpException, Inject } from '@nestjs/common';
+import { Controller, Get, Next, Post, Req, Res, HttpException, Inject, HttpCode, HttpStatus } from '@nestjs/common';
 import * as Logger from 'bunyan';
 import { AuthConfigurer } from './auth.configurer';
-import { AllowAnonymous } from './auth.guard';
+import { AllowAnonymous, Roles } from './auth.guard';
 import { Request, Response } from 'express';
 import { createLogger } from '../gcloud/logging';
 import { InviteUserService, Ctxt, Context, Configuration } from '..';
@@ -32,6 +32,30 @@ export class AuthController {
         });
       }
     });
+  }
+
+  @Roles('admin')
+  @Post('re-invite')
+  async reInviteUser(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Next() next: (err: Error) => void,
+    @Ctxt() context: Context,
+  ) {
+    if (!req.body.userId) {
+      throw new Error('User id not supplied');
+    }
+    this.logger.info('Re invite requested for ' + req.body.userId);
+
+    const userInviteResponse = await this.inviteUserService.reInviteForUserId(context, req.body.userId);
+
+    if (userInviteResponse) {
+      res.send({
+        result: 'Re Invited user successfully',
+      });
+    } else {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error while re inviting user');
+    }
   }
 
   @AllowAnonymous()

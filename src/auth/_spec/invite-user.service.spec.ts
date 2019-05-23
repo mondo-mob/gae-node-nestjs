@@ -14,7 +14,10 @@ describe('InviteUserService', () => {
   const userService = mock(AbstractUserService);
   const configuration = {
     host: 'http://localhost:3000',
-  } as Configuration;
+    auth: {
+      activationExpiryInMinutes: '40',
+    },
+  } as any;
 
   const context = mockContext();
   let inviteUserService: InviteUserService;
@@ -32,6 +35,60 @@ describe('InviteUserService', () => {
       instance(userService),
       instance(userInviteRepository),
     );
+  });
+
+  describe('re-invite user', () => {
+    let existingInvite: any;
+    beforeEach(() => {
+      existingInvite = {
+        id: '12313123',
+        email: 'test@example.com',
+        roles: [],
+        userId: 'userId123',
+      };
+    });
+
+    it('should throw an error when there is no existing invites for the userId', async () => {
+      when(userInviteRepository.query(context, anything())).thenResolve([[], {} as any]);
+      await expect(inviteUserService.reInviteForUserId(context, 'unknownUserId')).rejects.toHaveProperty(
+        'message',
+        'No user invites found.',
+      );
+    });
+
+    it('should throw an error when the user doesnt exist', async () => {
+      when(userInviteRepository.query(context, anything())).thenResolve([
+        [{ id: 'id', email: 'email', createdAt: new Date(), userId: 'unknownUserId', roles: [] }],
+        {} as any,
+      ]);
+      when(userService.getByEmail(context, 'unknownUserId')).thenResolve(undefined);
+      await expect(inviteUserService.reInviteForUserId(context, 'unknownUserId')).rejects.toHaveProperty(
+        'message',
+        'User not found',
+      );
+    });
+
+    it('should create new invite, delete existing invite and send email', async () => {
+      when(userInviteRepository.query(context, anything())).thenResolve([[existingInvite], {} as any]);
+      when(userService.getByEmail(context, 'test@example.com')).thenResolve({ id: 'userId123' });
+      when(userInviteRepository.save(context, anything())).thenResolve({
+        id: 'newId',
+        email: 'email',
+        createdAt: new Date(),
+        userId: 'userId123',
+        roles: [],
+      });
+      const result = await inviteUserService.reInviteForUserId(context, 'userId123');
+
+      const [, newInvite] = capture(userInviteRepository.save).last();
+      verify(userInviteRepository.delete(context, '12313123')).once();
+
+      const [, mail] = capture(mailSender.send).last();
+
+      expect((newInvite as any).userId).toBe(existingInvite.userId);
+      expect((newInvite as any).id).not.toBe(existingInvite.id);
+      expect(mail.html).toMatch(result.inviteId);
+    });
   });
 
   describe('inviteUser', () => {
@@ -348,14 +405,15 @@ describe('InviteUserService', () => {
       expect(result).toBeUndefined();
     });
 
-    it('should not return anything when invite hasExpired', async () => {
+    it('should return error when invite hasExpired', async () => {
       userInvite.createdAt = new Date(Date.now() - INVITE_CODE_EXPIRY * 2);
       when(userInviteRepository.get(context, '12345')).thenResolve(userInvite);
       when(userService.get(context, userInvite.userId)).thenResolve(user);
 
-      const result = await inviteUserService.getInvitedUser(context, '12345');
-
-      expect(result).toBeUndefined();
+      await expect(inviteUserService.getInvitedUser(context, '12345')).rejects.toHaveProperty(
+        'message',
+        'Account activation expired',
+      );
     });
   });
 });
