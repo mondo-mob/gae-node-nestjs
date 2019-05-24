@@ -31,33 +31,39 @@ export type UserInvite = t.TypeOf<typeof userInvite>;
 @Injectable()
 export class UserInviteRepository extends Repository<UserInvite> {
   constructor(datastoreProvider: DatastoreProvider) {
-    super(datastoreProvider.datastore, 'UserInvite', userInvite);
+    super(datastoreProvider.datastore, 'UserInvite', userInvite, {
+      index: {
+        userId: true,
+      },
+    });
   }
 }
 
-const loginCredentials = t.clean(t.union([
-  t.interface({
-    id: t.string, // username
-    userId: t.string,
-    password: t.string,
-    type: t.literal('password'),
-  }),
-  t.interface({
-    id: t.string, // username
-    userId: t.string,
-    type: t.literal('google'),
-  }),
-  t.interface({
-    id: t.string, // username
-    userId: t.string,
-    type: t.literal('saml'),
-  }),
-  t.interface({
-    id: t.string, // username
-    userId: t.string,
-    type: t.literal('auth0'),
-  }),
-]));
+const loginCredentials = t.clean(
+  t.union([
+    t.interface({
+      id: t.string, // username
+      userId: t.string,
+      password: t.string,
+      type: t.literal('password'),
+    }),
+    t.interface({
+      id: t.string, // username
+      userId: t.string,
+      type: t.literal('google'),
+    }),
+    t.interface({
+      id: t.string, // username
+      userId: t.string,
+      type: t.literal('saml'),
+    }),
+    t.interface({
+      id: t.string, // username
+      userId: t.string,
+      type: t.literal('auth0'),
+    }),
+  ]),
+);
 
 export type LoginCredentials = t.TypeOf<typeof loginCredentials>;
 

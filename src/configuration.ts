@@ -13,6 +13,7 @@ export interface Configuration {
   systemSecret: Buffer;
 
   auth: {
+    activationExpiryInMinutes?: number;
     local?: {
       enabled?: boolean;
       autoLoginAfterActivate?: boolean;
