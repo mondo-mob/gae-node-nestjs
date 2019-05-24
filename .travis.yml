@@ -1,0 +1,18 @@
+# The travis build script used to run the tests and deploy the code to npm
+language: node_js
+node_js:
+  - v10
+  - v8
+
+cache: npm
+
+# Install dependencies
+install: npm install
+
+# Run the test and typescript test
+script: npm run verify
+
+# Only build/run on master branch commit
+branches:
+  only:
+    - master
