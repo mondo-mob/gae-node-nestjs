@@ -185,7 +185,7 @@ export class InviteUserService {
       return { user: updatedUser };
     } else {
       const inviteId = uuid.v4();
-      const userInvite = await this.userInviteRepository.save(context, {
+      await this.userInviteRepository.save(context, {
         id: inviteId,
         email,
         createdAt: new Date(),
