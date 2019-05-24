@@ -4,7 +4,6 @@ node_js:
   - v10
   - v8
   - v6
-  - v4
 
 cache: npm
 
@@ -12,5 +11,5 @@ cache: npm
 install: npm install
 
 # Run the test and typescript test
-script: npm verify
+script: npm run verify
 
