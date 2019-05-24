@@ -13,3 +13,7 @@ install: npm install
 # Run the test and typescript test
 script: npm run verify
 
+# Only build/run on master branch commit
+branches:
+  only:
+    - master
