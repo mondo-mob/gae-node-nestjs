@@ -111,7 +111,7 @@ describe('InviteUserService', () => {
       );
     });
 
-    it("should throw an error if roles contains 'super'", async () => {
+    it('should throw an error if roles contains `super`', async () => {
       inviteRequest.roles = ['admin', 'super'];
 
       when(credentialRepository.get(context, inviteRequest.email)).thenResolve(undefined);
