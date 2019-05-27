@@ -122,7 +122,7 @@ export class AuthConfigurer {
 
   beginAuthenticateAuth0() {
     const options = {
-      scope: ['openid', 'email'],
+      scope: ['openid', 'email', 'profile'],
     };
     return passport.authenticate(AUTH0_SIGNIN, options);
   }
@@ -189,7 +189,7 @@ export class AuthConfigurer {
     done: (error: Error | null, user: IUser | false) => void,
   ) => {
     const decoded: any = decode(extraParams.id_token);
-    const { email } = decoded;
+    const { email, name } = decoded;
 
     const namespace = this.configuration.auth.auth0!.namespace;
     const roles = decoded[`${namespace}roles`];
@@ -201,7 +201,7 @@ export class AuthConfigurer {
     }
 
     try {
-      const user = await this.authService.validateUserAuth0(newContext(this.datastore), email, orgId, roles, props);
+      const user = await this.authService.validateUserAuth0(newContext(this.datastore), email, name, orgId, roles, props);
       if (!user) {
         return done(new UnauthorizedException(), false);
       }

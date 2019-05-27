@@ -214,7 +214,7 @@ export class AuthService {
   }
 
   @Transactional()
-  async validateUserAuth0(context: Context, email: string, orgId: string, roles: string[], props: any) {
+  async validateUserAuth0(context: Context, email: string, name: string, orgId: string, roles: string[], props: any) {
     this.logger.info('Validating Auth0 user profile');
 
     this.logger.info(`Looking up user by email ${email}`);
@@ -227,6 +227,7 @@ export class AuthService {
         roles,
         orgId,
         email,
+        name,
         props,
       });
 
@@ -249,6 +250,7 @@ export class AuthService {
       throw new UserNotFoundError();
     }
 
+    user.name = name;
     user.roles = roles;
     user.orgId = orgId;
     user.props = props;
