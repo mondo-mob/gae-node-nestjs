@@ -45,6 +45,7 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
           fontSrc: ['\'self\'', 'https://fonts.gstatic.com'],
           imgSrc: ['\'self\'', 'data: '],
           connectSrc: ['\'self\'', 'https://www.googleapis.com'],
+          manifestSrc: ['\'self\''],
         },
       },
     ),
