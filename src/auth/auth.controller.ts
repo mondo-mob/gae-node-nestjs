@@ -146,6 +146,14 @@ export class AuthController {
   }
 
   @AllowAnonymous()
+  @Get('signout/auth0')
+  signOutAuth0(@Req() req: Request, @Res() res: Response) {
+    const redirectUrl = this.authConfigurer.getSignoutUrlAuth0();
+    this.logger.info('Redirecting to ', redirectUrl);
+    res.redirect(redirectUrl);
+  }
+
+  @AllowAnonymous()
   @Get('signin/auth0/callback')
   completeSignInAuth0(@Req() req: Request, @Res() res: Response) {
     this.authConfigurer.completeAuthenticateAuth0()(req, res, (err: any) => {

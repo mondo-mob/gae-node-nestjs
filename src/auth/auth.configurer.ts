@@ -133,6 +133,13 @@ export class AuthConfigurer {
     });
   }
 
+  getSignoutUrlAuth0() {
+    const clientId = this.configuration.auth.auth0!.clientId;
+    const domain = this.configuration.auth.auth0!.domain;
+    const host = this.configuration.host;
+    return `https://${domain}/v2/logout?client_id=${clientId}&returnTo=${host}`;
+  }
+
   authenticateLocal() {
     return passport.authenticate(LOCAL_SIGNIN, {});
   }
