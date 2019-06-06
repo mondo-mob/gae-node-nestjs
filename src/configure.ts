@@ -9,6 +9,8 @@ import { CsrfValidatorWithOptions } from './auth/csrf.interceptor';
 import { rootLogger } from './gcloud/logging';
 import { asArray, OneOrMany } from './util/types';
 
+const MAX_AGE_DEFAULT = 2 * 60 * 60 * 1000; // 2 hours
+
 interface ServerOptions {
   csp?: object;
   csrf?: {
@@ -62,7 +64,8 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
   expressApp.use(
     session({
       saveUninitialized: true,
-      resave: false,
+      resave: true,
+      rolling: true,
       store: new SessionStore({
         dataset: new Datastore({
           prefix: 'express-sessions',
@@ -72,6 +75,7 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
       }),
       secret: options.session.secret,
       cookie: {
+        maxAge: MAX_AGE_DEFAULT,
         ...options.session.cookie,
         secure,
       },
