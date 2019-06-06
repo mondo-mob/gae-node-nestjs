@@ -1,10 +1,11 @@
-import { Controller, Get, Next, Post, Req, Res, HttpException, Inject, HttpStatus } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Inject, Next, Post, Req, Res } from '@nestjs/common';
 import * as Logger from 'bunyan';
+import { Request, Response } from 'express';
+import { Configuration, Context, Ctxt, InviteUserService } from '..';
+import { createLogger } from '../gcloud/logging';
 import { AuthConfigurer } from './auth.configurer';
 import { AllowAnonymous, Roles } from './auth.guard';
-import { Request, Response } from 'express';
-import { createLogger } from '../gcloud/logging';
-import { InviteUserService, Ctxt, Context, Configuration } from '..';
+import { AuthListener, AUTH_LISTENER } from './auth.listener';
 
 @Controller('auth')
 export class AuthController {
@@ -13,6 +14,7 @@ export class AuthController {
     private readonly authConfigurer: AuthConfigurer,
     private readonly inviteUserService: InviteUserService,
     @Inject('Configuration') private readonly configuration: Configuration,
+    @Inject(AUTH_LISTENER) private readonly authListener: AuthListener,
   ) {
     this.logger = createLogger('auth-controller');
   }
@@ -27,6 +29,7 @@ export class AuthController {
         }
         next(result);
       } else {
+        this.authListener.onLogin(req);
         res.send({
           result: 'success',
         });
@@ -109,6 +112,7 @@ export class AuthController {
   completeSignInGoogle(@Req() req: Request, @Res() res: Response) {
     this.authConfigurer.completeAuthenticateGoogle()(req, res, (err: any) => {
       if (req.user) {
+        this.authListener.onLogin(req);
         res.redirect(`/`);
       } else {
         this.logger.warn('Login with google failed', err);
@@ -131,6 +135,7 @@ export class AuthController {
     this.authConfigurer.completeAuthenticateSaml()(req, res, (err: any) => {
       if (req.user) {
         this.logger.info('user: %o', req.user);
+        this.authListener.onLogin(req);
         res.redirect('/');
       } else {
         this.logger.warn('Login with SAML failed', err);
@@ -159,6 +164,7 @@ export class AuthController {
     this.authConfigurer.completeAuthenticateAuth0()(req, res, (err: any) => {
       this.logger.info(err);
       if (req.user) {
+        this.authListener.onLogin(req);
         res.redirect(`/`);
       } else {
         this.logger.warn('Login with auth0 failed', err);

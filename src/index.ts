@@ -16,6 +16,7 @@ export { PasswordResetService } from './auth/password-reset.service';
 export { InviteUserService } from './auth/invite-user.service';
 export { AuthService, hashPassword } from './auth/auth.service';
 export { UserService } from './auth/user.service';
+export { AUTH_LISTENER, AuthListener } from './auth/auth.listener';
 export { Configuration, CONFIGURATION } from './configuration';
 export { SearchFields, SearchService } from './search/search.service';
 export { SearchableRepository } from './search/searchable.repository';
