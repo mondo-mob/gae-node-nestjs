@@ -51,6 +51,11 @@ export abstract class AbstractUserService<
     if (!user) {
       throw new Error(`No user exists with id: ${id}`);
     }
+
+    if (updates.roles && updates.roles.includes('super')) {
+      throw new Error('Cannot assign super role to users');
+    }
+
     const normalisedEmail = updates.email && updates.email.toLowerCase();
     if (normalisedEmail && normalisedEmail !== user.email) {
       await this.validateEmailAddressAvailable(context, normalisedEmail);
