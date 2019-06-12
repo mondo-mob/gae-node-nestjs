@@ -204,15 +204,15 @@ export class InviteUserService {
    * @returns {number}
    */
   private getActivationExpiryInMillis = () => {
-    return this.configuration.auth.activationExpiryInMinutes
-      ? this.configuration.auth.activationExpiryInMinutes * 60 * 1000
+    return this.configuration.auth.local && this.configuration.auth.local.activationExpiryInMinutes
+      ? this.configuration.auth.local.activationExpiryInMinutes * 60 * 1000
       : DEFAULT_INVITE_CODE_EXPIRY;
   };
 
   private getActivationExpiryEmailCopy = (): string | undefined =>
-    !this.configuration.auth.activationExpiryInMinutes
+    !(this.configuration.auth.local && this.configuration.auth.local.activationExpiryInMinutes)
       ? DEFAULT_INVITE_CODE_EXPIRY_EMAIL_COPY
-      : this.configuration.auth.activationExpiryEmailCopy;
+      : this.configuration.auth.local.activationExpiryEmailCopy;
 
   /**
    * Send activation email and return activation link.
@@ -263,7 +263,7 @@ export class InviteUserService {
     const activationExpiry = this.getActivationExpiryInMillis();
 
     if (Date.now() - invite.createdAt.getTime() > activationExpiry) {
-      throw new Error('Invite code has expired');
+      throw new Error('Sorry, your activation code has expired. Please contact your administrator');
     }
 
     const auth = await this.authRepository.get(context, invite.email);

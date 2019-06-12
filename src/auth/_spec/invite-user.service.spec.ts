@@ -2,7 +2,7 @@ import { anything, capture, instance, mock, reset, verify, when } from 'ts-mocki
 import { IUser } from '../..';
 import { GmailSender } from '../../mail/gmail/gmail.sender';
 import { CredentialRepository, LoginCredentials, UserInvite, UserInviteRepository } from '../auth.repository';
-import { IInviteUserRequest, INVITE_CODE_EXPIRY, InviteUserService } from '../invite-user.service';
+import { IInviteUserRequest, DEFAULT_INVITE_CODE_EXPIRY, InviteUserService } from '../invite-user.service';
 import { AbstractUserService } from '../user.service';
 import { mockContext } from './auth.service.spec';
 
@@ -301,7 +301,7 @@ describe('InviteUserService', () => {
       when(userInviteRepository.get(context, '12345')).thenResolve({
         id: '12345',
         email: 'test@example.com',
-        createdAt: new Date(Date.now() - INVITE_CODE_EXPIRY * 2),
+        createdAt: new Date(Date.now() - DEFAULT_INVITE_CODE_EXPIRY * 2),
         roles: ['admin'],
         userId: 'user-123',
       });
@@ -405,7 +405,7 @@ describe('InviteUserService', () => {
     });
 
     it('should return error when invite hasExpired', async () => {
-      userInvite.createdAt = new Date(Date.now() - INVITE_CODE_EXPIRY * 2);
+      userInvite.createdAt = new Date(Date.now() - DEFAULT_INVITE_CODE_EXPIRY * 2);
       when(userInviteRepository.get(context, '12345')).thenResolve(userInvite);
       when(userService.get(context, userInvite.userId)).thenResolve(user);
 

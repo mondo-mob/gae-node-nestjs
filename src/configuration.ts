@@ -13,11 +13,11 @@ export interface Configuration {
   systemSecret: Buffer;
 
   auth: {
-    activationExpiryInMinutes?: number;
-    activationExpiryEmailCopy?: string;
     local?: {
       enabled?: boolean;
-    };
+      activationExpiryInMinutes?: number;
+      activationExpiryEmailCopy?: string;
+      };
     google?: {
       enabled?: boolean;
       clientId: string;
