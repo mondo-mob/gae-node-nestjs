@@ -14,6 +14,7 @@ export interface Configuration {
 
   auth: {
     activationExpiryInMinutes?: number;
+    activationExpiryEmailCopy?: string;
     local?: {
       enabled?: boolean;
     };
