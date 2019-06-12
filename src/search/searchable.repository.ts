@@ -4,7 +4,7 @@ import { Context } from '../datastore/context';
 import { Index } from '../datastore/loader';
 import { Repository, RepositoryOptions } from '../datastore/repository';
 import { asArray, Omit, OneOrMany } from '../util/types';
-import { SearchFields, SearchService, Sort } from './search.service';
+import {Page, SearchFields, SearchResults, SearchService, Sort} from './search.service';
 
 interface SearchableRepositoryOptions<T extends { id: any }> extends RepositoryOptions<T> {
   searchIndex: Index<Omit<T, 'id'>>;
@@ -54,9 +54,20 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
   }
 
   async search(context: Context, searchFields: SearchFields, sort?: Sort) {
-    const ids = await this.searchService.query(this.kind, searchFields, sort);
-    const requests = await this.get(context, ids);
+    const queryResults = await this.searchService.query(this.kind, searchFields, sort);
+    const requests = await this.get(context, queryResults.ids);
     return requests!;
+  }
+
+  async searchWithPagination(context: Context, searchFields: SearchFields, sort?: Sort, page?: Page): Promise<SearchResults<T>> {
+    const queryResults = await this.searchService.query(this.kind, searchFields, sort, page);
+    const requests = await this.get(context, queryResults.ids);
+    return {
+      resultCount: queryResults.resultCount,
+      limit: queryResults.limit,
+      offset: queryResults.offset,
+      results: requests,
+    }
   }
 
   private index(entities: OneOrMany<T>) {

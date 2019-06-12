@@ -13,6 +13,25 @@ export interface Sort {
   descending?: boolean;
 }
 
+export interface Page {
+  limit: number;
+  offset: number;
+}
+
+export interface QueryResults {
+  resultCount: number;
+  limit: number;
+  offset: number;
+  ids: string[];
+}
+
+export interface SearchResults<T> {
+  resultCount: number;
+  limit: number;
+  offset: number;
+  results: ReadonlyArray<T> | undefined;
+}
+
 export declare type Operator = '=' | '!=' | '>' | '<' | '>=' | '<=';
 
 export interface SearchFields {
@@ -47,16 +66,17 @@ export class SearchService {
     });
   }
 
-  async query(entityName: string, fields: SearchFields, sort?: Sort): Promise<ReadonlyArray<string>> {
+  async query(entityName: string, fields: SearchFields, sort?: Sort, page?: Page): Promise<QueryResults> {
     const resp = await this.post('/query', {
       entityName,
       fields: this.normaliseFields(fields),
       sort,
+      page,
     });
 
-    const ids = await resp.json();
-    this.logger.info(`Query returned ${ids.length} ids`);
-    return ids;
+    const queryResults = await resp.json();
+    this.logger.info(`Query returned ${queryResults.ids.length} ids of total ${queryResults.resultCount}`);
+    return queryResults;
   }
 
   private post(path: string, body: object): Promise<Response> {
