@@ -61,40 +61,6 @@ export class AuthController {
     }
   }
 
-  @AllowAnonymous()
-  @Post('activate')
-  async activate(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Next() next: (err: Error) => void,
-    @Ctxt() context: Context,
-  ) {
-    const user = await this.inviteUserService.activateAccount(context, req.body.code, req.body.name, req.body.password);
-
-    if (user) {
-      // If autoLoginAfterActivate flag is set to true in config, then auto login the user after the successful activation.
-      if (this.configuration.auth.local && this.configuration.auth.local.autoLoginAfterActivate) {
-        req.body.username = user.email;
-        this.authConfigurer.authenticateLocal()(req, res, (result?: Error) => {
-          if (result) {
-            if (result instanceof HttpException) {
-              return res.status(result.getStatus()).send(result.getResponse());
-            }
-            next(result);
-          } else {
-            res.send({
-              result: 'Activated and logged in successfully',
-            });
-          }
-        });
-      } else {
-        res.send({
-          result: 'Activated successfully',
-        });
-      }
-    }
-  }
-
   @Post('signout/local')
   signOut(@Req() req: Request, @Res() res: Response, @Next() next: (err: Error) => void) {
     req.logout();

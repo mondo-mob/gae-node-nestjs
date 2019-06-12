@@ -16,7 +16,6 @@ export interface Configuration {
     activationExpiryInMinutes?: number;
     local?: {
       enabled?: boolean;
-      autoLoginAfterActivate?: boolean;
     };
     google?: {
       enabled?: boolean;

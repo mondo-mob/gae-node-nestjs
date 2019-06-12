@@ -12,7 +12,7 @@ import { hashPassword } from './auth.service';
 import { unique } from '../util/arrays';
 import { userInviteEmail } from '../mail-templates/invite';
 
-export const INVITE_CODE_EXPIRY = 7 * 24 * 60 * 60 * 1000;
+export const DEFAULT_INVITE_CODE_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export interface IInviteUserResponse {
   user: IUser;
@@ -50,8 +50,6 @@ export class InviteUserService {
 
   /**
    * Create a user invite and dispatch an invite email
-   *
-   * Invite expires after {@link INVITE_CODE_EXPIRY} ms
    *
    * @param context Request context
    * @param request Request details
@@ -207,7 +205,7 @@ export class InviteUserService {
   private getActivationExpiryInMillis = () => {
     return this.configuration.auth.activationExpiryInMinutes
       ? this.configuration.auth.activationExpiryInMinutes * 60 * 1000
-      : INVITE_CODE_EXPIRY;
+      : DEFAULT_INVITE_CODE_EXPIRY;
   };
 
   /**
