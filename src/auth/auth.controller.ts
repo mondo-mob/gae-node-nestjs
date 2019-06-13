@@ -37,6 +37,17 @@ export class AuthController {
     });
   }
 
+  @AllowAnonymous()
+  @Post('activate')
+  async activate(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Next() next: (err: Error) => void,
+    @Ctxt() context: Context,
+  ) {
+    await this.inviteUserService.activateAccount(context, req.body.code, req.body.name, req.body.password);
+  }
+
   @Roles('admin')
   @Post('re-invite')
   async reInviteUser(
