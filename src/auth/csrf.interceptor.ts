@@ -30,7 +30,7 @@ export const CsrfValidator: RequestHandlerWithOptions = (
     req.session.csrf = generateToken();
     res.cookie('csrf-token', req.session.csrf, {
       sameSite: options.sameSite,
-      maxAge: 9999999,
+      maxAge: 9999999999,
     });
   }
 

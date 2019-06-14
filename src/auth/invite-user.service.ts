@@ -257,7 +257,8 @@ export class InviteUserService {
   async activateAccount(context: Context, code: string, name: string, password: string) {
     const invite = await this.userInviteRepository.get(context, code);
     if (!invite) {
-      throw new Error('Invalid invite code');
+      // tslint:disable-next-line:max-line-length
+      throw new Error('This activation code is no longer available. Please use the \'Activate Account\' link in the most recent activation email you have received. If you\'re still experiencing problems please contact your administrator.');
     }
 
     const activationExpiry = this.getActivationExpiryInMillis();
