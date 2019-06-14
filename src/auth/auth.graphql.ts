@@ -67,6 +67,12 @@ export class AuthResolver {
   }
 
   @AllowAnonymous()
+  @Query('checkActivationCode')
+  async checkActivationCode(_req: void, { code }: { code: string}, context: Context): Promise<string | null> {
+    return this.inviteUserService.checkActivationCode(context, code);
+  }
+
+  @AllowAnonymous()
   @Mutation()
   async activateAccount(
     _req: void,

@@ -16,5 +16,6 @@ type Mutation {
 }
 
 type Query {
+  checkActivationCode(code: String!): String
   me: User
 }

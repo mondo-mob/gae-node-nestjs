@@ -9,7 +9,7 @@ import { Configuration, MailSender, UserService, USER_SERVICE } from '../index';
 import { userInviteEmail } from '../mail-templates/invite';
 import { MAIL_SENDER } from '../mail/mail.sender';
 import { unique } from '../util/arrays';
-import { CredentialRepository, UserInviteRepository } from './auth.repository';
+import { CredentialRepository, UserInviteRepository, UserInvite } from './auth.repository';
 import { hashPassword } from './auth.service';
 
 export const DEFAULT_INVITE_CODE_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -245,6 +245,11 @@ export class InviteUserService {
     return activateLink;
   }
 
+  async checkActivationCode(context: Context, code: string): Promise<string | null> {
+    const invite = await this.userInviteRepository.get(context, code);
+    return this.checkInvite(context, invite);
+  }
+
   /**
    * Activate an account given an activation code, name and password
    *
@@ -256,33 +261,21 @@ export class InviteUserService {
   @Transactional()
   async activateAccount(context: Context, code: string, name: string, password: string) {
     const invite = await this.userInviteRepository.get(context, code);
-    if (!invite) {
-      // tslint:disable-next-line:max-line-length
-      throw new Error('This activation code is no longer available. Please use the \'Activate Account\' link in the most recent activation email you have received. If you\'re still experiencing problems please contact your administrator.');
+    const err = await this.checkInvite(context, invite);
+    if (err) {
+      throw new Error(err);
     }
 
-    const activationExpiry = this.getActivationExpiryInMillis();
-
-    if (Date.now() - invite.createdAt.getTime() > activationExpiry) {
-      throw new Error('Sorry, your activation code has expired. Please contact your administrator');
-    }
-
-    const auth = await this.authRepository.get(context, invite.email);
-
-    if (auth) {
-      throw new Error('Account already registered');
-    }
-
-    const user = await this.userService.update(context, invite.userId, {
+    const user = await this.userService.update(context, invite!.userId, {
       name,
-      roles: invite.roles,
+      roles: invite!.roles,
       enabled: true,
     });
 
     this.logger.info(`Accepting invitation and activating account for email ${user.email}, code ${code}, name ${name}`);
 
     await this.authRepository.save(context, {
-      id: invite.email,
+      id: invite!.email,
       type: 'password',
       password: await hashPassword(password),
       userId: user.id,
@@ -291,5 +284,26 @@ export class InviteUserService {
     await this.userInviteRepository.delete(context, code);
 
     return user;
+  }
+
+  private async checkInvite(context: Context, invite: UserInvite | undefined): Promise<string | null> {
+    if (!invite) {
+      // tslint:disable-next-line:max-line-length
+      return 'This activation code is no longer available. Please use the \'Activate Account\' link in the most recent activation email you have received. If you\'re still experiencing problems please contact your administrator.';
+    }
+
+    const activationExpiry = this.getActivationExpiryInMillis();
+
+    if (Date.now() - invite.createdAt.getTime() > activationExpiry) {
+      return 'Sorry, your activation code has expired. Please contact your administrator';
+    }
+
+    const auth = await this.authRepository.get(context, invite.email);
+
+    if (auth) {
+      return 'Account already registered';
+    }
+
+    return null;
   }
 }
