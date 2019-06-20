@@ -46,6 +46,9 @@ export class AuthController {
     @Ctxt() context: Context,
   ) {
     await this.inviteUserService.activateAccount(context, req.body.code, req.body.name, req.body.password);
+    res.send({
+      result: 'Activated successfully',
+    });
   }
 
   @Roles('admin')
