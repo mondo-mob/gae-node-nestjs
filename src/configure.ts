@@ -9,7 +9,9 @@ import { CsrfValidatorWithOptions } from './auth/csrf.interceptor';
 import { rootLogger } from './gcloud/logging';
 import { asArray, OneOrMany } from './util/types';
 
-const MAX_AGE_DEFAULT = 2 * 60 * 60 * 1000; // 2 hours
+const minutesToMilliseconds = (minutes: number) => minutes * 60 * 1000;
+
+const MAX_AGE_DEFAULT = minutesToMilliseconds(2 * 60); // 2 hours
 
 interface ServerOptions {
   csp?: object;
@@ -24,6 +26,7 @@ interface ServerOptions {
     apiEndpoint?: string;
     cookie?: CookieOptions;
   };
+  sessionTimeoutInMinutes?: number;
 }
 
 interface Express {
@@ -61,6 +64,10 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
     rootLogger.info('Cookie secured for prod');
   }
 
+  const sessionAge = options.sessionTimeoutInMinutes
+    ? minutesToMilliseconds(options.sessionTimeoutInMinutes)
+    : MAX_AGE_DEFAULT;
+  rootLogger.info(`Session age set to: ${sessionAge} ms`);
   expressApp.use(
     session({
       saveUninitialized: true,
@@ -75,14 +82,15 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
       }),
       secret: options.session.secret,
       cookie: {
-        maxAge: MAX_AGE_DEFAULT,
+        maxAge: sessionAge,
         ...options.session.cookie,
         secure,
       },
     }),
   );
 
-  const { ignorePaths = [/^\/(tasks\/|system\/).*/], sameSite = true, disabled: csrfDisabled = false } = options.csrf || {};
+  const { ignorePaths = [/^\/(tasks\/|system\/).*/], sameSite = true, disabled: csrfDisabled = false } =
+    options.csrf || {};
 
   // Allows us to specify positive matches for ignoring rather than complex negative lookaheads
   // See https://stackoverflow.com/questions/27117337/exclude-route-from-express-middleware
