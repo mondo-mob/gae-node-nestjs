@@ -1,5 +1,5 @@
 import { omit } from 'lodash';
-import { anyFunction, anything, instance, mock, reset, verify, when } from 'ts-mockito';
+import { anyFunction, anything, instance, mock, objectContaining, reset, verify, when } from 'ts-mockito';
 import { Configuration } from '../../configuration';
 import { Context } from '../../datastore/context';
 import { DatastoreLoader } from '../../datastore/loader';
@@ -214,7 +214,7 @@ describe('AuthService', () => {
 
     it('creates a new user with default roles when no existing account found', async () => {
       when(credentialRepository.get(context, anything())).thenResolve(undefined);
-      await expect(authService.validateUserOidc(context, profile, ['default-role'])).resolves.toEqual({
+      await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
         email: 'test@example.com',
         name: 'John Smith',
         roles: ['default-role'],
@@ -231,7 +231,7 @@ describe('AuthService', () => {
       const existingUser = { id: '12345' };
       when(userService.get(context, anything())).thenResolve(existingUser);
 
-      await expect(authService.validateUserOidc(context, profile, ['default-role'])).resolves.toEqual({
+      await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
         id: '12345',
         name: 'John Smith',
       });
@@ -239,13 +239,35 @@ describe('AuthService', () => {
       verify(userService.update(context, anything(), anything())).once();
     });
 
-    it('fails when the stored authentication type does not match', async () => {
+    it('updates credentials when the stored authentication type does not match and replaceAuth is set to true', async () => {
       when(credentialRepository.get(context, 'test@example.com')).thenResolve({
         type: 'google',
         userId: '12345',
         id: 'test@example.com',
       });
-      await expect(authService.validateUserOidc(context, profile)).rejects.toHaveProperty(
+      const existingUser = { id: '12345' };
+      when(userService.get(context, anything())).thenResolve(existingUser);
+
+      await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
+        id: '12345',
+        name: 'John Smith',
+      });
+
+      verify(credentialRepository.save(context, objectContaining({
+        type: 'oidc',
+        userId: '12345',
+        id: 'test@example.com',
+      }))).once();
+
+    });
+
+    it('fails when the stored authentication type does not match and replaceAuth is set to false', async () => {
+      when(credentialRepository.get(context, 'test@example.com')).thenResolve({
+        type: 'google',
+        userId: '12345',
+        id: 'test@example.com',
+      });
+      await expect(authService.validateUserOidc(context, profile, false)).rejects.toHaveProperty(
         'message',
         'CredentialsNotFoundError',
       );
@@ -258,7 +280,7 @@ describe('AuthService', () => {
         id: 'test@example.com',
       });
       when(userService.get(context, anything())).thenResolve(null);
-      await expect(authService.validateUserOidc(context, profile)).rejects.toHaveProperty(
+      await expect(authService.validateUserOidc(context, profile, true)).rejects.toHaveProperty(
         'message',
         'UserNotFoundError',
       );

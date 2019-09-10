@@ -187,12 +187,13 @@ export class AuthService {
   }
 
   @Transactional()
-  async validateUserOidc(context: Context, profile: any, newUserRoles: string[] = []): Promise<IUser> {
+  async validateUserOidc(context: Context, profile: any, overwriteCredentials: boolean, newUserRoles: string[] = []): Promise<IUser> {
     // tslint:disable-next-line:no-string-literal
     const profileJson = (profile as any)['_json'];
     const email = profile.email || (profileJson && profileJson.email);
     return this.validateOrCreateExternalAuthAccount(context, email, {
       type: 'oidc',
+      overwriteCredentials,
       newUserRequest: () => ({
         email,
         name: profile.displayName,
@@ -279,7 +280,7 @@ export class AuthService {
       return createdUser;
     }
 
-    if (account.type !== type) {
+    if (!options.overwriteCredentials && account.type !== type) {
       throw new CredentialsNotFoundError();
     }
 
@@ -287,6 +288,14 @@ export class AuthService {
 
     if (!user) {
       throw new UserNotFoundError();
+    }
+
+    if (account.type !== type) {
+      await this.authRepository.save(context, {
+        id: account.id,
+        type,
+        userId: account.userId,
+      });
     }
 
     return updateUser ? await updateUser(user) : user;
@@ -305,6 +314,7 @@ export interface SimpleUserProfile {
 
 interface ValidateOptions {
   type: ExternalAuthType;
+  overwriteCredentials?: boolean;
   newUserRequest: () => IUserCreateRequest;
   updateUser?: (existing: IUser) => Promise<IUser>;
 }

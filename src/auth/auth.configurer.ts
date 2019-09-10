@@ -204,6 +204,7 @@ export class AuthConfigurer {
       this.authService.validateUserOidc(
         newContext(this.datastore),
         profile,
+        !!this.configuration.auth.oidc!.replaceAuth,
         this.configuration.auth.oidc!.newUserRoles,
       ),
     );

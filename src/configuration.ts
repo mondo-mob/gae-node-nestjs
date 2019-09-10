@@ -47,6 +47,7 @@ export interface Configuration {
       userInfoUrl: string;
       tokenUrl: string;
       newUserRoles?: string[];
+      replaceAuth?: boolean;
     };
   };
   devHooks?: {
