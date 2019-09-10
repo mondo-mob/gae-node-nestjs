@@ -293,7 +293,8 @@ describe('InviteUserService', () => {
     it('should error if invite code does not exist', async () => {
       await expect(inviteUserService.activateAccount(context, '12345', 'Test User', 'password')).rejects.toHaveProperty(
         'message',
-        'Invalid invite code',
+        // tslint:disable-next-line:max-line-length
+        `This activation code is no longer available. Please use the 'Activate Account' link in the most recent activation email you have received. If you're still experiencing problems please contact your administrator.`,
       );
     });
 
@@ -308,7 +309,7 @@ describe('InviteUserService', () => {
 
       await expect(inviteUserService.activateAccount(context, '12345', 'Test User', 'password')).rejects.toHaveProperty(
         'message',
-        'Invite code has expired',
+        'Sorry, your activation code has expired. Please contact your administrator',
       );
     });
 

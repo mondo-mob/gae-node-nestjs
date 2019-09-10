@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
-    "prepublish": "npx tsc && cp src/auth/auth.graphqls dist/auth",
+    "prepublish": "npx tsc && npm run verify && cp src/auth/auth.graphqls dist/auth",
     "test": "jest",
     "check-ts": "tsc --noEmit",
     "verify": "npm run test && npm run check-ts"
