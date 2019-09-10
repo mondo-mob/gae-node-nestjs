@@ -17,7 +17,7 @@ export interface Configuration {
       enabled?: boolean;
       activationExpiryInMinutes?: number;
       activationExpiryEmailCopy?: string;
-      };
+    };
     google?: {
       enabled?: boolean;
       clientId: string;
@@ -37,6 +37,16 @@ export interface Configuration {
       clientId: string;
       secret: string;
       namespace: string;
+    };
+    oidc?: {
+      enabled?: boolean;
+      issuer: string;
+      clientId: string;
+      secret: string;
+      authUrl: string;
+      userInfoUrl: string;
+      tokenUrl: string;
+      newUserRoles?: string[];
     };
   };
   devHooks?: {

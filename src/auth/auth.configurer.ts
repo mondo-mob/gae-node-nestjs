@@ -7,17 +7,19 @@ import { use } from 'passport';
 import { Profile, Strategy as Auth0Strategy } from 'passport-auth0';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as LocalStrategy } from 'passport-local';
+import { Strategy as OidcStrategy } from 'passport-openidconnect';
 import { Strategy as SamlStrategy } from 'passport-saml';
 import { newContext } from '../datastore/context';
 import { DatastoreProvider } from '../datastore/datastore.provider';
 import { createLogger } from '../gcloud/logging';
 import { Configuration, IUser } from '../index';
 import { AuthService } from './auth.service';
-import { UserService, USER_SERVICE } from './user.service';
+import { USER_SERVICE, UserService } from './user.service';
 
 const GOOGLE_SIGNIN = 'google';
 const SAML_SIGNIN = 'saml';
 const AUTH0_SIGNIN = 'auth0';
+const OIDC_SIGNIN = 'oidc';
 const LOCAL_SIGNIN = 'local-signin';
 
 @Injectable()
@@ -93,6 +95,27 @@ export class AuthConfigurer {
         ),
       );
     }
+
+    if (this.configuration.auth.oidc && this.configuration.auth.oidc.enabled) {
+      const { authUrl, clientId, enabled, issuer, secret, tokenUrl, userInfoUrl } = this.configuration.auth.oidc;
+      use(
+        OIDC_SIGNIN,
+        new OidcStrategy(
+          {
+            issuer,
+            authorizationURL: authUrl,
+            tokenURL: tokenUrl,
+            userInfoURL: userInfoUrl,
+            clientID: clientId,
+            clientSecret: secret,
+            callbackURL: `${this.configuration.host}/auth/signin/oidc/callback`,
+            scope: 'profile email',
+          },
+          this.validateOidc,
+        ),
+      );
+      this.logger.info(`Configured ${OIDC_SIGNIN} authentication strategy`);
+    }
   }
 
   beginAuthenticateGoogle() {
@@ -116,6 +139,18 @@ export class AuthConfigurer {
 
   completeAuthenticateSaml() {
     return passport.authenticate(SAML_SIGNIN, {
+      failureRedirect: '/',
+    });
+  }
+
+  beginAuthenticateOidc() {
+    return passport.authenticate(OIDC_SIGNIN, {
+      scope: ['openid', 'profile', 'email'],
+    });
+  }
+
+  completeAuthenticateOidc() {
+    return passport.authenticate(OIDC_SIGNIN, {
       failureRedirect: '/',
     });
   }
@@ -144,71 +179,61 @@ export class AuthConfigurer {
     return passport.authenticate(LOCAL_SIGNIN, {});
   }
 
-  validate = async (username: string, password: string, done: (error: Error | null, user: IUser | false) => void) => {
-    try {
-      const user = await this.authService.validateUser(newContext(this.datastore), username, password);
-      if (!user) {
-        return done(new UnauthorizedException(), false);
-      }
-      done(null, user);
-    } catch (ex) {
-      this.logger.error(ex);
-      done(new UnauthorizedException('Username or password is invalid.', ex), false);
-    }
-  };
+  validate = async (username: string, password: string, done: (error: Error | null, user: IUser | false) => void) =>
+    this.validateAuth(done, () => this.authService.validateUser(newContext(this.datastore), username, password));
 
   validateGmail = async (
     accessToken: string,
     refreshToken: string,
     profile: object,
     done: (error: Error | null, user: IUser | false) => void,
-  ) => {
-    try {
-      const user = await this.authService.validateUserGoogle(newContext(this.datastore), profile);
-      if (!user) {
-        return done(new UnauthorizedException(), false);
-      }
-      done(null, user);
-    } catch (ex) {
-      this.logger.error(ex);
-      done(new UnauthorizedException('Username is invalid.', ex), false);
-    }
-  };
+  ) => this.validateAuth(done, () => this.authService.validateUserGoogle(newContext(this.datastore), profile));
 
-  validateSaml = async (profile: any, done: any) => {
-    try {
-      const user = await this.authService.validateUserSaml(newContext(this.datastore), profile);
-      if (!user) {
-        return done(new UnauthorizedException(), false);
-      }
-      done(null, user);
-    } catch (ex) {
-      this.logger.error(ex);
-      done(new UnauthorizedException('Username is invalid.', ex), false);
-    }
-  };
+  validateSaml = (profile: any, done: any) =>
+    this.validateAuth(done, () => this.authService.validateUserSaml(newContext(this.datastore), profile));
 
-  validateAuth0 = async (
+  validateOidc = (
+    _issuer: any,
+    _sub: any,
+    profile: any,
+    _accessToken: any,
+    _refreshToken: any,
+    done: (error: Error | null, user: IUser | false) => void,
+  ) =>
+    this.validateAuth(done, () =>
+      this.authService.validateUserOidc(
+        newContext(this.datastore),
+        profile,
+        this.configuration.auth.oidc!.newUserRoles,
+      ),
+    );
+
+  validateAuth0 = (
     accessToken: string,
     refreshToken: string,
     extraParams: any,
     profile: Profile,
     done: (error: Error | null, user: IUser | false) => void,
-  ) => {
-    const decoded: any = decode(extraParams.id_token);
-    const { email, name } = decoded;
+  ) =>
+    this.validateAuth(done, () => {
+      const decoded: any = decode(extraParams.id_token);
+      const { email, name } = decoded;
 
-    const namespace = this.configuration.auth.auth0!.namespace;
-    const roles = decoded[`${namespace}roles`];
-    const orgId = decoded[`${namespace}orgId`];
-    const props = decoded[`${namespace}props`];
+      const namespace = this.configuration.auth.auth0!.namespace;
+      const roles = decoded[`${namespace}roles`];
+      const orgId = decoded[`${namespace}orgId`];
+      const props = decoded[`${namespace}props`];
 
-    if (!roles || !roles.length) {
-      this.logger.warn(`No roles were provided by auth0 for ${email}`);
-    }
+      if (!roles || !roles.length) {
+        this.logger.warn(`No roles were provided by auth0 for ${email}`);
+      }
 
+      return this.authService.validateUserAuth0(newContext(this.datastore), email, name, orgId, roles, props);
+    });
+
+  validateAuth = async (done: (error: Error | null, user: IUser | false) => void, auth: () => Promise<IUser>) => {
     try {
-      const user = await this.authService.validateUserAuth0(newContext(this.datastore), email, name, orgId, roles, props);
+      const user = await auth();
       if (!user) {
         return done(new UnauthorizedException(), false);
       }

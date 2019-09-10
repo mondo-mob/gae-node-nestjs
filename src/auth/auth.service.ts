@@ -1,17 +1,17 @@
-import { Inject, Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import * as Logger from 'bunyan';
-import * as t from 'io-ts';
-import * as uuid from 'node-uuid';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
+import * as Logger from 'bunyan';
 import * as emails from 'email-addresses';
-import { CredentialRepository, LoginCredentials } from './auth.repository';
+import * as t from 'io-ts';
 import { reporter } from 'io-ts-reporters';
-import { USER_SERVICE, UserService } from './user.service';
-import { Configuration, IUser } from '../index';
+import { isNil } from 'lodash';
+import { CONFIGURATION } from '../configuration';
+import { Context, IUserCreateRequest } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';
 import { createLogger } from '../gcloud/logging';
-import { Context } from '../datastore/context';
-import { CONFIGURATION } from '../configuration';
+import { Configuration, IUser } from '../index';
+import { CredentialRepository, ExternalAuthType, LoginCredentials } from './auth.repository';
+import { USER_SERVICE, UserService } from './user.service';
 
 const userProfile = t.interface({
   id: t.string, // username
@@ -175,88 +175,57 @@ export class AuthService {
    * @param profile The profile returned from SAML
    */
   @Transactional()
-  async validateUserSaml(context: Context, profile: any): Promise<IUser> {
-    this.logger.info('Validating SAML user profile');
-
-    const email = profile.email;
-    this.logger.info(`Looking up user by email ${email}`);
-    const account = await this.authRepository.get(context, email);
-
-    if (!account) {
-      this.logger.info('No account found, creating it.');
-
-      const createdUser = await this.userService.create(context, {
+  async validateUserSaml(context: Context, profile: SimpleUserProfile): Promise<IUser> {
+    return this.validateOrCreateExternalAuthAccount(context, profile.email, {
+      type: 'saml',
+      newUserRequest: () => ({
         roles: [],
+        email: profile.email,
+        name: this.toName(profile),
+      }),
+    });
+  }
+
+  @Transactional()
+  async validateUserOidc(context: Context, profile: any, newUserRoles: string[] = []): Promise<IUser> {
+    // tslint:disable-next-line:no-string-literal
+    const profileJson = (profile as any)['_json'];
+    const email = profile.email || (profileJson && profileJson.email);
+    return this.validateOrCreateExternalAuthAccount(context, email, {
+      type: 'oidc',
+      newUserRequest: () => ({
         email,
-        name: `${profile.firstName} ${profile.lastName}`,
-      });
-
-      await this.authRepository.save(context, {
-        id: profile.email,
-        type: 'saml',
-        userId: createdUser.id,
-      });
-
-      return createdUser;
-    }
-
-    if (account.type !== 'saml') {
-      throw new CredentialsNotFoundError();
-    }
-
-    const user = await this.userService.get(context, account.userId);
-
-    if (!user) {
-      throw new UserNotFoundError();
-    }
-
-    return user;
+        name: profile.displayName,
+        roles: newUserRoles,
+      }),
+      updateUser: user => {
+        return this.userService.update(context, user.id, {
+          ...user,
+          name: profile.displayName,
+        });
+      },
+    });
   }
 
   @Transactional()
   async validateUserAuth0(context: Context, email: string, name: string, orgId: string, roles: string[], props: any) {
-    this.logger.info('Validating Auth0 user profile');
-
-    this.logger.info(`Looking up user by email ${email}`);
-    const account = await this.authRepository.get(context, email);
-
-    if (!account) {
-      this.logger.info('No account found, creating it.');
-
-      const createdUser = await this.userService.create(context, {
+    return this.validateOrCreateExternalAuthAccount(context, email, {
+      type: 'auth0',
+      newUserRequest: () => ({
         roles,
         orgId,
         email,
         name,
         props,
-      });
-
-      await this.authRepository.save(context, {
-        id: email,
-        type: 'auth0',
-        userId: createdUser.id,
-      });
-
-      return createdUser;
-    }
-
-    if (account.type !== 'auth0') {
-      throw new CredentialsNotFoundError();
-    }
-
-    const user = await this.userService.get(context, account.userId);
-
-    if (!user) {
-      throw new UserNotFoundError();
-    }
-
-    user.name = name;
-    user.roles = roles;
-    user.orgId = orgId;
-    user.props = props;
-    await this.userService.update(context, user.id, user);
-
-    return user;
+      }),
+      updateUser: user => {
+        user.name = name;
+        user.roles = roles;
+        user.orgId = orgId;
+        user.props = props;
+        return this.userService.update(context, user.id, user);
+      },
+    });
   }
 
   /**
@@ -284,4 +253,58 @@ export class AuthService {
 
     return existingCredentials;
   }
+
+  private async validateOrCreateExternalAuthAccount(
+    context: Context,
+    email: string,
+    options: ValidateOptions,
+  ): Promise<IUser> {
+    const { newUserRequest, updateUser, type } = options;
+    this.logger.info(`Validating ${type} user profile`);
+
+    this.logger.info(`Looking up user by email ${email}`);
+    const account = await this.authRepository.get(context, email);
+
+    if (!account) {
+      this.logger.info('No account found, creating it.');
+
+      const createdUser = await this.userService.create(context, newUserRequest());
+
+      await this.authRepository.save(context, {
+        id: email,
+        type,
+        userId: createdUser.id,
+      });
+
+      return createdUser;
+    }
+
+    if (account.type !== type) {
+      throw new CredentialsNotFoundError();
+    }
+
+    const user = await this.userService.get(context, account.userId);
+
+    if (!user) {
+      throw new UserNotFoundError();
+    }
+
+    return updateUser ? await updateUser(user) : user;
+  }
+
+  private toName(profile: SimpleUserProfile) {
+    return [profile.firstName, profile.lastName].filter(part => !isNil(part)).join(' ');
+  }
+}
+
+export interface SimpleUserProfile {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+interface ValidateOptions {
+  type: ExternalAuthType;
+  newUserRequest: () => IUserCreateRequest;
+  updateUser?: (existing: IUser) => Promise<IUser>;
 }

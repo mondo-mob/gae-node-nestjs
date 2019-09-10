@@ -1,11 +1,11 @@
-import { Context, IUser, IUserUpdates } from '../../datastore/context';
+import { omit } from 'lodash';
+import { anyFunction, anything, instance, mock, reset, verify, when } from 'ts-mockito';
+import { Configuration } from '../../configuration';
+import { Context } from '../../datastore/context';
 import { DatastoreLoader } from '../../datastore/loader';
 import { CredentialRepository } from '../auth.repository';
-import { AuthService, hashPassword } from '../auth.service';
-import { anyFunction, instance, mock, reset, when } from 'ts-mockito';
-import { Configuration } from '../../configuration';
-import { UserService } from '../user.service';
-import { omit } from 'lodash';
+import { AuthService, hashPassword, UserNotFoundError } from '../auth.service';
+import { AbstractUserService } from '../user.service';
 
 export const mockContext = () => {
   const datastoreLoader = mock(DatastoreLoader);
@@ -22,17 +22,17 @@ export const mockContext = () => {
 describe('AuthService', () => {
   const credentialRepository = mock(CredentialRepository);
   const context = mockContext();
+  const userService = mock(AbstractUserService);
   let configuration: Configuration;
   let authService: AuthService;
-  let userService: UserService<any>;
 
   beforeEach(() => {
     reset(credentialRepository);
+    reset(userService);
     configuration = {} as Configuration;
-    userService = {
-      create: async (_: any, user: any) => user,
-    } as UserService<any>;
-    authService = new AuthService(instance(credentialRepository), userService, configuration);
+    when(userService.create(anything(), anything())).thenCall(async (_: any, user: any) => user);
+    when(userService.update(anything(), anything(), anything())).thenCall(async (_: any, _id: any, user: any) => user);
+    authService = new AuthService(instance(credentialRepository), instance(userService), configuration);
   });
 
   describe('validateUser', () => {
@@ -71,13 +71,13 @@ describe('AuthService', () => {
     });
 
     it('throws an error when the backing user does not exist', async () => {
-      userService.get = async () => null;
       when(credentialRepository.get(context, 'username')).thenResolve({
         type: 'password',
         userId: '12345',
         id: 'username',
         password: await hashPassword('password'),
       });
+      when(userService.get(context, anything())).thenResolve(null);
 
       await expect(authService.validateUser(context, 'username', 'password')).rejects.toHaveProperty(
         'message',
@@ -86,13 +86,13 @@ describe('AuthService', () => {
     });
 
     it('returns the user when validation succeeded', async () => {
-      userService.get = async () => ({ id: '12345' });
       when(credentialRepository.get(context, 'username')).thenResolve({
         type: 'password',
         userId: '12345',
         id: 'username',
         password: await hashPassword('password'),
       });
+      when(userService.get(context, anything())).thenResolve({ id: '12345' });
 
       await expect(authService.validateUser(context, 'username', 'password')).resolves.toEqual({
         id: '12345',
@@ -181,7 +181,7 @@ describe('AuthService', () => {
     });
 
     it('returns the user when validation succeeded', async () => {
-      userService.get = async () => ({ id: '12345' });
+      when(userService.get(context, anything())).thenResolve({ id: '12345' });
       configuration.auth = {
         google: {
           signUpEnabled: true,
@@ -199,6 +199,66 @@ describe('AuthService', () => {
       });
 
       await expect(authService.validateUserGoogle(context, profile)).resolves.toEqual({ id: '12345' });
+    });
+  });
+
+  describe('validateUserOidc', () => {
+    let profile: any;
+    beforeEach(() => {
+      profile = {
+        login: 'john.smith',
+        email: 'test@example.com',
+        displayName: 'John Smith',
+      };
+    });
+
+    it('creates a new user with default roles when no existing account found', async () => {
+      when(credentialRepository.get(context, anything())).thenResolve(undefined);
+      await expect(authService.validateUserOidc(context, profile, ['default-role'])).resolves.toEqual({
+        email: 'test@example.com',
+        name: 'John Smith',
+        roles: ['default-role'],
+      });
+      verify(credentialRepository.save(context, anything())).once();
+    });
+    it('updates existing user name when found', async () => {
+      when(credentialRepository.get(context, anything())).thenResolve({
+        type: 'oidc',
+        userId: '12345',
+        id: 'test@example.com',
+      });
+      const existingUser = { id: '12345' };
+      when(userService.get(context, anything())).thenResolve(existingUser);
+
+      await expect(authService.validateUserOidc(context, profile, ['default-role'])).resolves.toEqual({
+        id: '12345',
+        name: 'John Smith',
+      });
+
+      verify(userService.update(context, anything(), anything())).once();
+    });
+    it('fails when the stored authentication type does not match', async () => {
+      when(credentialRepository.get(context, 'test@example.com')).thenResolve({
+        type: 'google',
+        userId: '12345',
+        id: 'test@example.com',
+      });
+      await expect(authService.validateUserOidc(context, profile)).rejects.toHaveProperty(
+        'message',
+        'CredentialsNotFoundError',
+      );
+    });
+    it('fails when stored credentials exist but user not found', async () => {
+      when(credentialRepository.get(context, 'test@example.com')).thenResolve({
+        type: 'oidc',
+        userId: '12345',
+        id: 'test@example.com',
+      });
+      when(userService.get(context, anything())).thenResolve(null);
+      await expect(authService.validateUserOidc(context, profile)).rejects.toHaveProperty(
+        'message',
+        'UserNotFoundError',
+      );
     });
   });
 });

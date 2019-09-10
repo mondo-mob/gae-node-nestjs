@@ -39,33 +39,26 @@ export class UserInviteRepository extends Repository<UserInvite> {
   }
 }
 
+const externalAuthTypeEnum = t.union([t.literal('google'), t.literal('saml'), t.literal('auth0'), t.literal('oidc')]);
+
 const loginCredentials = t.clean(
   t.union([
     t.interface({
-      id: t.string, // username
+      id: t.string, // username/email
       userId: t.string,
       password: t.string,
       type: t.literal('password'),
     }),
     t.interface({
-      id: t.string, // username
+      id: t.string, // username/email
       userId: t.string,
-      type: t.literal('google'),
-    }),
-    t.interface({
-      id: t.string, // username
-      userId: t.string,
-      type: t.literal('saml'),
-    }),
-    t.interface({
-      id: t.string, // username
-      userId: t.string,
-      type: t.literal('auth0'),
+      type: externalAuthTypeEnum,
     }),
   ]),
 );
 
 export type LoginCredentials = t.TypeOf<typeof loginCredentials>;
+export type ExternalAuthType = t.TypeOf<typeof externalAuthTypeEnum>;
 
 @Injectable()
 export class CredentialRepository extends Repository<LoginCredentials> {

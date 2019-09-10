@@ -152,4 +152,26 @@ export class AuthController {
       }
     });
   }
+
+  @AllowAnonymous()
+  @Get('signin/oidc')
+  signInOidc(@Req() req: Request, @Res() res: Response, @Next() next: () => void) {
+    this.authConfigurer.beginAuthenticateOidc()(req, res, next);
+  }
+
+  @AllowAnonymous()
+  @Get('signin/oidc/callback')
+  completeSignInOidc(@Req() req: Request, @Res() res: Response) {
+    this.authConfigurer.completeAuthenticateOidc()(req, res, (err: any) => {
+      this.logger.info(err);
+      if (req.user) {
+        this.authListener.onLogin(req);
+        res.redirect(`/`);
+      } else {
+        this.logger.warn('Login with oidc failed', err);
+        res.redirect(`/signin?error=${encodeURIComponent('Login with oidc failed.')}`);
+      }
+    });
+  }
+
 }
