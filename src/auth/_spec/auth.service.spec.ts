@@ -221,6 +221,7 @@ describe('AuthService', () => {
       });
       verify(credentialRepository.save(context, anything())).once();
     });
+
     it('updates existing user name when found', async () => {
       when(credentialRepository.get(context, anything())).thenResolve({
         type: 'oidc',
@@ -237,6 +238,7 @@ describe('AuthService', () => {
 
       verify(userService.update(context, anything(), anything())).once();
     });
+
     it('fails when the stored authentication type does not match', async () => {
       when(credentialRepository.get(context, 'test@example.com')).thenResolve({
         type: 'google',
@@ -248,6 +250,7 @@ describe('AuthService', () => {
         'CredentialsNotFoundError',
       );
     });
+
     it('fails when stored credentials exist but user not found', async () => {
       when(credentialRepository.get(context, 'test@example.com')).thenResolve({
         type: 'oidc',
