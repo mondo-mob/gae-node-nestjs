@@ -93,6 +93,30 @@ export class AuthService {
     return user;
   }
 
+  @Transactional()
+  async validateFakeLogin(context: Context, email: string, name: string, roles: string[]) {
+    if (!this.configurationProvider.isDevelopment()) {
+      this.logger.error('Fake login is only available for local dev');
+      throw new CredentialsNotFoundError();
+    }
+
+    const user = await this.userService.getByEmail(context, email);
+
+    if (user) {
+      return await this.userService.update(context, user.id, {
+        ...user,
+        name,
+        roles,
+      });
+    } else {
+      return await this.userService.create(context, {
+        email,
+        name,
+        roles,
+      });
+    }
+  }
+
   /**
    * Validate a user using credentials from a google account
    *
@@ -187,7 +211,12 @@ export class AuthService {
   }
 
   @Transactional()
-  async validateUserOidc(context: Context, profile: any, overwriteCredentials: boolean, newUserRoles: string[] = []): Promise<IUser> {
+  async validateUserOidc(
+    context: Context,
+    profile: any,
+    overwriteCredentials: boolean,
+    newUserRoles: string[] = [],
+  ): Promise<IUser> {
     // tslint:disable-next-line:no-string-literal
     const profileJson = (profile as any)['_json'];
     const email = profile.email || (profileJson && profileJson.email);

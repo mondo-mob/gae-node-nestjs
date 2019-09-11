@@ -38,6 +38,24 @@ export class AuthController {
   }
 
   @AllowAnonymous()
+  @Post('signin/fake')
+  signInFake(@Req() req: Request, @Res() res: Response, @Next() next: (err: Error) => void) {
+    this.authConfigurer.authenticateFake()(req, res, (result?: Error) => {
+      if (result) {
+        if (result instanceof HttpException) {
+          return res.status(result.getStatus()).send(result.getResponse());
+        }
+        next(result);
+      } else {
+        this.authListener.onLogin(req);
+        res.send({
+          result: 'success',
+        });
+      }
+    });
+  }
+
+  @AllowAnonymous()
   @Post('activate')
   async activate(
     @Req() req: Request,
@@ -173,5 +191,4 @@ export class AuthController {
       }
     });
   }
-
 }

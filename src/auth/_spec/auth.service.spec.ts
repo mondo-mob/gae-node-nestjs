@@ -253,12 +253,16 @@ describe('AuthService', () => {
         name: 'John Smith',
       });
 
-      verify(credentialRepository.save(context, objectContaining({
-        type: 'oidc',
-        userId: '12345',
-        id: 'test@example.com',
-      }))).once();
-
+      verify(
+        credentialRepository.save(
+          context,
+          objectContaining({
+            type: 'oidc',
+            userId: '12345',
+            id: 'test@example.com',
+          }),
+        ),
+      ).once();
     });
 
     it('fails when the stored authentication type does not match and replaceAuth is set to false', async () => {
@@ -284,6 +288,50 @@ describe('AuthService', () => {
         'message',
         'UserNotFoundError',
       );
+    });
+  });
+
+  describe('validateFakeLogin', () => {
+    beforeEach(() => {
+      configuration.isDevelopment = () => true;
+    });
+
+    it('creates new user when user does not exist', async () => {
+      when(userService.getByEmail(context, 'test@example.com')).thenResolve(undefined);
+      await expect(authService.validateFakeLogin(context, 'test@example.com', 'John Smith', ['user'])).resolves.toEqual(
+        {
+          email: 'test@example.com',
+          name: 'John Smith',
+          roles: ['user'],
+        },
+      );
+      verify(userService.create(context, anything())).once();
+    });
+
+    it('updates user when user exists', async () => {
+      when(userService.getByEmail(context, 'test@example.com')).thenResolve({
+        id: '1234',
+        email: 'test@example.com',
+        name: 'Previous Name',
+        roles: ['user', 'admin'],
+      });
+      await expect(authService.validateFakeLogin(context, 'test@example.com', 'John Smith', ['user'])).resolves.toEqual(
+        {
+          id: '1234',
+          email: 'test@example.com',
+          name: 'John Smith',
+          roles: ['user'],
+        },
+      );
+      verify(userService.update(context, '1234', anything())).once();
+    });
+
+    it('fails when server is not in development mode', async () => {
+      configuration.isDevelopment = () => false;
+
+      await expect(
+        authService.validateFakeLogin(context, 'test@example.com', 'John Smith', ['user']),
+      ).rejects.toHaveProperty('message', 'CredentialsNotFoundError');
     });
   });
 });

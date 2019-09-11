@@ -13,6 +13,7 @@ export interface Configuration {
   systemSecret: Buffer;
 
   auth: {
+    enableFakeLocalDev?: boolean;
     local?: {
       enabled?: boolean;
       activationExpiryInMinutes?: number;

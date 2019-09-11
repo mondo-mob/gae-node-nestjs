@@ -4,6 +4,7 @@ import * as Logger from 'bunyan';
 import { decode } from 'jsonwebtoken';
 import * as passport from 'passport';
 import { use } from 'passport';
+import { Request } from 'express';
 import { Profile, Strategy as Auth0Strategy } from 'passport-auth0';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as LocalStrategy } from 'passport-local';
@@ -15,12 +16,14 @@ import { createLogger } from '../gcloud/logging';
 import { Configuration, IUser } from '../index';
 import { AuthService } from './auth.service';
 import { USER_SERVICE, UserService } from './user.service';
+import { get } from 'lodash';
 
 const GOOGLE_SIGNIN = 'google';
 const SAML_SIGNIN = 'saml';
 const AUTH0_SIGNIN = 'auth0';
 const OIDC_SIGNIN = 'oidc';
 const LOCAL_SIGNIN = 'local-signin';
+const FAKE_SIGNIN = 'fake-signin';
 
 @Injectable()
 export class AuthConfigurer {
@@ -48,7 +51,11 @@ export class AuthConfigurer {
     });
 
     if (this.configuration.auth.local) {
-      use(LOCAL_SIGNIN, new LocalStrategy({ usernameField: 'username', passwordField: 'password' }, this.validate));
+      use(LOCAL_SIGNIN, new LocalStrategy({}, this.validate));
+    }
+
+    if (this.configuration.isDevelopment() && this.configuration.auth.enableFakeLocalDev) {
+      use(FAKE_SIGNIN, new LocalStrategy({ passReqToCallback: true }, this.validateFakeLogin));
     }
 
     if (this.configuration.auth.google && this.configuration.auth.google.enabled) {
@@ -179,8 +186,27 @@ export class AuthConfigurer {
     return passport.authenticate(LOCAL_SIGNIN, {});
   }
 
+  authenticateFake() {
+    return passport.authenticate(FAKE_SIGNIN, {});
+  }
+
   validate = async (username: string, password: string, done: (error: Error | null, user: IUser | false) => void) =>
     this.validateAuth(done, () => this.authService.validateUser(newContext(this.datastore), username, password));
+
+  validateFakeLogin = async (
+    req: Request,
+    username: string,
+    password: string,
+    done: (error: Error | null, user: IUser | false) => void,
+  ) =>
+    this.validateAuth(done, () =>
+      this.authService.validateFakeLogin(
+        newContext(this.datastore),
+        username,
+        get(req, 'body.name', ''),
+        get(req, 'body.roles', []),
+      ),
+    );
 
   validateGmail = async (
     accessToken: string,
