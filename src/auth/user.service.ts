@@ -3,6 +3,8 @@ import { LoginIdentifierRepository } from './login-identifier.repository';
 
 export const USER_SERVICE = 'UserService';
 
+export const normaliseEmail = (email: string) => email.toLowerCase();
+
 export interface UserService<
   T extends IUser,
   U extends IUserUpdates = IUserUpdates,
@@ -26,13 +28,13 @@ export abstract class AbstractUserService<
   protected abstract updateUser(context: Context, user: T, updates: U): Promise<T>;
 
   async getByEmail(context: Context, email: string) {
-    const loginIdentifier = await this.loginIdentifierRepository.get(context, email.toLowerCase());
+    const loginIdentifier = await this.loginIdentifierRepository.get(context, normaliseEmail(email));
     return loginIdentifier && this.get(context, loginIdentifier.userId);
   }
 
   @Transactional()
   async create(context: Context, user: IUserCreateRequest) {
-    const normalisedEmail = user.email.toLowerCase();
+    const normalisedEmail = normaliseEmail(user.email);
 
     await this.validateEmailAddressAvailable(context, normalisedEmail);
     const createdUser = await this.createUser(context, {
@@ -56,7 +58,7 @@ export abstract class AbstractUserService<
       throw new Error('Cannot assign super role to users');
     }
 
-    const normalisedEmail = updates.email && updates.email.toLowerCase();
+    const normalisedEmail = updates.email && normaliseEmail(updates.email);
     if (normalisedEmail && normalisedEmail !== user.email) {
       await this.validateEmailAddressAvailable(context, normalisedEmail);
       await Promise.all([

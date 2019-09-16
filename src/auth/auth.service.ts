@@ -9,7 +9,7 @@ import { CONFIGURATION } from '../configuration';
 import { Context, IUserCreateRequest } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';
 import { createLogger } from '../gcloud/logging';
-import { Configuration, IUser } from '../index';
+import { Configuration, IUser, normaliseEmail } from '../index';
 import { CredentialRepository, ExternalAuthType, LoginCredentials } from './auth.repository';
 import { USER_SERVICE, UserService } from './user.service';
 
@@ -68,7 +68,7 @@ export class AuthService {
    * @param password The users password
    */
   async validateUser(context: Context, username: string, password: string): Promise<IUser> {
-    const account = await this.authRepository.get(context, username);
+    const account = await this.getAccountByEmail(context, username);
 
     if (!account) {
       throw new CredentialsNotFoundError();
@@ -143,7 +143,7 @@ export class AuthService {
     }
 
     const email = accountEmails.value;
-    const account = await this.authRepository.get(context, email);
+    const account = await this.getAccountByEmail(context, email);
 
     // If there is no account registered there are two options:
     // 1. Create an account for the user (if we allow signup via google auth)
@@ -270,7 +270,7 @@ export class AuthService {
    */
   @Transactional()
   async createAccount(context: Context, email: string, password: string, account: string): Promise<LoginCredentials> {
-    const existingCredentials = await this.authRepository.get(context, email);
+    const existingCredentials = await this.getAccountByEmail(context, email);
 
     if (!existingCredentials) {
       return await this.authRepository.save(context, {
@@ -293,7 +293,7 @@ export class AuthService {
     this.logger.info(`Validating ${type} user profile`);
 
     this.logger.info(`Looking up user by email ${email}`);
-    const account = await this.authRepository.get(context, email);
+    const account = await this.getAccountByEmail(context, email);
 
     if (!account) {
       this.logger.info('No account found, creating it.');
@@ -328,6 +328,10 @@ export class AuthService {
     }
 
     return updateUser ? await updateUser(user) : user;
+  }
+
+  private getAccountByEmail(context: Context, email: string) {
+    return this.authRepository.get(context, normaliseEmail(email));
   }
 
   private toName(profile: SimpleUserProfile) {

@@ -92,7 +92,7 @@ describe('AuthService', () => {
         id: 'username',
         password: await hashPassword('password'),
       });
-      when(userService.get(context, anything())).thenResolve({ id: '12345' });
+      when(userService.get(context, '12345')).thenResolve({ id: '12345' });
 
       await expect(authService.validateUser(context, 'username', 'password')).resolves.toEqual({
         id: '12345',
@@ -181,7 +181,12 @@ describe('AuthService', () => {
     });
 
     it('returns the user when validation succeeded', async () => {
-      when(userService.get(context, anything())).thenResolve({ id: '12345' });
+      when(credentialRepository.get(context, 'test@example.com')).thenResolve({
+        type: 'google',
+        userId: '12345',
+        id: 'test@example.com',
+      });
+      when(userService.get(context, '12345')).thenResolve({ id: '12345' });
       configuration.auth = {
         google: {
           signUpEnabled: true,
@@ -191,12 +196,6 @@ describe('AuthService', () => {
           secret: '',
         },
       };
-
-      when(credentialRepository.get(context, 'test@example.com')).thenResolve({
-        type: 'google',
-        userId: '12345',
-        id: 'test@example.com',
-      });
 
       await expect(authService.validateUserGoogle(context, profile)).resolves.toEqual({ id: '12345' });
     });
@@ -222,14 +221,32 @@ describe('AuthService', () => {
       verify(credentialRepository.save(context, anything())).once();
     });
 
-    it('updates existing user name when found', async () => {
-      when(credentialRepository.get(context, anything())).thenResolve({
+    it('updates existing users name when found', async () => {
+      when(credentialRepository.get(context, 'test@example.com')).thenResolve({
         type: 'oidc',
         userId: '12345',
         id: 'test@example.com',
       });
       const existingUser = { id: '12345' };
-      when(userService.get(context, anything())).thenResolve(existingUser);
+      when(userService.get(context, '12345')).thenResolve(existingUser);
+
+      await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
+        id: '12345',
+        name: 'John Smith',
+      });
+
+      verify(userService.update(context, anything(), anything())).once();
+    });
+
+    it('updates existing users name when existing user found case insensitive search', async () => {
+      profile.email = 'TeST@EXAMPLE.com';
+      when(credentialRepository.get(context, 'test@example.com')).thenResolve({
+        type: 'oidc',
+        userId: '12345',
+        id: 'test@example.com',
+      });
+      const existingUser = { id: '12345' };
+      when(userService.get(context, '12345')).thenResolve(existingUser);
 
       await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
         id: '12345',
@@ -246,7 +263,7 @@ describe('AuthService', () => {
         id: 'test@example.com',
       });
       const existingUser = { id: '12345' };
-      when(userService.get(context, anything())).thenResolve(existingUser);
+      when(userService.get(context, '12345')).thenResolve(existingUser);
 
       await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
         id: '12345',
@@ -283,7 +300,7 @@ describe('AuthService', () => {
         userId: '12345',
         id: 'test@example.com',
       });
-      when(userService.get(context, anything())).thenResolve(null);
+      when(userService.get(context, '12345')).thenResolve(null);
       await expect(authService.validateUserOidc(context, profile, true)).rejects.toHaveProperty(
         'message',
         'UserNotFoundError',
