@@ -292,11 +292,10 @@ export class AuthService {
     const { newUserRequest, updateUser, type } = options;
     this.logger.info(`Validating ${type} user profile`);
 
-    this.logger.info(`Looking up user by email ${email}`);
     const account = await this.getAccountByEmail(context, email);
 
     if (!account) {
-      this.logger.info('No account found, creating it.');
+      this.logger.info(`No account found for ${email}, creating it.`);
 
       const createdUser = await this.userService.create(context, newUserRequest());
 
@@ -320,6 +319,7 @@ export class AuthService {
     }
 
     if (account.type !== type) {
+      this.logger.info(`Updating auth type to [${type}] for [${email}]`)
       await this.authRepository.save(context, {
         id: account.id,
         type,
@@ -327,11 +327,14 @@ export class AuthService {
       });
     }
 
+    this.logger.info(`User ${email} validated`);
     return updateUser ? await updateUser(user) : user;
   }
 
   private getAccountByEmail(context: Context, email: string) {
-    return this.authRepository.get(context, normaliseEmail(email));
+    const normalisedEmail = normaliseEmail(email);
+    this.logger.info(`Looking up user by email ${normalisedEmail}`);
+    return this.authRepository.get(context, normalisedEmail);
   }
 
   private toName(profile: SimpleUserProfile) {

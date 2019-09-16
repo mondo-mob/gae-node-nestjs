@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import * as t from 'io-ts';
-import { dateType, Repository } from '../datastore/repository';
+import { normaliseEmail } from '..';
 import { DatastoreProvider } from '../datastore/datastore.provider';
+import { dateType, Repository } from '../datastore/repository';
+import { asArray, OneOrMany } from '../util/types';
 
 const passwordReset = t.interface({
   id: t.string, // username
@@ -70,4 +72,13 @@ export class CredentialRepository extends Repository<LoginCredentials> {
       },
     });
   }
+
+  protected beforePersist(entities: OneOrMany<LoginCredentials>): OneOrMany<LoginCredentials> {
+    return asArray(entities)
+      .map(entity => ({
+        ...entity,
+        id: normaliseEmail(entity.id),
+      }));
+  }
+
 }

@@ -1,4 +1,5 @@
-import { Context, IUser, IUserCreateRequest, IUserUpdates, Transactional } from '..';
+import * as Logger from 'bunyan';
+import { Context, createLogger, IUser, IUserCreateRequest, IUserUpdates, Transactional } from '..';
 import { LoginIdentifierRepository } from './login-identifier.repository';
 
 export const USER_SERVICE = 'UserService';
@@ -21,7 +22,11 @@ export abstract class AbstractUserService<
   U extends IUserUpdates = IUserUpdates,
   C extends IUserCreateRequest = IUserCreateRequest
 > implements UserService<T, U, C> {
-  protected constructor(protected readonly loginIdentifierRepository: LoginIdentifierRepository) {}
+  private readonly baseLogger: Logger;
+
+  protected constructor(protected readonly loginIdentifierRepository: LoginIdentifierRepository) {
+    this.baseLogger = createLogger('abstract-user-service');
+  }
 
   abstract get(context: Context, userId: string): Promise<T | undefined>;
   protected abstract createUser(context: Context, user: IUserCreateRequest): Promise<T>;
@@ -60,6 +65,7 @@ export abstract class AbstractUserService<
 
     const normalisedEmail = updates.email && normaliseEmail(updates.email);
     if (normalisedEmail && normalisedEmail !== user.email) {
+      this.baseLogger.info(`Email changed from [${user.email}] to [${normalisedEmail}]. Changing email for user id [${user.id}]`);
       await this.validateEmailAddressAvailable(context, normalisedEmail);
       await Promise.all([
         this.loginIdentifierRepository.delete(context, user.email),
