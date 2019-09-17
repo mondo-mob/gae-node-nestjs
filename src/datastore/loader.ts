@@ -38,8 +38,8 @@ export interface QueryOptions<T> {
   select: OneOrMany<keyof T & string>;
   filters: Filters<T>;
   sort: {
-    property: string;
-    options: OrderOptions;
+    property: keyof T & string;
+    options?: OrderOptions;
   };
   groupBy: OneOrMany<keyof T & string>;
   start: string;
