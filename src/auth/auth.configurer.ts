@@ -25,6 +25,8 @@ const OIDC_SIGNIN = 'oidc';
 const LOCAL_SIGNIN = 'local-signin';
 const FAKE_SIGNIN = 'fake-signin';
 
+const DEFAULT_FAILURE_REDIRECT = '/';
+
 @Injectable()
 export class AuthConfigurer {
   private readonly datastore: Datastore;
@@ -134,19 +136,19 @@ export class AuthConfigurer {
 
   completeAuthenticateGoogle() {
     return passport.authenticate(GOOGLE_SIGNIN, {
-      failureRedirect: '/',
+      failureRedirect: this.configuration.auth.google!.failureRedirect || DEFAULT_FAILURE_REDIRECT,
     });
   }
 
   beginAuthenticateSaml() {
     return passport.authenticate(SAML_SIGNIN, {
-      failureRedirect: '/',
+      failureRedirect: this.configuration.auth.saml!.failureRedirect || DEFAULT_FAILURE_REDIRECT,
     });
   }
 
   completeAuthenticateSaml() {
     return passport.authenticate(SAML_SIGNIN, {
-      failureRedirect: '/',
+      failureRedirect: this.configuration.auth.saml!.failureRedirect || DEFAULT_FAILURE_REDIRECT,
     });
   }
 
@@ -158,7 +160,7 @@ export class AuthConfigurer {
 
   completeAuthenticateOidc() {
     return passport.authenticate(OIDC_SIGNIN, {
-      failureRedirect: '/',
+      failureRedirect: this.configuration.auth.oidc!.failureRedirect || DEFAULT_FAILURE_REDIRECT,
     });
   }
 
@@ -171,7 +173,7 @@ export class AuthConfigurer {
 
   completeAuthenticateAuth0() {
     return passport.authenticate(AUTH0_SIGNIN, {
-      failureRedirect: '/',
+      failureRedirect: this.configuration.auth.auth0!.failureRedirect || DEFAULT_FAILURE_REDIRECT,
     });
   }
 

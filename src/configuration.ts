@@ -26,11 +26,13 @@ export interface Configuration {
       signUpEnabled: boolean;
       signUpDomains?: string[];
       signUpRoles?: string[];
+      failureRedirect?: string;
     };
     saml?: {
       enabled?: boolean;
       cert: string;
       identityProviderUrl: string;
+      failureRedirect?: string;
     };
     auth0?: {
       enabled?: boolean;
@@ -38,6 +40,7 @@ export interface Configuration {
       clientId: string;
       secret: string;
       namespace: string;
+      failureRedirect?: string;
     };
     oidc?: {
       enabled?: boolean;
@@ -49,6 +52,7 @@ export interface Configuration {
       tokenUrl: string;
       newUserRoles?: string[];
       replaceAuth?: boolean;
+      failureRedirect?: string;
     };
   };
   devHooks?: {
