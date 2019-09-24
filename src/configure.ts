@@ -2,12 +2,14 @@
 import * as DatastoreStore from '@google-cloud/connect-datastore';
 import { Datastore } from '@google-cloud/datastore';
 import { CookieOptions, NextFunction, RequestHandler, Response } from 'express';
+import * as express from 'express';
 import * as session from 'express-session';
 import * as csp from 'helmet-csp';
 import * as passport from 'passport';
 import { CsrfValidatorWithOptions } from './auth/csrf.interceptor';
 import { rootLogger } from './gcloud/logging';
 import { asArray, OneOrMany } from './util/types';
+import { ServeStaticOptions } from 'serve-static';
 
 const minutesToMilliseconds = (minutes: number) => minutes * 60 * 1000;
 
@@ -27,6 +29,11 @@ interface ServerOptions {
     cookie?: CookieOptions;
   };
   sessionTimeoutInMinutes?: number;
+  staticAssets?: {
+    options?: ServeStaticOptions;
+    prefix?: string;
+    root: string;
+  };
 }
 
 interface Express {
@@ -44,17 +51,36 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
     csp(
       options.csp || {
         directives: {
-          defaultSrc: ['\'none\''],
-          scriptSrc: ['\'self\''],
-          styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://fonts.googleapis.com'],
-          fontSrc: ['\'self\'', 'https://fonts.gstatic.com'],
-          imgSrc: ['\'self\'', 'data: ', 'https://secure.gravatar.com/'],
-          connectSrc: ['\'self\'', 'https://www.googleapis.com'],
-          manifestSrc: ['\'self\''],
+          defaultSrc: ["'none'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+          imgSrc: ["'self'", 'data: ', 'https://secure.gravatar.com/'],
+          connectSrc: ["'self'", 'https://www.googleapis.com'],
+          manifestSrc: ["'self'"],
         },
       },
     ),
   );
+
+  // Configure static assets before session middleware so that they do not interact with session flow
+  // e.g. additional overhead loading sessions, creating unwanted sessions, etc
+  const { staticAssets } = options;
+  if (staticAssets) {
+    // By default disable automatically sending index.html for folder root (i.e. https://www.site.com/)
+    // Allows index.html to be served consistently from other routes, which may have special
+    // processing - e.g. ensuring session is saved before returning content.
+    const staticOptions: ServeStaticOptions = staticAssets.options || {
+      index: false,
+    };
+    if (staticAssets.prefix) {
+      rootLogger.info(`Serving static assets from ${staticAssets.root} on prefix ${staticAssets.prefix}`);
+      expressApp.use(staticAssets.prefix, express.static(staticAssets.root, staticOptions));
+    } else {
+      rootLogger.info(`Serving static assets from ${staticAssets.root}`);
+      expressApp.use(express.static(staticAssets.root, staticOptions));
+    }
+  }
 
   // Force secure session cookie in app engine / prod
   let secure: boolean | 'auto' = (options.session.cookie && options.session.cookie.secure) || false;
