@@ -18,6 +18,7 @@ export interface Configuration {
       enabled?: boolean;
       activationExpiryInMinutes?: number;
       activationExpiryEmailCopy?: string;
+      invitationEmailCopy?: string;
     };
     google?: {
       enabled?: boolean;

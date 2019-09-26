@@ -9,11 +9,12 @@ import { Configuration, MailSender, UserService, USER_SERVICE } from '../index';
 import { userInviteEmail } from '../mail-templates/invite';
 import { MAIL_SENDER } from '../mail/mail.sender';
 import { unique } from '../util/arrays';
-import { CredentialRepository, UserInviteRepository, UserInvite } from './auth.repository';
+import { CredentialRepository, UserInvite, UserInviteRepository } from './auth.repository';
 import { hashPassword } from './auth.service';
 
 export const DEFAULT_INVITE_CODE_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
-export const DEFAULT_INVITE_CODE_EXPIRY_EMAIL_COPY = '7 days';
+const DEFAULT_INVITE_CODE_EXPIRY_EMAIL_COPY = '7 days';
+const DEFAULT_INVITATION_EMAIL_COPY = 'You have been invited as a new user.';
 
 export interface IInviteUserResponse {
   user: IUser;
@@ -214,6 +215,11 @@ export class InviteUserService {
       ? DEFAULT_INVITE_CODE_EXPIRY_EMAIL_COPY
       : this.configuration.auth.local.activationExpiryEmailCopy;
 
+  private getInvitationCopy = (): string =>
+    !(this.configuration.auth.local && this.configuration.auth.local.invitationEmailCopy)
+      ? DEFAULT_INVITATION_EMAIL_COPY
+      : this.configuration.auth.local.invitationEmailCopy;
+
   /**
    * Send activation email and return activation link.
    * If skipEmail flag is set, just send activation link only.
@@ -240,7 +246,7 @@ export class InviteUserService {
     await this.mailSender.send(context, {
       to: email,
       subject: title,
-      html: userInviteEmail(title, activateLink, this.getActivationExpiryEmailCopy()),
+      html: userInviteEmail(title, activateLink, this.getInvitationCopy(), this.getActivationExpiryEmailCopy()),
     });
     return activateLink;
   }

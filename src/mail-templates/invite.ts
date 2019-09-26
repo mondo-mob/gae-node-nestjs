@@ -1,10 +1,10 @@
 import { mainButton, standardEmail } from './base';
 
-export const userInviteEmail = (title: string, link: string, expiryCopy: string | undefined) => {
+export const userInviteEmail = (title: string, link: string, invitationCopy: string, expiryCopy: string | undefined) => {
   const content = /*html*/ `
       <div>
         <p>Welcome,</p>
-        <p>You have been invited as a new user. Please click the button below to activate your account.
+        <p>${invitationCopy} Please click the button below to activate your account.
         ${expiryCopy ? ` This link will expire in ${expiryCopy}.` : ''}</p>
       </div>
       <div>
