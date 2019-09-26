@@ -1,6 +1,6 @@
 {
   "name": "@3wks/gae-node-nestjs",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -24,7 +24,7 @@
     "@google-cloud/connect-datastore": "2.0.1",
     "@google-cloud/datastore": "3.1.0",
     "@google-cloud/logging-bunyan": "0.9.5",
-    "@google-cloud/storage": "2.4.2",
+    "@google-cloud/storage": "2.5.0",
     "@google-cloud/tasks": "0.3.0",
     "@google-cloud/trace-agent": "3.5.2",
     "@nestjs/graphql": "^3.0.0",
