@@ -93,8 +93,29 @@ export class AuthController {
     }
   }
 
+  @AllowAnonymous()
+  @Get('signout/local')
+  signOutLocal(@Req() req: Request, @Res() res: Response, @Next() next: (err: Error) => void) {
+    this.logger.debug('Logging out local user');
+    req.logout();
+
+    if (req.xhr) {
+      res.status(204).send();
+    } else {
+      const redirectUrl = '/';
+      this.logger.debug(`Redirecting to ${redirectUrl} for non-xhr request`);
+      res.redirect(redirectUrl);
+    }
+  }
+
+  /**
+   * @deprecated use GET /auth/signout/local instead
+   **/
   @Post('signout/local')
   signOut(@Req() req: Request, @Res() res: Response, @Next() next: (err: Error) => void) {
+    this.logger.warn(
+      'This endpoint is deprecated and will be removed in future releases - please use GET /auth/signout/local instead',
+    );
     req.logout();
     res.redirect('/');
   }
