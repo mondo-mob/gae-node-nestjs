@@ -85,6 +85,21 @@ describe('AuthService', () => {
       );
     });
 
+    it('throws an error when the backing user is not enabled', async () => {
+      when(credentialRepository.get(context, 'username')).thenResolve({
+        type: 'password',
+        userId: '12345',
+        id: 'username',
+        password: await hashPassword('password'),
+      });
+      when(userService.get(context, '12345')).thenResolve({ id: '12345', enabled: false });
+
+      await expect(authService.validateUser(context, 'username', 'password')).rejects.toHaveProperty(
+        'message',
+        'UserNotEnabledError',
+      );
+    });
+
     it('returns the user when validation succeeded', async () => {
       when(credentialRepository.get(context, 'username')).thenResolve({
         type: 'password',
@@ -92,10 +107,10 @@ describe('AuthService', () => {
         id: 'username',
         password: await hashPassword('password'),
       });
-      when(userService.get(context, '12345')).thenResolve({ id: '12345' });
+      when(userService.get(context, '12345')).thenResolve({ id: '12345', enabled: true });
 
       await expect(authService.validateUser(context, 'username', 'password')).resolves.toEqual({
-        id: '12345',
+        id: '12345', enabled: true,
       });
     });
   });
@@ -176,17 +191,18 @@ describe('AuthService', () => {
         email: 'test@example.com',
         name: 'test',
         roles: ['user'],
+        enabled: true,
       };
       await expect(authService.validateUserGoogle(context, profile)).resolves.toMatchObject(expectedResult);
     });
 
-    it('returns the user when validation succeeded', async () => {
+    it('fails when the backing user is not enabled', async () => {
       when(credentialRepository.get(context, 'test@example.com')).thenResolve({
         type: 'google',
         userId: '12345',
         id: 'test@example.com',
       });
-      when(userService.get(context, '12345')).thenResolve({ id: '12345' });
+      when(userService.get(context, '12345')).thenResolve({ id: '12345', enabled: false });
       configuration.auth = {
         google: {
           signUpEnabled: true,
@@ -197,7 +213,31 @@ describe('AuthService', () => {
         },
       };
 
-      await expect(authService.validateUserGoogle(context, profile)).resolves.toEqual({ id: '12345' });
+      await expect(authService.validateUserGoogle(context, profile)).rejects.toHaveProperty(
+        'message',
+        'UserNotEnabledError',
+      );
+    });
+
+    it('returns the user when validation succeeded', async () => {
+      when(credentialRepository.get(context, 'test@example.com')).thenResolve({
+        type: 'google',
+        userId: '12345',
+        id: 'test@example.com',
+      });
+      const existingUser = { id: '12345', enabled: true };
+      when(userService.get(context, '12345')).thenResolve(existingUser);
+      configuration.auth = {
+        google: {
+          signUpEnabled: true,
+          signUpDomains: ['example.com'],
+          signUpRoles: ['user '],
+          clientId: '',
+          secret: '',
+        },
+      };
+
+      await expect(authService.validateUserGoogle(context, profile)).resolves.toEqual(existingUser);
     });
   });
 
@@ -211,12 +251,13 @@ describe('AuthService', () => {
       };
     });
 
-    it('creates a new user with default roles when no existing account found', async () => {
+    it('creates a new enabled user with default roles when no existing account found', async () => {
       when(credentialRepository.get(context, anything())).thenResolve(undefined);
       await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
         email: 'test@example.com',
         name: 'John Smith',
         roles: ['default-role'],
+        enabled: true,
       });
       verify(credentialRepository.save(context, anything())).once();
     });
@@ -227,11 +268,11 @@ describe('AuthService', () => {
         userId: '12345',
         id: 'test@example.com',
       });
-      const existingUser = { id: '12345' };
+      const existingUser = { id: '12345', enabled: true };
       when(userService.get(context, '12345')).thenResolve(existingUser);
 
       await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
-        id: '12345',
+        ...existingUser,
         name: 'John Smith',
       });
 
@@ -245,11 +286,11 @@ describe('AuthService', () => {
         userId: '12345',
         id: 'test@example.com',
       });
-      const existingUser = { id: '12345' };
+      const existingUser = { id: '12345', enabled: true };
       when(userService.get(context, '12345')).thenResolve(existingUser);
 
       await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
-        id: '12345',
+        ...existingUser,
         name: 'John Smith',
       });
 
@@ -262,11 +303,11 @@ describe('AuthService', () => {
         userId: '12345',
         id: 'test@example.com',
       });
-      const existingUser = { id: '12345' };
+      const existingUser = { id: '12345', enabled: true };
       when(userService.get(context, '12345')).thenResolve(existingUser);
 
       await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
-        id: '12345',
+        ...existingUser,
         name: 'John Smith',
       });
 
@@ -306,6 +347,19 @@ describe('AuthService', () => {
         'UserNotFoundError',
       );
     });
+
+    it('fails when stored credentials and user exist but user not enabled', async () => {
+      when(credentialRepository.get(context, 'test@example.com')).thenResolve({
+        type: 'oidc',
+        userId: '12345',
+        id: 'test@example.com',
+      });
+      when(userService.get(context, '12345')).thenResolve({id: '12345', enabled: false});
+      await expect(authService.validateUserOidc(context, profile, true)).rejects.toHaveProperty(
+        'message',
+        'UserNotEnabledError',
+      );
+    });
   });
 
   describe('validateFakeLogin', () => {
@@ -313,29 +367,46 @@ describe('AuthService', () => {
       configuration.isDevelopment = () => true;
     });
 
-    it('creates new user when user does not exist', async () => {
+    it('creates new enabled user when user does not exist', async () => {
       when(userService.getByEmail(context, 'test@example.com')).thenResolve(undefined);
       await expect(authService.validateFakeLogin(context, 'test@example.com', 'John Smith', ['user'])).resolves.toEqual(
         {
           email: 'test@example.com',
           name: 'John Smith',
           roles: ['user'],
+          enabled: true,
         },
       );
       verify(userService.create(context, anything())).once();
     });
 
-    it('updates user when user exists', async () => {
-      when(userService.getByEmail(context, 'test@example.com')).thenResolve({
+    it('fails when user exists but is not enabled', async () => {
+      const existingUser = {
         id: '1234',
         email: 'test@example.com',
         name: 'Previous Name',
         roles: ['user', 'admin'],
-      });
+        enabled: false,
+      };
+      when(userService.getByEmail(context, 'test@example.com')).thenResolve(existingUser);
+      await expect(authService.validateFakeLogin(context, 'test@example.com', 'John Smith', ['user'])).rejects.toHaveProperty(
+        'message',
+        'UserNotEnabledError',
+      );
+    });
+
+    it('updates user when user exists', async () => {
+      const existingUser = {
+        id: '1234',
+        email: 'test@example.com',
+        name: 'Previous Name',
+        roles: ['user', 'admin'],
+        enabled: true,
+      };
+      when(userService.getByEmail(context, 'test@example.com')).thenResolve(existingUser);
       await expect(authService.validateFakeLogin(context, 'test@example.com', 'John Smith', ['user'])).resolves.toEqual(
         {
-          id: '1234',
-          email: 'test@example.com',
+          ...existingUser,
           name: 'John Smith',
           roles: ['user'],
         },

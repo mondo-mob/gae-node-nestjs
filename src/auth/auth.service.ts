@@ -1,17 +1,17 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {HttpException, HttpStatus, Inject, Injectable} from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import * as Logger from 'bunyan';
 import * as emails from 'email-addresses';
 import * as t from 'io-ts';
-import { reporter } from 'io-ts-reporters';
-import { isNil } from 'lodash';
-import { CONFIGURATION } from '../configuration';
-import { Context, IUserCreateRequest } from '../datastore/context';
-import { Transactional } from '../datastore/transactional';
-import { createLogger } from '../gcloud/logging';
-import { Configuration, IUser, normaliseEmail } from '../index';
-import { CredentialRepository, ExternalAuthType, LoginCredentials } from './auth.repository';
-import { USER_SERVICE, UserService } from './user.service';
+import {reporter} from 'io-ts-reporters';
+import {isNil} from 'lodash';
+import {CONFIGURATION} from '../configuration';
+import {Context, IUserCreateRequest} from '../datastore/context';
+import {Transactional} from '../datastore/transactional';
+import {createLogger} from '../gcloud/logging';
+import {Configuration, IUser, normaliseEmail} from '../index';
+import {CredentialRepository, ExternalAuthType, LoginCredentials} from './auth.repository';
+import {USER_SERVICE, UserService} from './user.service';
 
 const userProfile = t.interface({
   id: t.string, // username
@@ -37,6 +37,12 @@ export class CredentialsNotFoundError extends HttpException {
 export class PasswordInvalidError extends HttpException {
   constructor() {
     super('PasswordInvalidError', HttpStatus.FORBIDDEN);
+  }
+}
+
+export class UserNotEnabledError extends HttpException {
+  constructor() {
+    super('UserNotEnabledError', HttpStatus.FORBIDDEN);
   }
 }
 
@@ -84,13 +90,7 @@ export class AuthService {
       throw new PasswordInvalidError();
     }
 
-    const user = await this.userService.get(context, account.userId);
-
-    if (!user) {
-      throw new UserNotFoundError();
-    }
-
-    return user;
+    return await this.loadUserAndCheckEnabled(context, account.userId);
   }
 
   @Transactional()
@@ -103,6 +103,9 @@ export class AuthService {
     const user = await this.userService.getByEmail(context, email);
 
     if (user) {
+      if (!user.enabled) {
+        throw new UserNotEnabledError();
+      }
       return await this.userService.update(context, user.id, {
         ...user,
         name,
@@ -113,6 +116,7 @@ export class AuthService {
         email,
         name,
         roles,
+        enabled: true,
       });
     }
   }
@@ -166,6 +170,7 @@ export class AuthService {
         roles: this.configurationProvider.auth.google.signUpRoles,
         email,
         name: profile.displayName,
+        enabled: true,
       });
 
       await this.authRepository.save(context, {
@@ -181,13 +186,7 @@ export class AuthService {
       throw new CredentialsNotFoundError();
     }
 
-    const user = await this.userService.get(context, account.userId);
-
-    if (!user) {
-      throw new UserNotFoundError();
-    }
-
-    return user;
+    return await this.loadUserAndCheckEnabled(context, account.userId);
   }
 
   /**
@@ -206,6 +205,7 @@ export class AuthService {
         roles: [],
         email: profile.email,
         name: this.toName(profile),
+        enabled: true,
       }),
     });
   }
@@ -227,6 +227,7 @@ export class AuthService {
         email,
         name: profile.displayName,
         roles: newUserRoles,
+        enabled: true,
       }),
       updateUser: user => {
         return this.userService.update(context, user.id, {
@@ -247,6 +248,7 @@ export class AuthService {
         email,
         name,
         props,
+        enabled: true,
       }),
       updateUser: user => {
         user.name = name;
@@ -312,11 +314,7 @@ export class AuthService {
       throw new CredentialsNotFoundError();
     }
 
-    const user = await this.userService.get(context, account.userId);
-
-    if (!user) {
-      throw new UserNotFoundError();
-    }
+    const user = await this.loadUserAndCheckEnabled(context, account.userId);
 
     if (account.type !== type) {
       this.logger.info(`Updating auth type to [${type}] for [${email}]`)
@@ -329,6 +327,20 @@ export class AuthService {
 
     this.logger.info(`User ${email} validated`);
     return updateUser ? await updateUser(user) : user;
+  }
+
+  private async loadUserAndCheckEnabled(context: Context, userId: string) {
+    const user = await this.userService.get(context, userId);
+
+    if (!user) {
+      throw new UserNotFoundError();
+    }
+
+    if (!user.enabled) {
+      throw new UserNotEnabledError();
+    }
+
+    return user;
   }
 
   private getAccountByEmail(context: Context, email: string) {
