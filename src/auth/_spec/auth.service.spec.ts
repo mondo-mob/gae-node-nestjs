@@ -110,7 +110,8 @@ describe('AuthService', () => {
       when(userService.get(context, '12345')).thenResolve({ id: '12345', enabled: true });
 
       await expect(authService.validateUser(context, 'username', 'password')).resolves.toEqual({
-        id: '12345', enabled: true,
+        id: '12345',
+        enabled: true,
       });
     });
   });
@@ -354,7 +355,7 @@ describe('AuthService', () => {
         userId: '12345',
         id: 'test@example.com',
       });
-      when(userService.get(context, '12345')).thenResolve({id: '12345', enabled: false});
+      when(userService.get(context, '12345')).thenResolve({ id: '12345', enabled: false });
       await expect(authService.validateUserOidc(context, profile, true)).rejects.toHaveProperty(
         'message',
         'UserNotEnabledError',
@@ -389,10 +390,9 @@ describe('AuthService', () => {
         enabled: false,
       };
       when(userService.getByEmail(context, 'test@example.com')).thenResolve(existingUser);
-      await expect(authService.validateFakeLogin(context, 'test@example.com', 'John Smith', ['user'])).rejects.toHaveProperty(
-        'message',
-        'UserNotEnabledError',
-      );
+      await expect(
+        authService.validateFakeLogin(context, 'test@example.com', 'John Smith', ['user']),
+      ).rejects.toHaveProperty('message', 'UserNotEnabledError');
     });
 
     it('updates user when user exists', async () => {

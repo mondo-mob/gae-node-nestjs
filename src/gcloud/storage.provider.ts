@@ -20,9 +20,7 @@ export class StorageProvider {
       config.keyFilename = './keyfile.json';
     }
     this._storage = new Storage(config);
-    this.logger.info(
-      `Default Google Cloud Storage bucket: ${configurationProvider.bucket}`,
-    );
+    this.logger.info(`Default Google Cloud Storage bucket: ${configurationProvider.bucket}`);
     this._defaultBucket = this.storage.bucket(configurationProvider.bucket);
   }
 

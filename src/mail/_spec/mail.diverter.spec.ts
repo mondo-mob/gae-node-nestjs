@@ -1,10 +1,10 @@
-import {Options} from 'nodemailer/lib/mailer';
-import {anyFunction, capture, instance, mock, when} from 'ts-mockito';
-import {Context, IUser} from '../..';
-import {Configuration} from '../../configuration';
-import {DatastoreLoader} from '../../datastore/loader';
-import {MailDiverter} from '../mail.diverter';
-import {MailSender} from '../mail.sender';
+import { Options } from 'nodemailer/lib/mailer';
+import { anyFunction, capture, instance, mock, when } from 'ts-mockito';
+import { Context, IUser } from '../..';
+import { Configuration } from '../../configuration';
+import { DatastoreLoader } from '../../datastore/loader';
+import { MailDiverter } from '../mail.diverter';
+import { MailSender } from '../mail.sender';
 
 export const mockContext = () => {
   const datastoreLoader = mock(DatastoreLoader);
@@ -13,20 +13,16 @@ export const mockContext = () => {
     datastore: instance(datastoreLoader),
   } as Context;
 
-  when(datastoreLoader.inTransaction(anyFunction())).thenCall((cb: any) =>
-    cb(context),
-  );
+  when(datastoreLoader.inTransaction(anyFunction())).thenCall((cb: any) => cb(context));
 
   return context;
 };
 
 export class MockMailSender implements MailSender {
-  async send(context: Context<IUser>, mailOptions: Options): Promise<void> {
-  }
+  async send(context: Context<IUser>, mailOptions: Options): Promise<void> {}
 }
 
 describe('MailDiverter', () => {
-
   let diverter: MailDiverter;
   let mailOptions: Options;
   let config: Configuration;
@@ -58,12 +54,12 @@ describe('MailDiverter', () => {
 
   it('should fail to initialise if config.devHooks.divertEmailTo is undefined', () => {
     config.devHooks = {};
-    verifyConstructionFails()
+    verifyConstructionFails();
   });
 
   it('should fail to initialise if config.devHooks.divertEmailTo is empty', () => {
     setupDivertedEmails(0);
-    verifyConstructionFails()
+    verifyConstructionFails();
   });
 
   it('should divert single email string to alternate address', async () => {
@@ -77,7 +73,9 @@ describe('MailDiverter', () => {
     await diverter.send(context, mailOptions);
 
     const [, actualMailOptions] = capture(mockedMailSender.send).first();
-    expect(actualMailOptions.to).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com'}]);
+    expect(actualMailOptions.to).toEqual([
+      { address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com' },
+    ]);
     expect(actualMailOptions.cc).toEqual([]);
     expect(actualMailOptions.bcc).toEqual([]);
     expect(actualMailOptions.subject).toEqual(mailOptions.subject);
@@ -96,7 +94,9 @@ describe('MailDiverter', () => {
 
     const [, actualMailOptions] = capture(mockedMailSender.send).first();
     expect(actualMailOptions.subject).toEqual('TEST: original subject');
-    expect(actualMailOptions.to).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com'}]);
+    expect(actualMailOptions.to).toEqual([
+      { address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com' },
+    ]);
     expect(actualMailOptions.cc).toEqual([]);
     expect(actualMailOptions.bcc).toEqual([]);
   });
@@ -114,9 +114,15 @@ describe('MailDiverter', () => {
     await diverter.send(context, mailOptions);
 
     const [, actualMailOptions] = capture(mockedMailSender.send).first();
-    expect(actualMailOptions.to).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actualTO.at.address.com'}]);
-    expect(actualMailOptions.cc).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actualCC.at.address.com'}]);
-    expect(actualMailOptions.bcc).toEqual([{address: 'divertTo0@test.com', name: 'Diverted from actualBCC.at.address.com'}]);
+    expect(actualMailOptions.to).toEqual([
+      { address: 'divertTo0@test.com', name: 'Diverted from actualTO.at.address.com' },
+    ]);
+    expect(actualMailOptions.cc).toEqual([
+      { address: 'divertTo0@test.com', name: 'Diverted from actualCC.at.address.com' },
+    ]);
+    expect(actualMailOptions.bcc).toEqual([
+      { address: 'divertTo0@test.com', name: 'Diverted from actualBCC.at.address.com' },
+    ]);
     expect(actualMailOptions.subject).toEqual(mailOptions.subject);
   });
 
@@ -131,13 +137,13 @@ describe('MailDiverter', () => {
 
     const [, actualMailOptions] = capture(mockedMailSender.send).first();
     expect(actualMailOptions.to).toEqual([
-      {address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com, actual2.at.another.com'},
+      { address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com, actual2.at.another.com' },
     ]);
   });
 
   it('should divert Address type email to alternate address', async () => {
     mailOptions = {
-      to: {name: 'Not that important', address: 'actual@address.com'},
+      to: { name: 'Not that important', address: 'actual@address.com' },
     };
     setupDivertedEmails(1);
 
@@ -146,16 +152,13 @@ describe('MailDiverter', () => {
 
     const [, actualMailOptions] = capture(mockedMailSender.send).first();
     expect(actualMailOptions.to).toEqual([
-      {address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com'},
+      { address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com' },
     ]);
   });
 
   it('should divert an array of email strings to alternate address', async () => {
     mailOptions = {
-      to: [
-        'actual1@address.com, actual2@address.com',
-        'actual3@address.com',
-      ],
+      to: ['actual1@address.com, actual2@address.com', 'actual3@address.com'],
     };
     setupDivertedEmails(1);
 
@@ -164,16 +167,19 @@ describe('MailDiverter', () => {
 
     const [, actualMailOptions] = capture(mockedMailSender.send).first();
     expect(actualMailOptions.to).toEqual([
-      {address: 'divertTo0@test.com', name: 'Diverted from actual1.at.address.com, actual2.at.address.com, actual3.at.address.com'},
+      {
+        address: 'divertTo0@test.com',
+        name: 'Diverted from actual1.at.address.com, actual2.at.address.com, actual3.at.address.com',
+      },
     ]);
   });
 
   it('should divert an array of Address objects to alternate address', async () => {
     mailOptions = {
       to: [
-        {name: 'Not that important', address: 'actual1@address.com'},
-        {name: 'Not that important', address: 'actual2@address.com'},
-        {name: 'Not that important', address: 'actual3@address.com'},
+        { name: 'Not that important', address: 'actual1@address.com' },
+        { name: 'Not that important', address: 'actual2@address.com' },
+        { name: 'Not that important', address: 'actual3@address.com' },
       ],
     };
     setupDivertedEmails(1);
@@ -183,7 +189,10 @@ describe('MailDiverter', () => {
 
     const [, actualMailOptions] = capture(mockedMailSender.send).first();
     expect(actualMailOptions.to).toEqual([
-      {address: 'divertTo0@test.com', name: 'Diverted from actual1.at.address.com, actual2.at.address.com, actual3.at.address.com'},
+      {
+        address: 'divertTo0@test.com',
+        name: 'Diverted from actual1.at.address.com, actual2.at.address.com, actual3.at.address.com',
+      },
     ]);
   });
 
@@ -200,34 +209,33 @@ describe('MailDiverter', () => {
 
     const [, actualMailOptions] = capture(mockedMailSender.send).first();
     expect(actualMailOptions.to).toEqual([
-      {address: 'divertTo0@test.com', name: 'Diverted from actualTO.at.address.com'},
-      {address: 'divertTo1@test.com', name: 'Diverted from actualTO.at.address.com'},
-      ]);
+      { address: 'divertTo0@test.com', name: 'Diverted from actualTO.at.address.com' },
+      { address: 'divertTo1@test.com', name: 'Diverted from actualTO.at.address.com' },
+    ]);
     expect(actualMailOptions.cc).toEqual([
-      {address: 'divertTo0@test.com', name: 'Diverted from actualCC.at.address.com'},
-      {address: 'divertTo1@test.com', name: 'Diverted from actualCC.at.address.com'},
+      { address: 'divertTo0@test.com', name: 'Diverted from actualCC.at.address.com' },
+      { address: 'divertTo1@test.com', name: 'Diverted from actualCC.at.address.com' },
     ]);
     expect(actualMailOptions.bcc).toEqual([
-      {address: 'divertTo0@test.com', name: 'Diverted from actualBCC.at.address.com'},
-      {address: 'divertTo1@test.com', name: 'Diverted from actualBCC.at.address.com'},
+      { address: 'divertTo0@test.com', name: 'Diverted from actualBCC.at.address.com' },
+      { address: 'divertTo1@test.com', name: 'Diverted from actualBCC.at.address.com' },
     ]);
   });
 
   const verifyConstructionFails = () => {
     expect(() => {
-      new MailDiverter(aMailSender, config)
-    })
-      .toThrowError('No divert-to email address(es) defined')
+      new MailDiverter(aMailSender, config);
+    }).toThrowError('No divert-to email address(es) defined');
   };
 
   const setupDivertedEmails = (count: number) => {
     const divertToAddresses = [];
     for (let i = 0; i < count; i++) {
-      divertToAddresses.push(`divertTo${i}@test.com`)
+      divertToAddresses.push(`divertTo${i}@test.com`);
     }
     // @ts-ignore
     config.devHooks = {
       divertEmailTo: divertToAddresses,
     };
-  }
+  };
 });

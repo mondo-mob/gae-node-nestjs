@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as t from 'io-ts';
-import {Repository} from '../../datastore/repository';
+import { Repository } from '../../datastore/repository';
 import { DatastoreProvider } from '../../datastore/datastore.provider';
 
 const storedCredential = t.interface({

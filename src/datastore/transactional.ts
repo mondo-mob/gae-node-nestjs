@@ -16,9 +16,7 @@ export function Transactional() {
     const value = descriptor.value!;
 
     descriptor.value = async function(context, ...args) {
-      return await context.datastore.inTransaction(
-        async tx => await value.apply(this, [tx, ...args]),
-      );
+      return await context.datastore.inTransaction(async tx => await value.apply(this, [tx, ...args]));
     };
 
     return descriptor;

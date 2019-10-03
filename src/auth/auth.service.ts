@@ -1,17 +1,17 @@
-import {HttpException, HttpStatus, Inject, Injectable} from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import * as Logger from 'bunyan';
 import * as emails from 'email-addresses';
 import * as t from 'io-ts';
-import {reporter} from 'io-ts-reporters';
-import {isNil} from 'lodash';
-import {CONFIGURATION} from '../configuration';
-import {Context, IUserCreateRequest} from '../datastore/context';
-import {Transactional} from '../datastore/transactional';
-import {createLogger} from '../gcloud/logging';
-import {Configuration, IUser, normaliseEmail} from '../index';
-import {CredentialRepository, ExternalAuthType, LoginCredentials} from './auth.repository';
-import {USER_SERVICE, UserService} from './user.service';
+import { reporter } from 'io-ts-reporters';
+import { isNil } from 'lodash';
+import { CONFIGURATION } from '../configuration';
+import { Context, IUserCreateRequest } from '../datastore/context'
+import { Transactional } from '../datastore/transactional';
+import { createLogger } from '../gcloud/logging';
+import { Configuration, IUser, normaliseEmail } from '../index';
+import { CredentialRepository, ExternalAuthType, LoginCredentials } from './auth.repository';
+import { USER_SERVICE, UserService } from './user.service';
 
 const userProfile = t.interface({
   id: t.string, // username
@@ -317,7 +317,7 @@ export class AuthService {
     const user = await this.loadUserAndCheckEnabled(context, account.userId);
 
     if (account.type !== type) {
-      this.logger.info(`Updating auth type to [${type}] for [${email}]`)
+      this.logger.info(`Updating auth type to [${type}] for [${email}]`);
       await this.authRepository.save(context, {
         id: account.id,
         type,

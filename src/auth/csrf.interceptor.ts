@@ -2,8 +2,7 @@ import { Response, NextFunction, RequestHandler } from 'express';
 import * as uuid from 'node-uuid';
 import { Request } from 'express-serve-static-core';
 
-const generateToken = () =>
-  process.env.APP_ENGINE_ENVIRONMENT ? uuid.v4() : 'development';
+const generateToken = () => (process.env.APP_ENGINE_ENVIRONMENT ? uuid.v4() : 'development');
 
 interface CsrfValidatorOptions {
   sameSite: boolean;
@@ -24,7 +23,7 @@ export const CsrfValidator: RequestHandlerWithOptions = (
   next: NextFunction,
   options: CsrfValidatorOptions,
 ) => {
-  options = {...defaultValidatorOptions, ...options};
+  options = { ...defaultValidatorOptions, ...options };
 
   if (req.session && !req.session.csrf) {
     req.session.csrf = generateToken();
@@ -34,11 +33,7 @@ export const CsrfValidator: RequestHandlerWithOptions = (
     });
   }
 
-  if (
-    req.method === 'GET' ||
-    req.method === 'OPTIONS' ||
-    req.method === 'HEAD'
-  ) {
+  if (req.method === 'GET' || req.method === 'OPTIONS' || req.method === 'HEAD') {
     return next();
   }
 
@@ -58,5 +53,5 @@ export const CsrfValidator: RequestHandlerWithOptions = (
 export const CsrfValidatorWithOptions = (options: CsrfValidatorOptions) => {
   return (req: any, res: Response, next: NextFunction): RequestHandler => {
     return CsrfValidator(req, res, next, options);
-  }
+  };
 };

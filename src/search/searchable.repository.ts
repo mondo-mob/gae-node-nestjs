@@ -4,7 +4,7 @@ import { Context } from '../datastore/context';
 import { Index } from '../datastore/loader';
 import { Repository, RepositoryOptions } from '../datastore/repository';
 import { asArray, Omit, OneOrMany } from '../util/types';
-import {Page, SearchFields, SearchResults, SearchService, Sort} from './search.service';
+import { Page, SearchFields, SearchResults, SearchService, Sort } from './search.service';
 
 interface SearchableRepositoryOptions<T extends { id: any }> extends RepositoryOptions<T> {
   searchIndex: Index<Omit<T, 'id'>>;
@@ -59,7 +59,12 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
     return requests!;
   }
 
-  async searchWithPagination(context: Context, searchFields: SearchFields, sort?: Sort, page?: Page): Promise<SearchResults<T>> {
+  async searchWithPagination(
+    context: Context,
+    searchFields: SearchFields,
+    sort?: Sort,
+    page?: Page,
+  ): Promise<SearchResults<T>> {
     const queryResults = await this.searchService.query(this.kind, searchFields, sort, page);
     const requests = await this.get(context, queryResults.ids);
     return {
@@ -67,7 +72,7 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
       limit: queryResults.limit,
       offset: queryResults.offset,
       results: requests,
-    }
+    };
   }
 
   private index(entities: OneOrMany<T>) {

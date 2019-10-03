@@ -1,11 +1,11 @@
-import {Inject, Injectable} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import * as Logger from 'bunyan';
-import {isEmpty, replace} from 'lodash';
-import {Address, Options} from 'nodemailer/lib/mailer';
+import { isEmpty, replace } from 'lodash';
+import { Address, Options } from 'nodemailer/lib/mailer';
 import { CONFIGURATION, Configuration } from '../configuration';
-import {Context} from '../datastore/context';
-import {createLogger} from '../gcloud/logging';
-import {MailSender} from './mail.sender';
+import { Context } from '../datastore/context';
+import { createLogger } from '../gcloud/logging';
+import { MailSender } from './mail.sender';
 
 @Injectable()
 export class MailDiverter implements MailSender {
@@ -20,9 +20,11 @@ export class MailDiverter implements MailSender {
     if (!devHooks || isEmpty(devHooks.divertEmailTo)) {
       throw new Error('No divert-to email address(es) defined');
     }
-    this.subjectPrefix = devHooks.emailSubjectPrefix && `${devHooks.emailSubjectPrefix}: ` || '';
+    this.subjectPrefix = (devHooks.emailSubjectPrefix && `${devHooks.emailSubjectPrefix}: `) || '';
     this.logger.info('MailSender instance is MailDiverter');
-    this.logger.info(`Configuring mail diversion with subject prefix '${this.subjectPrefix}' to: ${devHooks.divertEmailTo}`)
+    this.logger.info(
+      `Configuring mail diversion with subject prefix '${this.subjectPrefix}' to: ${devHooks.divertEmailTo}`,
+    );
   }
 
   async send(context: Context, mailOptions: Options) {
@@ -33,7 +35,7 @@ export class MailDiverter implements MailSender {
       subject: `${this.subjectPrefix}${mailOptions.subject}`,
     };
     this.logger.info('Diverting mail with overrides: ', diversionOverrides);
-    return this.mailSender.send(context, {...mailOptions, ...diversionOverrides});
+    return this.mailSender.send(context, { ...mailOptions, ...diversionOverrides });
   }
 
   private divertAddresses = (actualAddresses: string | Address | Array<string | Address> | undefined) => {
@@ -58,16 +60,17 @@ export class MailDiverter implements MailSender {
       addressList = actualAddress;
     }
     // Extract raw email address and concatenate into a comma separated string
-    const justAddresses = addressList.map(address => {
-      if (typeof address === 'string') {
-        return address.trim();
-      }
-      // Assuming it's an Address object
-      return (address as Address).address.trim();
-    }).join(', ');
+    const justAddresses = addressList
+      .map(address => {
+        if (typeof address === 'string') {
+          return address.trim();
+        }
+        // Assuming it's an Address object
+        return (address as Address).address.trim();
+      })
+      .join(', ');
 
     const deAttedAddresses = replace(justAddresses, /@/g, '.at.');
     return `Diverted from ${deAttedAddresses}`;
-  }
-
+  };
 }

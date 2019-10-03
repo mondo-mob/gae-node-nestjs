@@ -10,9 +10,7 @@ import { GmailConfigurer } from './gmail.configurer';
 export class GmailController {
   private readonly logger = createLogger('gmail-controller');
 
-  constructor(
-    private readonly gmailConfigurer: GmailConfigurer,
-  ) {}
+  constructor(private readonly gmailConfigurer: GmailConfigurer) {}
 
   @Get('setup')
   setupGmailOAuth(@Req() request: Request, @Res() response: Response) {
@@ -29,12 +27,15 @@ export class GmailController {
     });
 
     authenticateRet(request, response, () => {
-      this.logger.info(`Gmail OAuth done. request.user.refreshToken property exists is: ${request.user && !!request.user.refreshToken}`);
+      this.logger.info(
+        `Gmail OAuth done. request.user.refreshToken property exists is: ${request.user &&
+          !!request.user.refreshToken}`,
+      );
 
       if (!request.user) {
         response.send('Gmail OAuth setup FAILED.');
       } else if (!request.user.refreshToken) {
-        response.send('Gmail OAuth incomplete - credentials have not been saved.')
+        response.send('Gmail OAuth incomplete - credentials have not been saved.');
       } else {
         response.send('Gmail OAuth completed!');
       }

@@ -5,7 +5,7 @@ import { Context } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';
 import { createLogger } from '../gcloud/logging';
 import { Configuration, MAIL_SENDER, MailSender } from '../index';
-import { CredentialRepository, PasswordResetRepository, } from './auth.repository';
+import { CredentialRepository, PasswordResetRepository } from './auth.repository';
 import { hashPassword } from './auth.service';
 
 const DEFAULT_PASSWORD_TOKEN_EXPIRY = 24 * 60 * 60 * 1000;
@@ -38,16 +38,12 @@ export class PasswordResetService {
     const credentials = await this.authRepository.get(context, email);
 
     if (!credentials) {
-      this.logger.info(
-        `No account found when trying to reset password for "${email}"`,
-      );
+      this.logger.info(`No account found when trying to reset password for "${email}"`);
       return;
     }
 
     if (credentials.type !== 'password') {
-      this.logger.info(
-        `No account found when trying to reset password for "${email}"`,
-      );
+      this.logger.info(`No account found when trying to reset password for "${email}"`);
       return;
     }
 
@@ -83,11 +79,7 @@ export class PasswordResetService {
    * @param newPassword
    */
   @Transactional()
-  async confirmResetPassword(
-    context: Context,
-    code: string,
-    newPassword: string,
-  ) {
+  async confirmResetPassword(context: Context, code: string, newPassword: string) {
     const resetToken = await this.passwordResetRepository.get(context, code);
 
     if (!resetToken) {
@@ -98,10 +90,7 @@ export class PasswordResetService {
       throw new Error('Token has expired');
     }
 
-    const account = await this.authRepository.get(
-      context,
-      resetToken.accountId,
-    );
+    const account = await this.authRepository.get(context, resetToken.accountId);
 
     if (!account) {
       throw new Error('Account no longer exists');
