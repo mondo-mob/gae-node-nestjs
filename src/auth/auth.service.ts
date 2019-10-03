@@ -24,28 +24,11 @@ const userProfile = t.interface({
   displayName: t.string,
 });
 
-export class UserNotFoundError extends HttpException {
-  constructor() {
-    super('UserNotFoundError', HttpStatus.FORBIDDEN);
+export class AuthenticationFailedException extends HttpException {
+  constructor(message: string) {
+    super(message, HttpStatus.UNAUTHORIZED);
   }
 }
-export class CredentialsNotFoundError extends HttpException {
-  constructor() {
-    super('CredentialsNotFoundError', HttpStatus.FORBIDDEN);
-  }
-}
-export class PasswordInvalidError extends HttpException {
-  constructor() {
-    super('PasswordInvalidError', HttpStatus.FORBIDDEN);
-  }
-}
-
-export class UserNotEnabledError extends HttpException {
-  constructor() {
-    super('UserNotEnabledError', HttpStatus.FORBIDDEN);
-  }
-}
-
 const PASSWORD_ROUNDS = 10;
 
 export async function hashPassword(password: string): Promise<string> {
@@ -77,17 +60,17 @@ export class AuthService {
     const account = await this.getAccountByEmail(context, username);
 
     if (!account) {
-      throw new CredentialsNotFoundError();
+      throw new AuthenticationFailedException('No credentials found for user');
     }
 
     if (account.type !== 'password') {
-      throw new CredentialsNotFoundError();
+      throw new AuthenticationFailedException('No credentials found for user');
     }
 
     const result = await bcrypt.compare(password, account.password);
 
     if (!result) {
-      throw new PasswordInvalidError();
+      throw new AuthenticationFailedException(`Invalid password for user`);
     }
 
     return await this.loadUserAndCheckEnabled(context, account.userId);
@@ -97,14 +80,14 @@ export class AuthService {
   async validateFakeLogin(context: Context, email: string, name: string, roles: string[]) {
     if (!this.configurationProvider.isDevelopment()) {
       this.logger.error('Fake login is only available for local dev');
-      throw new CredentialsNotFoundError();
+      throw new AuthenticationFailedException('No credentials found for user');
     }
 
     const user = await this.userService.getByEmail(context, email);
 
     if (user) {
       if (!user.enabled) {
-        throw new UserNotEnabledError();
+        throw new AuthenticationFailedException('User account is disabled');
       }
       return await this.userService.update(context, user.id, {
         ...user,
@@ -143,7 +126,7 @@ export class AuthService {
     const accountEmails = profile.emails.find(accountEmail => accountEmail.verified);
 
     if (!accountEmails) {
-      throw new CredentialsNotFoundError();
+      throw new AuthenticationFailedException('No credentials found for user');
     }
 
     const email = accountEmails.value;
@@ -156,14 +139,14 @@ export class AuthService {
     // Accounts created via google auth have the default roles list
     if (!account) {
       if (!this.configurationProvider.auth.google || !this.configurationProvider.auth.google.signUpEnabled) {
-        throw new CredentialsNotFoundError();
+        throw new AuthenticationFailedException('No credentials found for user');
       }
 
       const { domain } = emails.parseOneAddress(email) as emails.ParsedMailbox;
 
       const signUpDomains = this.configurationProvider.auth.google.signUpDomains || [];
       if (!signUpDomains.includes(domain)) {
-        throw new CredentialsNotFoundError();
+        throw new AuthenticationFailedException('No credentials found for user');
       }
 
       const createdUser = await this.userService.create(context, {
@@ -183,7 +166,7 @@ export class AuthService {
     }
 
     if (account.type !== 'google' && account.type !== 'password') {
-      throw new CredentialsNotFoundError();
+      throw new AuthenticationFailedException('No credentials found for user');
     }
 
     return await this.loadUserAndCheckEnabled(context, account.userId);
@@ -311,7 +294,7 @@ export class AuthService {
     }
 
     if (!options.overwriteCredentials && account.type !== type) {
-      throw new CredentialsNotFoundError();
+      throw new AuthenticationFailedException('No credentials found for user');
     }
 
     const user = await this.loadUserAndCheckEnabled(context, account.userId);
@@ -333,11 +316,11 @@ export class AuthService {
     const user = await this.userService.get(context, userId);
 
     if (!user) {
-      throw new UserNotFoundError();
+      throw new AuthenticationFailedException('User not found');
     }
 
     if (!user.enabled) {
-      throw new UserNotEnabledError();
+      throw new AuthenticationFailedException('User account is disabled');
     }
 
     return user;
