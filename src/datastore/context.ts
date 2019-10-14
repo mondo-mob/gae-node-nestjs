@@ -2,6 +2,7 @@ import { DatastoreLoader } from './loader';
 import { Datastore } from '@google-cloud/datastore';
 import { createParamDecorator } from '@nestjs/common';
 import _ = require('lodash');
+import { Request } from 'express';
 
 const ContextType = Symbol();
 
@@ -28,6 +29,7 @@ export interface IUser extends IUserCreateRequest {
 export const Ctxt = createParamDecorator((data, req) => req.context);
 
 export interface Context<User = IUser> {
+  request: Request;
   datastore: DatastoreLoader;
   user?: User;
   hasAnyRole(...roles: string[]): boolean;

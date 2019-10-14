@@ -1,10 +1,10 @@
-import { createParamDecorator, Injectable, MiddlewareFunction, NestMiddleware, Inject } from '@nestjs/common';
+import { Inject, Injectable, NestMiddleware } from '@nestjs/common';
 import * as Logger from 'bunyan';
 import * as _ from 'lodash';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { Context, IUser, newContext } from './datastore/context';
 import { DatastoreProvider } from './datastore/datastore.provider';
-import { UserService, USER_SERVICE } from './auth/user.service';
+import { USER_SERVICE, UserService } from './auth/user.service';
 import { createLogger } from './gcloud/logging';
 
 export interface RequestWithContext extends Request {
@@ -12,7 +12,7 @@ export interface RequestWithContext extends Request {
 }
 
 @Injectable()
-export class ContextMiddleware implements NestMiddleware {
+export class ContextMiddleware implements NestMiddleware<RequestWithContext> {
   private readonly logger: Logger;
 
   constructor(
@@ -22,23 +22,25 @@ export class ContextMiddleware implements NestMiddleware {
     this.logger = createLogger('context-middleware');
   }
 
-  resolve(...args: any[]): MiddlewareFunction | Promise<MiddlewareFunction> {
-    return async (req: RequestWithContext, res, next) => {
-      this.logger.info(`[${req.method}]: ${req.originalUrl}`);
+  async use(req: RequestWithContext, res: Response, next: Function) {
+    this.logger.info(`[${req.method}]: ${req.originalUrl}`);
 
-      const requestContext = newContext(this.datastoreProvider.datastore);
+    const requestContext = newContext(this.datastoreProvider.datastore);
 
-      const userId = _.get(req, 'session.passport.user.id');
+    const userId = _.get(req, 'session.passport.user.id');
 
-      if (userId && !req.is('text/html')) {
-        requestContext.user = await this.userService.get(requestContext, userId);
-      }
+    if (userId && !req.is('text/html')) {
+      requestContext.user = await this.userService.get(requestContext, userId);
+    }
 
-      req.context = requestContext;
+    // For GraphQL the request is not available in the ExecutionContext so include
+    // it in our custom context so we can access it in things like auth guards.
+    requestContext.request = req;
 
-      if (next) {
-        next();
-      }
-    };
+    req.context = requestContext;
+
+    if (next) {
+      next();
+    }
   }
 }

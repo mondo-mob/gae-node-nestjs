@@ -23,3 +23,4 @@ export { SearchableRepository } from './search/searchable.repository';
 export * from './module';
 export * from './configure';
 export * from './interceptor';
+export * from './util';
