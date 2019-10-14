@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as Logger from 'bunyan';
-import * as uuid from 'node-uuid';
+import * as uuidv4 from 'uuid/v4';
 import { Context } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';
 import { createLogger } from '../gcloud/logging';
@@ -49,7 +49,7 @@ export class PasswordResetService {
 
     this.logger.info(`Sending password reset email for "${email}"`);
 
-    const id = uuid.v4();
+    const id = uuidv4();
 
     await this.passwordResetRepository.save(context, {
       accountId: credentials.id,

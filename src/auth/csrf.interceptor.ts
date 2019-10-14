@@ -1,8 +1,8 @@
 import { Response, NextFunction, RequestHandler } from 'express';
-import * as uuid from 'node-uuid';
+import * as uuidv4 from 'uuid/v4';
 import { Request } from 'express-serve-static-core';
 
-const generateToken = () => (process.env.APP_ENGINE_ENVIRONMENT ? uuid.v4() : 'development');
+const generateToken = () => (process.env.APP_ENGINE_ENVIRONMENT ? uuidv4() : 'development');
 
 interface CsrfValidatorOptions {
   sameSite: boolean;
