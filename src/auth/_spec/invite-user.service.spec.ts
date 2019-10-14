@@ -86,7 +86,7 @@ describe('InviteUserService', () => {
 
       expect((newInvite as any).userId).toBe(existingInvite.userId);
       expect((newInvite as any).id).not.toBe(existingInvite.id);
-      expect(mail.html).toMatch(result.inviteId);
+      expect(mail.html).toMatch(result.inviteId!);
     });
   });
 
