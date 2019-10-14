@@ -10,6 +10,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as OidcStrategy } from 'passport-openidconnect';
 import { Strategy as SamlStrategy } from 'passport-saml';
+import isLocalHost from 'localhost-string-validator';
 import { newContext } from '../datastore/context';
 import { DatastoreProvider } from '../datastore/datastore.provider';
 import { createLogger } from '../gcloud/logging';
@@ -56,7 +57,10 @@ export class AuthConfigurer {
       use(LOCAL_SIGNIN, new LocalStrategy({}, this.validate));
     }
 
-    if (this.configuration.isDevelopment() && this.configuration.auth.enableFakeLocalDev) {
+    if (this.configuration.auth.fake!.enabled) {
+      if (!this.configuration.isDevelopment()) {
+        this.logger.warn('Fake login is enabled');
+      }
       use(FAKE_SIGNIN, new LocalStrategy({ passReqToCallback: true }, this.validateFakeLogin));
     }
 
@@ -201,14 +205,18 @@ export class AuthConfigurer {
     password: string,
     done: (error: Error | null, user: IUser | false) => void,
   ) =>
-    this.validateAuth(done, () =>
-      this.authService.validateFakeLogin(
-        newContext(this.datastore),
-        username,
-        get(req, 'body.name', ''),
-        get(req, 'body.roles', []),
-      ),
-    );
+    this.configuration.auth.fake!.secret === req.headers['x-fake-secret'] || isLocalHost(this.configuration.host)
+      ? this.validateAuth(done, () =>
+          this.authService.validateFakeLogin(
+            newContext(this.datastore),
+            username,
+            get(req, 'body.name', ''),
+            get(req, 'body.roles', []),
+            get(req, 'body.orgId', ''),
+            get(req, 'body.props', {}),
+          ),
+        )
+      : done(new UnauthorizedException('Fake login secret is invalid.'), false);
 
   validateGmail = async (
     accessToken: string,

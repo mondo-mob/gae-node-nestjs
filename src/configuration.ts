@@ -9,11 +9,13 @@ export interface Configuration {
   apiEndpoint?: string;
   gmailUser: string;
   passwordTokenExpiry?: number;
-
   systemSecret: Buffer;
 
   auth: {
-    enableFakeLocalDev?: boolean;
+    fake?: {
+      enabled: boolean;
+      secret: string;
+    };
     local?: {
       enabled?: boolean;
       activationExpiryInMinutes?: number;

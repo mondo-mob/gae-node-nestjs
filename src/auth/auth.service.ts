@@ -6,7 +6,7 @@ import * as t from 'io-ts';
 import { reporter } from 'io-ts-reporters';
 import { isNil } from 'lodash';
 import { CONFIGURATION } from '../configuration';
-import { Context, IUserCreateRequest } from '../datastore/context'
+import { Context, IUserCreateRequest } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';
 import { createLogger } from '../gcloud/logging';
 import { Configuration, IUser, normaliseEmail } from '../index';
@@ -94,7 +94,7 @@ export class AuthService {
   }
 
   @Transactional()
-  async validateFakeLogin(context: Context, email: string, name: string, roles: string[]) {
+  async validateFakeLogin(context: Context, email: string, name: string, roles: string[], orgId: string, props: any) {
     if (!this.configurationProvider.isDevelopment()) {
       this.logger.error('Fake login is only available for local dev');
       throw new CredentialsNotFoundError();
@@ -110,12 +110,16 @@ export class AuthService {
         ...user,
         name,
         roles,
+        orgId,
+        props,
       });
     } else {
       return await this.userService.create(context, {
         email,
         name,
         roles,
+        orgId,
+        props,
         enabled: true,
       });
     }
