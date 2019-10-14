@@ -19,25 +19,28 @@ export class LoggingMailSenderStub implements MailSender {
       throw new Error('No recipients defined');
     }
 
-    const content = mailOptions.text ||
+    const content =
+      mailOptions.text ||
       (typeof mailOptions.html === 'string' && htmlToText.fromString(mailOptions.html)) ||
       '-body not loggable-';
 
-    this.logger.info('Logging email send\n\n' +
-      'to:          %s\n' +
-      'cc:          %s\n' +
-      'bcc:         %s\n' +
-      'attachments: %s\n' +
-      'subject:     %s\n' +
-      '\n' +
-      '%s\n' +
-      '\n\n',
+    this.logger.info(
+      'Logging email send\n\n' +
+        'to:          %s\n' +
+        'cc:          %s\n' +
+        'bcc:         %s\n' +
+        'attachments: %s\n' +
+        'subject:     %s\n' +
+        '\n' +
+        '%s\n' +
+        '\n\n',
       this.stringify(mailOptions.to),
       this.stringify(mailOptions.cc),
       this.stringify(mailOptions.bcc),
       (mailOptions.attachments && mailOptions.attachments.length) || 0,
       this.stringify(mailOptions.subject),
-      content);
+      content,
+    );
   }
 
   private stringify(source?: any) {
@@ -46,5 +49,4 @@ export class LoggingMailSenderStub implements MailSender {
     }
     return typeof source === 'string' ? source : JSON.stringify(source);
   }
-
 }

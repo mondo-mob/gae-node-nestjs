@@ -26,7 +26,7 @@ import { LoggingMailSenderStub } from './mail/mail.logging.stub';
 import { MAIL_SENDER } from './mail/mail.sender';
 import { SearchService } from './search/search.service';
 
-interface ClassType { new (...args: any[]): any }
+type ClassType = new (...args: any[]) => any;
 type ClassTypeOrReference = ClassType | ForwardReference<any>;
 
 export interface Options {
@@ -58,10 +58,7 @@ export interface Options {
     ContextMiddleware,
     {
       provide: MAIL_SENDER,
-      useFactory: (
-        config: Configuration,
-        gmailConfigurer: GmailConfigurer,
-      ) => {
+      useFactory: (config: Configuration, gmailConfigurer: GmailConfigurer) => {
         const disableMailLogger = !!config.devHooks && config.devHooks.disableLocalMailLogger;
         // tslint:disable-next-line
         console.log(`Configuring mail sender with devHooks: `, config.devHooks);
@@ -69,9 +66,7 @@ export interface Options {
           return new LoggingMailSenderStub();
         }
         const gmailSender = new GmailSender(gmailConfigurer, config);
-        return (config.devHooks && config.devHooks.divertEmailTo)
-          ? new MailDiverter(gmailSender, config)
-          : gmailSender;
+        return config.devHooks && config.devHooks.divertEmailTo ? new MailDiverter(gmailSender, config) : gmailSender;
       },
       inject: ['Configuration', GmailConfigurer],
     },

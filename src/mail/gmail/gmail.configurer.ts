@@ -31,16 +31,16 @@ export class GmailConfigurer {
           // tslint:disable-next-line:ban-types
           (accessToken: string, refreshToken: string, profile: object, done: Function) => {
             this.logger.info(`Gmail OAuth complete. Saving credentials.`);
-            storedCredentialsRepository.save(
-              newContext(this.datastoreProvider.datastore),
-              {
+            storedCredentialsRepository
+              .save(newContext(this.datastoreProvider.datastore), {
                 id: 'gmail-credential',
                 value: refreshToken,
-              },
-            ).then(() => {
-              this.logger.info(`Gmail OAuth complete and credentials have been saved.`);
-              return done(null, { refreshToken });
-            }).catch(err => done(err, { refreshToken }));
+              })
+              .then(() => {
+                this.logger.info(`Gmail OAuth complete and credentials have been saved.`);
+                return done(null, { refreshToken });
+              })
+              .catch(err => done(err, { refreshToken }));
           },
         ),
       );
@@ -49,10 +49,7 @@ export class GmailConfigurer {
 
   authenticate() {
     const options = {
-      scope: [
-        'https://mail.google.com/',
-        'openid profile',
-      ],
+      scope: ['https://mail.google.com/', 'openid profile'],
       prompt: 'consent',
       accessType: 'offline',
     };

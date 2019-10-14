@@ -30,9 +30,7 @@ const countEntities = (keys: Entity.Key[]) => {
     .join(', ');
 };
 
-export type Index<T> =
-  | true
-  | { [K in keyof T]?: T[K] extends Array<any> ? Index<T[K][0]> : Index<T[K]> };
+export type Index<T> = true | { [K in keyof T]?: T[K] extends Array<any> ? Index<T[K][0]> : Index<T[K]> };
 
 export interface QueryOptions<T> {
   select: OneOrMany<keyof T & string>;
@@ -58,9 +56,7 @@ export type WithDatstoreKey<T> = T & {
   [Entity.KEY_SYMBOL]: Entity.Key;
 };
 
-function isTransaction(
-  datastore: Datastore | Transaction,
-): datastore is Transaction {
+function isTransaction(datastore: Datastore | Transaction): datastore is Transaction {
   return (datastore as any).commit !== undefined;
 }
 
@@ -90,9 +86,7 @@ export class DatastoreLoader {
    *
    * @param entities The entities to persist
    */
-  public async save(
-    entities: ReadonlyArray<DatastorePayload<any>>,
-  ): Promise<void> {
+  public async save(entities: ReadonlyArray<DatastorePayload<any>>): Promise<void> {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.save(chunk),
@@ -108,9 +102,7 @@ export class DatastoreLoader {
     );
   }
 
-  public async update(
-    entities: ReadonlyArray<DatastorePayload<any>>,
-  ): Promise<void> {
+  public async update(entities: ReadonlyArray<DatastorePayload<any>>): Promise<void> {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.save(chunk),
@@ -118,9 +110,7 @@ export class DatastoreLoader {
     );
   }
 
-  public async upsert(
-    entities: ReadonlyArray<DatastorePayload<any>>,
-  ): Promise<void> {
+  public async upsert(entities: ReadonlyArray<DatastorePayload<any>>): Promise<void> {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.upsert(chunk),
@@ -128,9 +118,7 @@ export class DatastoreLoader {
     );
   }
 
-  public async insert(
-    entities: ReadonlyArray<DatastorePayload<any>>,
-  ): Promise<void> {
+  public async insert(entities: ReadonlyArray<DatastorePayload<any>>): Promise<void> {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.insert(chunk),
@@ -189,9 +177,7 @@ export class DatastoreLoader {
     return [results as WithDatstoreKey<T>[], queryInfo];
   }
 
-  public async inTransaction<T>(
-    callback: (tx: Context) => Promise<T>,
-  ): Promise<T> {
+  public async inTransaction<T>(callback: (tx: Context) => Promise<T>): Promise<T> {
     if (isTransaction(this.datastore)) {
       return await callback({
         ...this.parentContext,
@@ -220,17 +206,12 @@ export class DatastoreLoader {
 
   private async applyBatched<T>(
     values: ReadonlyArray<T>,
-    operation: (
-      datastore: Datastore | Transaction,
-      chunk: ReadonlyArray<T>,
-    ) => Promise<any>,
+    operation: (datastore: Datastore | Transaction, chunk: ReadonlyArray<T>) => Promise<any>,
     updateLoader: (loader: DataLoader<Entity.Key, {}>, value: T) => void,
     batchSize: number = 100,
   ) {
     const entityChunks: T[][] = _.chunk(values, batchSize);
-    const pendingModifications = entityChunks.map((chunk: T[]) =>
-      operation(this.datastore, chunk),
-    );
+    const pendingModifications = entityChunks.map((chunk: T[]) => operation(this.datastore, chunk));
     await Promise.all(pendingModifications);
 
     values.forEach(value => updateLoader(this.loader, value));
@@ -247,8 +228,6 @@ export class DatastoreLoader {
     span.endSpan();
     this.logger.debug('Fetched entities by key ', { entities: prettyPrint });
 
-    return keys.map(key =>
-      results.find((result: any) => keysEqual(result[Datastore.KEY], key)),
-    );
+    return keys.map(key => results.find((result: any) => keysEqual(result[Datastore.KEY], key)));
   };
 }

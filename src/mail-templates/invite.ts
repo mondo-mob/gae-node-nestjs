@@ -1,6 +1,11 @@
 import { mainButton, standardEmail } from './base';
 
-export const userInviteEmail = (title: string, link: string, invitationCopy: string, expiryCopy: string | undefined) => {
+export const userInviteEmail = (
+  title: string,
+  link: string,
+  invitationCopy: string,
+  expiryCopy: string | undefined,
+) => {
   const content = /*html*/ `
       <div>
         <p>Welcome,</p>

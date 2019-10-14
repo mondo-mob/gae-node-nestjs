@@ -6,7 +6,7 @@
   },
   "rules": {
     "eofline": false,
-    "quotemark": [true, "single"],
+    "quotemark": [true, "single", "avoid-escape"],
     "indent": false,
     "member-access": [false],
     "ordered-imports": [false],

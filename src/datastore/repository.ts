@@ -161,7 +161,7 @@ export class Repository<T extends { id: string }> {
    * @param operation (Optional) The operation to perform on each entity, returning the new
    * form. By default this will return the same instance.
    */
-  async reindex(context: Context, operation: ((input: T) => T | Promise<T>) = input => input) {
+  async reindex(context: Context, operation: (input: T) => T | Promise<T> = input => input) {
     const [allEntities] = await this.query(context);
 
     const updatedEntities = await Promise.all(allEntities.map(operation));

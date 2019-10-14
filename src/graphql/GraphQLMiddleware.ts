@@ -1,21 +1,18 @@
-import {Injectable, MiddlewareFunction, NestMiddleware} from '@nestjs/common';
-import {GraphQLFactory} from '@nestjs/graphql';
-import {graphqlExpress} from 'apollo-server-express';
-import {GraphQLDateTime, GraphQLTime} from 'graphql-iso-date';
+import { Injectable, MiddlewareFunction, NestMiddleware } from '@nestjs/common';
+import { GraphQLFactory } from '@nestjs/graphql';
+import { graphqlExpress } from 'apollo-server-express';
+import { GraphQLDateTime, GraphQLTime } from 'graphql-iso-date';
 import * as _ from 'lodash';
-import {fileLoader, mergeTypes} from 'merge-graphql-schemas';
-import {rootLogger} from '../index';
+import { fileLoader, mergeTypes } from 'merge-graphql-schemas';
+import { rootLogger } from '../index';
 
 @Injectable()
 export class GraphQLMiddleware implements NestMiddleware {
-  constructor(private readonly graphqlFactory: GraphQLFactory) {
-  }
+  constructor(private readonly graphqlFactory: GraphQLFactory) {}
 
   private generateSchema = () => {
     const appTypeDefs = fileLoader('./src/**/*.graphqls');
-    const libTypeDefs = fileLoader(
-      './node_modules/@3wks/gae-node-nestjs/dist/**/*.graphqls',
-    );
+    const libTypeDefs = fileLoader('./node_modules/@3wks/gae-node-nestjs/dist/**/*.graphqls');
 
     const typeDefs = mergeTypes([...appTypeDefs, ...libTypeDefs]);
 
@@ -45,7 +42,6 @@ export class GraphQLMiddleware implements NestMiddleware {
         rootValue: req,
         context: _.get(req, 'context'),
       };
-    })
+    });
   }
-
 }

@@ -8,7 +8,9 @@
     "prepublish": "npx tsc && npm run verify && cp src/auth/auth.graphqls dist/auth",
     "test": "jest",
     "check-ts": "tsc --noEmit",
-    "verify": "npm run test && npm run check-ts"
+    "verify": "npm run test && npm run check-ts",
+    "format": "prettier --write \"./src/**/*.ts\"",
+    "lint": "tslint --project ."
   },
   "repository": {
     "type": "git",
@@ -87,10 +89,11 @@
     "@types/passport-saml": "^0.15.6",
     "chokidar": "^2.0.4",
     "jest": "^23.6.0",
+    "prettier": "^1.18.2",
     "rxjs": "^6.2.2",
     "ts-jest": "^23.1.4",
     "ts-mockito": "^2.3.1",
-    "tslint": "^5.12.1",
+    "tslint": "^5.20.0",
     "typescript": "3.4.5"
   }
 }

@@ -74,11 +74,9 @@ export class CredentialRepository extends Repository<LoginCredentials> {
   }
 
   protected beforePersist(entities: OneOrMany<LoginCredentials>): OneOrMany<LoginCredentials> {
-    return asArray(entities)
-      .map(entity => ({
-        ...entity,
-        id: normaliseEmail(entity.id),
-      }));
+    return asArray(entities).map(entity => ({
+      ...entity,
+      id: normaliseEmail(entity.id),
+    }));
   }
-
 }

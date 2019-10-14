@@ -110,7 +110,7 @@ export class AuthController {
 
   /**
    * @deprecated use GET /auth/signout/local instead
-   **/
+   */
   @Post('signout/local')
   signOut(@Req() req: Request, @Res() res: Response, @Next() next: (err: Error) => void) {
     this.logger.warn(
