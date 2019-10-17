@@ -52,7 +52,7 @@ export class AuthConfigurer {
       done(null, { id: user.id });
     });
 
-    if (this.configuration.auth.local) {
+    if (this.configuration.auth.local && this.configuration.auth.local.enabled) {
       use(LOCAL_SIGNIN, new LocalStrategy({}, this.validate));
     }
 
