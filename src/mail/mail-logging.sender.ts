@@ -7,11 +7,11 @@ import { MailSender } from './mail.sender';
 import * as htmlToText from 'html-to-text';
 
 @Injectable()
-export class LoggingMailSenderStub implements MailSender {
-  private readonly logger: Logger = createLogger('local-mail-logger');
+export class MailLoggingSender implements MailSender {
+  private readonly logger: Logger = createLogger('mail-logging-sender');
 
   constructor() {
-    this.logger.info('MailSender instance is LocalMailLogger');
+    this.logger.info('MailSender instance is MailLoggingSender');
   }
 
   async send(context: Context, mailOptions: Options) {

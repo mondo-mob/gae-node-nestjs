@@ -10,7 +10,6 @@ import { MailSender } from './mail.sender';
 @Injectable()
 export class MailDiverter implements MailSender {
   private readonly logger: Logger = createLogger('mail-diverter');
-  private readonly subjectPrefix: string;
 
   constructor(
     private readonly mailSender: MailSender,
@@ -20,11 +19,8 @@ export class MailDiverter implements MailSender {
     if (!devHooks || isEmpty(devHooks.divertEmailTo)) {
       throw new Error('No divert-to email address(es) defined');
     }
-    this.subjectPrefix = (devHooks.emailSubjectPrefix && `${devHooks.emailSubjectPrefix}: `) || '';
     this.logger.info('MailSender instance is MailDiverter');
-    this.logger.info(
-      `Configuring mail diversion with subject prefix '${this.subjectPrefix}' to: ${devHooks.divertEmailTo}`,
-    );
+    this.logger.info(`Configuring mail diversion to: ${devHooks.divertEmailTo}`);
   }
 
   async send(context: Context, mailOptions: Options) {
@@ -32,7 +28,6 @@ export class MailDiverter implements MailSender {
       to: this.divertAddresses(mailOptions.to),
       cc: this.divertAddresses(mailOptions.cc),
       bcc: this.divertAddresses(mailOptions.bcc),
-      subject: `${this.subjectPrefix}${mailOptions.subject}`,
     };
     this.logger.info('Diverting mail with overrides: ', diversionOverrides);
     return this.mailSender.send(context, { ...mailOptions, ...diversionOverrides });
