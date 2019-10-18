@@ -77,10 +77,20 @@ export class AuthService {
   }
 
   @Transactional()
-  async validateFakeLogin(context: Context, email: string, name: string, roles: string[], orgId: string, props: any) {
-    if (!this.configurationProvider.isDevelopment()) {
-      this.logger.error('Fake login is only available for local dev');
-      throw new AuthenticationFailedException('No credentials found for user');
+  async validateFakeLogin(
+    context: Context,
+    secret: string | string[] | undefined,
+    email: string,
+    name: string,
+    roles: string[],
+    orgId: string,
+    props: any,
+  ) {
+    this.logger.info(`Validating fake login for ${email}`);
+
+    const configSecret = this.configurationProvider.auth.fake!.secret;
+    if (configSecret && configSecret !== secret) {
+      throw new AuthenticationFailedException('Fake login secret invalid');
     }
 
     const user = await this.userService.getByEmail(context, email);

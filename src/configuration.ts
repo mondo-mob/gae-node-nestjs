@@ -13,8 +13,8 @@ export interface Configuration {
 
   auth: {
     fake?: {
-      enabled: boolean;
-      secret: string;
+      enabled?: boolean;
+      secret?: string;
     };
     local?: {
       enabled?: boolean;

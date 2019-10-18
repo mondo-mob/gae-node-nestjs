@@ -29,7 +29,7 @@ describe('AuthService', () => {
   beforeEach(() => {
     reset(credentialRepository);
     reset(userService);
-    configuration = {} as Configuration;
+    configuration = { auth: {} } as Configuration;
     when(userService.create(anything(), anything())).thenCall(async (_: any, user: any) => user);
     when(userService.update(anything(), anything(), anything())).thenCall(async (_: any, _id: any, user: any) => user);
     authService = new AuthService(instance(credentialRepository), instance(userService), configuration);
@@ -365,19 +365,24 @@ describe('AuthService', () => {
 
   describe('validateFakeLogin', () => {
     beforeEach(() => {
-      configuration.isDevelopment = () => true;
+      configuration.auth.fake = {
+        enabled: true,
+        secret: 'ABCD1234',
+      };
     });
 
     it('creates new enabled user when user does not exist', async () => {
       when(userService.getByEmail(context, 'test@example.com')).thenResolve(undefined);
-      await expect(authService.validateFakeLogin(context, 'test@example.com', 'John Smith', ['user'])).resolves.toEqual(
-        {
-          email: 'test@example.com',
-          name: 'John Smith',
-          roles: ['user'],
-          enabled: true,
-        },
-      );
+      await expect(
+        authService.validateFakeLogin(context, 'ABCD1234', 'test@example.com', 'John Smith', ['user'], 'org1', {}),
+      ).resolves.toEqual({
+        email: 'test@example.com',
+        name: 'John Smith',
+        roles: ['user'],
+        enabled: true,
+        orgId: 'org1',
+        props: {},
+      });
       verify(userService.create(context, anything())).once();
     });
 
@@ -391,7 +396,7 @@ describe('AuthService', () => {
       };
       when(userService.getByEmail(context, 'test@example.com')).thenResolve(existingUser);
       await expect(
-        authService.validateFakeLogin(context, 'test@example.com', 'John Smith', ['user']),
+        authService.validateFakeLogin(context, 'ABCD1234', 'test@example.com', 'John Smith', ['user'], 'org1', {}),
       ).rejects.toHaveProperty('message', 'User account is disabled');
     });
 
@@ -402,24 +407,50 @@ describe('AuthService', () => {
         name: 'Previous Name',
         roles: ['user', 'admin'],
         enabled: true,
+        orgId: 'org1',
+        props: { prop1: 'val1' },
       };
       when(userService.getByEmail(context, 'test@example.com')).thenResolve(existingUser);
-      await expect(authService.validateFakeLogin(context, 'test@example.com', 'John Smith', ['user'])).resolves.toEqual(
-        {
-          ...existingUser,
-          name: 'John Smith',
-          roles: ['user'],
-        },
-      );
+      await expect(
+        authService.validateFakeLogin(context, 'ABCD1234', 'test@example.com', 'John Smith', ['user'], 'org2', {
+          prop1: 'val2',
+        }),
+      ).resolves.toEqual({
+        ...existingUser,
+        name: 'John Smith',
+        roles: ['user'],
+        orgId: 'org2',
+        props: { prop1: 'val2' },
+      });
       verify(userService.update(context, '1234', anything())).once();
     });
 
-    it('fails when server is not in development mode', async () => {
-      configuration.isDevelopment = () => false;
-
+    it('does not check secret when not defined in config', async () => {
+      configuration.auth.fake!.secret = undefined;
+      when(userService.getByEmail(context, 'test@example.com')).thenResolve(undefined);
       await expect(
-        authService.validateFakeLogin(context, 'test@example.com', 'John Smith', ['user']),
-      ).rejects.toHaveProperty('message', 'No credentials found for user');
+        authService.validateFakeLogin(context, 'ABCD1234', 'test@example.com', 'John Smith', ['user'], 'org1', {}),
+      ).resolves.toEqual({
+        email: 'test@example.com',
+        name: 'John Smith',
+        roles: ['user'],
+        enabled: true,
+        orgId: 'org1',
+        props: {},
+      });
+      verify(userService.create(context, anything())).once();
+    });
+
+    it('fails when secret defined but does not match', async () => {
+      await expect(
+        authService.validateFakeLogin(context, 'ThisIsWrong', 'test@example.com', 'John Smith', ['user'], 'org1', {}),
+      ).rejects.toHaveProperty('message', 'Fake login secret invalid');
+    });
+
+    it('fails when secret defined but not supplied', async () => {
+      await expect(
+        authService.validateFakeLogin(context, undefined, 'test@example.com', 'John Smith', ['user'], 'org1', {}),
+      ).rejects.toHaveProperty('message', 'Fake login secret invalid');
     });
   });
 });
