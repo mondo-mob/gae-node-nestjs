@@ -24,10 +24,8 @@ export class GmailSender implements MailSender {
 
     if (!credential) {
       this.logger.error('Gmail OAuth is not configured yet. No StoredCredential entity with id "gmail-credential"');
-
     } else if (!this.configurationProvider.auth.google) {
       this.logger.error('Gmail OAuth is not configured yet. No environment configuration exists for "auth.google"');
-
     } else {
       const auth = {
         type: 'oauth2',
@@ -43,13 +41,17 @@ export class GmailSender implements MailSender {
       };
       const transporter = createTransport(transport);
 
-      this.logger.info({
+      this.logger.info(
+        {
           logDetails: {
             to: mailOptions.to,
             cc: mailOptions.cc,
             bcc: mailOptions.bcc,
           },
-        }, 'Sending email (see logDetails property for to, cc, bcc) with subject: %s', mailOptions.subject);
+        },
+        'Sending email (see logDetails property for to, cc, bcc) with subject: %s',
+        mailOptions.subject,
+      );
 
       await new Promise((resolve, reject) =>
         transporter.sendMail(

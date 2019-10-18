@@ -1,14 +1,16 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, NotFoundException } from '@nestjs/common';
 import { Request, Response } from 'express';
 import * as path from 'path';
+import { createLogger } from './gcloud/logging';
+import * as Logger from 'bunyan';
 
 // Manually save session to ensure it's fully saved before returning index page
 // Otherwise browser can start sending new requests before session is saved causing
 // multiple sessions to be created and sid/csrf token to become out of sync.
-const saveSessionAndSendIndexPage = (request: Request, response: Response) => {
+const saveSessionAndSendIndexPage = (request: Request, response: Response, logger: Logger) => {
   if (request.session && request.session.save) {
     return request.session.save(() => {
-      console.log(`Session saved ${request.session!.id}`);
+      logger.debug(`Session saved ${request.session!.id}`);
       sendIndexPage(response);
     });
   }
@@ -20,13 +22,15 @@ const sendIndexPage = (response: Response) =>
 
 @Catch(NotFoundException)
 export class NotFoundFilter implements ExceptionFilter {
+  private readonly logger = createLogger('not-found-filter');
+
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
     if (request.headers.accept && request.headers.accept.includes('text/html')) {
-      return saveSessionAndSendIndexPage(request, response);
+      return saveSessionAndSendIndexPage(request, response, this.logger);
     }
 
     response.status(404).json({

@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, Inject } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import * as Logger from 'bunyan';
 import { Observable } from 'rxjs';
@@ -23,17 +18,11 @@ interface RequestWithSessionAndDatastore extends Request {
 
 export const Roles = (...roles: string[]) => ReflectMetadata('roles', roles);
 export const AllowAnonymous = () => ReflectMetadata('allowAnonymous', true);
-export const Task = () =>
-  ReflectMetadata('secure-header', 'x-appengine-taskname');
+export const Task = () => ReflectMetadata('secure-header', 'x-appengine-taskname');
 export const Cron = () => ReflectMetadata('secure-header', 'x-appengine-cron');
 export const System = () => ReflectMetadata('system', true);
 
-const reflectValue = <T>(
-  reflector: Reflector,
-  key: string,
-  context: ExecutionContext,
-  defaultValue: T,
-) => {
+const reflectValue = <T>(reflector: Reflector, key: string, context: ExecutionContext, defaultValue: T) => {
   const methodValue = reflector.get<T>(key, context.getHandler());
 
   if (methodValue !== undefined) {
@@ -49,18 +38,11 @@ const reflectValue = <T>(
   return defaultValue;
 };
 
-function isAllowAnonymous(
-  reflector: Reflector,
-  context: ExecutionContext,
-): boolean {
+function isAllowAnonymous(reflector: Reflector, context: ExecutionContext): boolean {
   return reflectValue(reflector, 'allowAnonymous', context, false);
 }
 
-function isUserAllowedAccess(
-  reflector: Reflector,
-  context: ExecutionContext,
-  user?: IUser,
-): boolean {
+function isUserAllowedAccess(reflector: Reflector, context: ExecutionContext, user?: IUser): boolean {
   if (!user) {
     return false;
   }
@@ -79,18 +61,11 @@ function isUserAllowedAccess(
   return allowed;
 }
 
-function isSystemCall(
-  reflector: Reflector,
-  context: ExecutionContext,
-): boolean {
+function isSystemCall(reflector: Reflector, context: ExecutionContext): boolean {
   return reflectValue(reflector, 'system', context, false);
 }
 
-async function isAuthorizedSystemCall(
-  reflector: Reflector,
-  context: ExecutionContext,
-  secret: Buffer,
-) {
+async function isAuthorizedSystemCall(reflector: Reflector, context: ExecutionContext, secret: Buffer) {
   const { verify } = await import('jsonwebtoken');
 
   const { headers } = context.switchToHttp().getRequest<Request>();
@@ -121,24 +96,14 @@ async function isAuthorizedSystemCall(
   );
 }
 
-function hasSecureHeader(
-  reflector: Reflector,
-  context: ExecutionContext,
-): boolean {
-  const { headers } = context
-    .switchToHttp()
-    .getRequest<RequestWithSessionAndDatastore>();
+function hasSecureHeader(reflector: Reflector, context: ExecutionContext): boolean {
+  const { headers } = context.switchToHttp().getRequest<RequestWithSessionAndDatastore>();
 
   if (!headers) {
     return false;
   }
 
-  const secureHeader = reflectValue<string | undefined>(
-    reflector,
-    'secure-header',
-    context,
-    undefined,
-  );
+  const secureHeader = reflectValue<string | undefined>(reflector, 'secure-header', context, undefined);
 
   if (secureHeader) {
     return !!headers[secureHeader];
@@ -148,9 +113,7 @@ function hasSecureHeader(
 }
 
 function getUser(context: ExecutionContext): IUser | undefined {
-  const request = context
-    .switchToHttp()
-    .getRequest<RequestWithSessionAndDatastore>();
+  const request = context.switchToHttp().getRequest<RequestWithSessionAndDatastore>();
 
   if (request.context && request.context.user) {
     return request.context.user;
@@ -180,19 +143,13 @@ export class AuthGuard implements CanActivate {
     this.logger = createLogger('auth-guard');
   }
 
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
+  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
     if (isAllowAnonymous(this.reflector, context)) {
       return true;
     }
 
     if (isSystemCall(this.reflector, context)) {
-      return isAuthorizedSystemCall(
-        this.reflector,
-        context,
-        this.configurationProvider.systemSecret,
-      );
+      return isAuthorizedSystemCall(this.reflector, context, this.configurationProvider.systemSecret);
     }
 
     if (hasSecureHeader(this.reflector, context)) {

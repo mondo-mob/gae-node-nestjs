@@ -61,6 +61,7 @@ export interface Configuration {
   devHooks?: {
     disableLocalMailLogger?: boolean;
     divertEmailTo?: string[];
+    emailWhitelist?: string[];
     emailSubjectPrefix?: string;
   };
 }

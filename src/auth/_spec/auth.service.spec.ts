@@ -4,7 +4,7 @@ import { Configuration } from '../../configuration';
 import { Context } from '../../datastore/context';
 import { DatastoreLoader } from '../../datastore/loader';
 import { CredentialRepository } from '../auth.repository';
-import { AuthService, hashPassword, UserNotFoundError } from '../auth.service';
+import { AuthService, hashPassword } from '../auth.service';
 import { AbstractUserService } from '../user.service';
 
 export const mockContext = () => {
@@ -39,7 +39,7 @@ describe('AuthService', () => {
     it('throws an error when account does not exist', async () => {
       await expect(authService.validateUser(context, 'username', 'password')).rejects.toHaveProperty(
         'message',
-        'CredentialsNotFoundError',
+        'No credentials found for user',
       );
     });
 
@@ -52,7 +52,7 @@ describe('AuthService', () => {
 
       await expect(authService.validateUser(context, 'username', 'password')).rejects.toHaveProperty(
         'message',
-        'CredentialsNotFoundError',
+        'No credentials found for user',
       );
     });
 
@@ -66,7 +66,7 @@ describe('AuthService', () => {
 
       await expect(authService.validateUser(context, 'username', 'password')).rejects.toHaveProperty(
         'message',
-        'PasswordInvalidError',
+        'Invalid password for user',
       );
     });
 
@@ -81,7 +81,7 @@ describe('AuthService', () => {
 
       await expect(authService.validateUser(context, 'username', 'password')).rejects.toHaveProperty(
         'message',
-        'UserNotFoundError',
+        'User not found',
       );
     });
 
@@ -96,7 +96,7 @@ describe('AuthService', () => {
 
       await expect(authService.validateUser(context, 'username', 'password')).rejects.toHaveProperty(
         'message',
-        'UserNotEnabledError',
+        'User account is disabled',
       );
     });
 
@@ -141,7 +141,7 @@ describe('AuthService', () => {
           ...profile,
           emails: [],
         }),
-      ).rejects.toHaveProperty('message', 'CredentialsNotFoundError');
+      ).rejects.toHaveProperty('message', 'No credentials found for user');
     });
 
     it('fails when the account is not found', async () => {
@@ -157,7 +157,7 @@ describe('AuthService', () => {
 
       await expect(authService.validateUserGoogle(context, profile)).rejects.toHaveProperty(
         'message',
-        'CredentialsNotFoundError',
+        'No credentials found for user',
       );
     });
 
@@ -173,7 +173,7 @@ describe('AuthService', () => {
 
       await expect(authService.validateUserGoogle(context, profile)).rejects.toHaveProperty(
         'message',
-        'CredentialsNotFoundError',
+        'No credentials found for user',
       );
     });
 
@@ -216,7 +216,7 @@ describe('AuthService', () => {
 
       await expect(authService.validateUserGoogle(context, profile)).rejects.toHaveProperty(
         'message',
-        'UserNotEnabledError',
+        'User account is disabled',
       );
     });
 
@@ -332,7 +332,7 @@ describe('AuthService', () => {
       });
       await expect(authService.validateUserOidc(context, profile, false)).rejects.toHaveProperty(
         'message',
-        'CredentialsNotFoundError',
+        'No credentials found for user',
       );
     });
 
@@ -345,7 +345,7 @@ describe('AuthService', () => {
       when(userService.get(context, '12345')).thenResolve(null);
       await expect(authService.validateUserOidc(context, profile, true)).rejects.toHaveProperty(
         'message',
-        'UserNotFoundError',
+        'User not found',
       );
     });
 
@@ -358,7 +358,7 @@ describe('AuthService', () => {
       when(userService.get(context, '12345')).thenResolve({ id: '12345', enabled: false });
       await expect(authService.validateUserOidc(context, profile, true)).rejects.toHaveProperty(
         'message',
-        'UserNotEnabledError',
+        'User account is disabled',
       );
     });
   });
@@ -392,7 +392,7 @@ describe('AuthService', () => {
       when(userService.getByEmail(context, 'test@example.com')).thenResolve(existingUser);
       await expect(
         authService.validateFakeLogin(context, 'test@example.com', 'John Smith', ['user']),
-      ).rejects.toHaveProperty('message', 'UserNotEnabledError');
+      ).rejects.toHaveProperty('message', 'User account is disabled');
     });
 
     it('updates user when user exists', async () => {
@@ -419,7 +419,7 @@ describe('AuthService', () => {
 
       await expect(
         authService.validateFakeLogin(context, 'test@example.com', 'John Smith', ['user']),
-      ).rejects.toHaveProperty('message', 'CredentialsNotFoundError');
+      ).rejects.toHaveProperty('message', 'No credentials found for user');
     });
   });
 });

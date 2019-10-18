@@ -1,7 +1,6 @@
 import { ForwardReference, Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
-import { fileLoader, mergeTypes } from 'merge-graphql-schemas';
 import { AuthConfigurer } from './auth/auth.configurer';
 import { AuthController } from './auth/auth.controller';
 import { AuthResolver } from './auth/auth.graphql';
@@ -22,11 +21,13 @@ import { GmailController } from './mail/gmail/gmail.controller';
 import { GmailSender } from './mail/gmail/gmail.sender';
 import { StoredCredentialsRepository } from './mail/gmail/stored.credentials.repository';
 import { MailDiverter } from './mail/mail.diverter';
-import { LoggingMailSenderStub } from './mail/mail.logging.stub';
-import { MAIL_SENDER } from './mail/mail.sender';
+import { MailLoggingSender } from './mail/mail-logging.sender';
+import { MAIL_SENDER, MailSender } from './mail/mail.sender';
 import { SearchService } from './search/search.service';
+import { MailWhitelistSender } from './mail/mail-whitelist.sender';
+import { MailSubjectSender } from './mail/mail-subject.sender';
 
-interface ClassType { new (...args: any[]): any }
+type ClassType = new (...args: any[]) => any;
 type ClassTypeOrReference = ClassType | ForwardReference<any>;
 
 export interface Options {
@@ -58,20 +59,30 @@ export interface Options {
     ContextMiddleware,
     {
       provide: MAIL_SENDER,
-      useFactory: (
-        config: Configuration,
-        gmailConfigurer: GmailConfigurer,
-      ) => {
+      useFactory: (config: Configuration, gmailConfigurer: GmailConfigurer) => {
         const disableMailLogger = !!config.devHooks && config.devHooks.disableLocalMailLogger;
         // tslint:disable-next-line
         console.log(`Configuring mail sender with devHooks: `, config.devHooks);
+
+        let mailSender: MailSender;
         if (config.environment === 'development' && !disableMailLogger) {
-          return new LoggingMailSenderStub();
+          mailSender = new MailLoggingSender();
+        } else {
+          mailSender = new GmailSender(gmailConfigurer, config);
         }
-        const gmailSender = new GmailSender(gmailConfigurer, config);
-        return (config.devHooks && config.devHooks.divertEmailTo)
-          ? new MailDiverter(gmailSender, config)
-          : gmailSender;
+
+        // When multiple settings are enabled the senders are executed
+        // in reverse order to their creation
+        if (config.devHooks && config.devHooks.emailWhitelist) {
+          mailSender = new MailWhitelistSender(mailSender, config);
+        }
+        if (config.devHooks && config.devHooks.divertEmailTo) {
+          mailSender = new MailDiverter(mailSender, config);
+        }
+        if (config.devHooks && config.devHooks.emailSubjectPrefix) {
+          mailSender = new MailSubjectSender(mailSender, config);
+        }
+        return mailSender;
       },
       inject: ['Configuration', GmailConfigurer],
     },

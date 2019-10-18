@@ -1,26 +1,9 @@
 import { Options } from 'nodemailer/lib/mailer';
-import { anyFunction, capture, instance, mock, when } from 'ts-mockito';
-import { Context, IUser } from '../..';
+import { capture, instance, mock } from 'ts-mockito';
 import { Configuration } from '../../configuration';
-import { DatastoreLoader } from '../../datastore/loader';
 import { MailDiverter } from '../mail.diverter';
 import { MailSender } from '../mail.sender';
-
-export const mockContext = () => {
-  const datastoreLoader = mock(DatastoreLoader);
-
-  const context = {
-    datastore: instance(datastoreLoader),
-  } as Context;
-
-  when(datastoreLoader.inTransaction(anyFunction())).thenCall((cb: any) => cb(context));
-
-  return context;
-};
-
-export class MockMailSender implements MailSender {
-  async send(context: Context<IUser>, mailOptions: Options): Promise<void> {}
-}
+import { mockContext, MockMailSender, testConfiguration } from './mocks';
 
 describe('MailDiverter', () => {
   let diverter: MailDiverter;
@@ -31,19 +14,7 @@ describe('MailDiverter', () => {
   const context = mockContext();
 
   beforeEach(() => {
-    config = {
-      auth: {}, // required but not important for test
-      bucket: 'required but not important for test',
-      environment: 'required but not important for test',
-      gmailUser: 'required but not important for test',
-      host: 'required but not important for test',
-      location: 'required but not important for test',
-      projectId: 'required but not important for test',
-      systemSecret: new Buffer([]), // required but not important for test
-      isDevelopment(): boolean {
-        return true;
-      },
-    };
+    config = testConfiguration();
     mockedMailSender = mock(MockMailSender);
     aMailSender = instance(mockedMailSender);
   });
@@ -79,26 +50,6 @@ describe('MailDiverter', () => {
     expect(actualMailOptions.cc).toEqual([]);
     expect(actualMailOptions.bcc).toEqual([]);
     expect(actualMailOptions.subject).toEqual(mailOptions.subject);
-  });
-
-  it('should divert single email and add subject prefix when subject prefix supplied in config', async () => {
-    mailOptions = {
-      to: 'actual@address.com',
-      subject: 'original subject',
-    };
-    setupDivertedEmails(1);
-    config.devHooks!.emailSubjectPrefix = 'TEST';
-
-    diverter = new MailDiverter(aMailSender, config);
-    await diverter.send(context, mailOptions);
-
-    const [, actualMailOptions] = capture(mockedMailSender.send).first();
-    expect(actualMailOptions.subject).toEqual('TEST: original subject');
-    expect(actualMailOptions.to).toEqual([
-      { address: 'divertTo0@test.com', name: 'Diverted from actual.at.address.com' },
-    ]);
-    expect(actualMailOptions.cc).toEqual([]);
-    expect(actualMailOptions.bcc).toEqual([]);
   });
 
   it('should divert to, cc and bcc to alternate address', async () => {

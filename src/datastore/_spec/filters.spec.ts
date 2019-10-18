@@ -58,13 +58,16 @@ describe('filters', () => {
     const query = buildQuery();
 
     buildFilters(query, {
-      test: [{
-        op: '>',
-        value: 123,
-      }, {
-        op: '<',
-        value: 134,
-      }],
+      test: [
+        {
+          op: '>',
+          value: 123,
+        },
+        {
+          op: '<',
+          value: 134,
+        },
+      ],
     });
 
     expect(query.filter).toHaveBeenCalledWith('test', '>', 123);

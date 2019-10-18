@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as Logger from 'bunyan';
-import * as uuid from 'node-uuid';
+import * as uuidv4 from 'uuid/v4';
 import { CONFIGURATION } from '../configuration';
 import { Context, IUser } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';
@@ -134,7 +134,7 @@ export class InviteUserService {
     }
 
     const newInvite = await this.userInviteRepository.save(context, {
-      id: uuid.v4(),
+      id: uuidv4(),
       email: existingInvite.email,
       createdAt: new Date(),
       roles: existingInvite.roles,
@@ -184,7 +184,7 @@ export class InviteUserService {
       });
       return { user: updatedUser };
     } else {
-      const inviteId = uuid.v4();
+      const inviteId = uuidv4();
       await this.userInviteRepository.save(context, {
         id: inviteId,
         email,

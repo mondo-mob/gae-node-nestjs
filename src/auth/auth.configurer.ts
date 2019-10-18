@@ -1,13 +1,14 @@
 import { Datastore } from '@google-cloud/datastore';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as Logger from 'bunyan';
+import { Request } from 'express';
 import { decode } from 'jsonwebtoken';
+import { get } from 'lodash';
 import * as passport from 'passport';
 import { use } from 'passport';
-import { Request } from 'express';
 import { Profile, Strategy as Auth0Strategy } from 'passport-auth0';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import { Strategy as LocalStrategy } from 'passport-local';
+import { IVerifyOptions, Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as OidcStrategy } from 'passport-openidconnect';
 import { Strategy as SamlStrategy } from 'passport-saml';
 import isLocalHost from 'localhost-string-validator';
@@ -15,9 +16,8 @@ import { newContext } from '../datastore/context';
 import { DatastoreProvider } from '../datastore/datastore.provider';
 import { createLogger } from '../gcloud/logging';
 import { Configuration, IUser } from '../index';
-import { AuthService } from './auth.service';
+import { AuthenticationFailedException, AuthService } from './auth.service';
 import { USER_SERVICE, UserService } from './user.service';
-import { get } from 'lodash';
 
 const GOOGLE_SIGNIN = 'google';
 const SAML_SIGNIN = 'saml';
@@ -53,7 +53,7 @@ export class AuthConfigurer {
       done(null, { id: user.id });
     });
 
-    if (this.configuration.auth.local) {
+    if (this.configuration.auth.local && this.configuration.auth.local.enabled) {
       use(LOCAL_SIGNIN, new LocalStrategy({}, this.validate));
     }
 
@@ -268,16 +268,23 @@ export class AuthConfigurer {
       return this.authService.validateUserAuth0(newContext(this.datastore), email, name, orgId, roles, props);
     });
 
-  validateAuth = async (done: (error: Error | null, user: IUser | false) => void, auth: () => Promise<IUser>) => {
+  validateAuth = async (
+    done: (error: Error | null, user: IUser | false, options?: IVerifyOptions) => void,
+    auth: () => Promise<IUser>,
+  ) => {
     try {
       const user = await auth();
       if (!user) {
-        return done(new UnauthorizedException(), false);
+        return done(null, false, new UnauthorizedException());
       }
       done(null, user);
     } catch (ex) {
       this.logger.error(ex);
-      done(new UnauthorizedException('Username is invalid.', ex), false);
+      if (ex instanceof AuthenticationFailedException) {
+        done(null, false, ex);
+      } else {
+        done(new UnauthorizedException('Internal error', ex), false);
+      }
     }
   };
 }

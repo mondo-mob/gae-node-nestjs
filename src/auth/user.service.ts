@@ -65,7 +65,9 @@ export abstract class AbstractUserService<
 
     const normalisedEmail = updates.email && normaliseEmail(updates.email);
     if (normalisedEmail && normalisedEmail !== user.email) {
-      this.baseLogger.info(`Email changed from [${user.email}] to [${normalisedEmail}]. Changing email for user id [${user.id}]`);
+      this.baseLogger.info(
+        `Email changed from [${user.email}] to [${normalisedEmail}]. Changing email for user id [${user.id}]`,
+      );
       await this.validateEmailAddressAvailable(context, normalisedEmail);
       await Promise.all([
         this.loginIdentifierRepository.delete(context, user.email),

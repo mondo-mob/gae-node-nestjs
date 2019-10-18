@@ -15,7 +15,7 @@ export type Filters<T> = {
     ? Filter<T[K]>
     : T[K] extends object
     ? Filters<T[K]>
-    : Filter<T[K]>
+    : Filter<T[K]>;
 };
 
 export function isComplexFilter<T>(filter: Filter<T>): filter is ComplexFilter<T> {
