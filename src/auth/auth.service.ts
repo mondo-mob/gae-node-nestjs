@@ -77,7 +77,7 @@ export class AuthService {
   }
 
   @Transactional()
-  async validateFakeLogin(context: Context, email: string, name: string, roles: string[]) {
+  async validateFakeLogin(context: Context, email: string, name: string, roles: string[], orgId: string, props: any) {
     if (!this.configurationProvider.isDevelopment()) {
       this.logger.error('Fake login is only available for local dev');
       throw new AuthenticationFailedException('No credentials found for user');
@@ -93,12 +93,16 @@ export class AuthService {
         ...user,
         name,
         roles,
+        orgId,
+        props,
       });
     } else {
       return await this.userService.create(context, {
         email,
         name,
         roles,
+        orgId,
+        props,
         enabled: true,
       });
     }
