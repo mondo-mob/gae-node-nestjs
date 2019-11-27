@@ -1,3 +1,9 @@
+## 3.1.0 (2019-11-27)
+
+- Automatically filter undefined entries from search results
+- Delete search indexes when entities deleted
+- Add changelog
+
 ## 3.0.0 (2019-10-18)
 
 - Update all gcloud dependencies
