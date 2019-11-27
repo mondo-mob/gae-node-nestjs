@@ -5,12 +5,15 @@ import { Index } from '../datastore/loader';
 import { Repository, RepositoryOptions } from '../datastore/repository';
 import { asArray, Omit, OneOrMany } from '../util/types';
 import { Page, SearchFields, SearchResults, SearchService, Sort } from './search.service';
+import { createLogger } from '..';
 
 interface SearchableRepositoryOptions<T extends { id: any }> extends RepositoryOptions<T> {
   searchIndex: Index<Omit<T, 'id'>>;
 }
 
 export class SearchableRepository<T extends { id: string }> extends Repository<T> {
+  private baseLogger = createLogger('searchable-repository');
+
   constructor(
     datastore: Datastore,
     protected readonly searchService: SearchService,
@@ -55,7 +58,7 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
 
   async search(context: Context, searchFields: SearchFields, sort?: Sort) {
     const queryResults = await this.searchService.query(this.kind, searchFields, sort);
-    const requests = await this.get(context, queryResults.ids);
+    const requests = await this.fetchResults(context, queryResults.ids);
     return requests!;
   }
 
@@ -66,7 +69,7 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
     page?: Page,
   ): Promise<SearchResults<T>> {
     const queryResults = await this.searchService.query(this.kind, searchFields, sort, page);
-    const requests = await this.get(context, queryResults.ids);
+    const requests = await this.fetchResults(context, queryResults.ids);
     return {
       resultCount: queryResults.resultCount,
       limit: queryResults.limit,
@@ -93,5 +96,16 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
     });
 
     return this.searchService.index(this.kind, entries);
+  }
+
+  private async fetchResults(context: Context, ids: string[]) {
+    const results = await this.get(context, ids);
+    if (results && results.some(result => !result)) {
+      this.baseLogger.warn(
+        'Search results contained at least one null value - search index likely out of sync with datastore',
+      );
+      return results.filter(result => !!result);
+    }
+    return results;
   }
 }
