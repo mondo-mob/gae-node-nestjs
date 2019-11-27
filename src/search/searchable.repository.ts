@@ -56,6 +56,16 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
     return savedEntities;
   }
 
+  async delete(context: Context, ...ids: string[]): Promise<void> {
+    await super.delete(context, ...ids);
+    await this.searchService.delete(this.kind, ...ids);
+  }
+
+  async deleteAll(context: Context): Promise<void> {
+    await super.deleteAll(context);
+    await this.searchService.deleteAll(this.kind);
+  }
+
   async search(context: Context, searchFields: SearchFields, sort?: Sort) {
     const queryResults = await this.searchService.query(this.kind, searchFields, sort);
     const requests = await this.fetchResults(context, queryResults.ids);

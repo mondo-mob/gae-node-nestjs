@@ -60,6 +60,13 @@ export class SearchService {
     });
   }
 
+  delete(entityName: string, ...ids: string[]) {
+    return this.post('/delete', {
+      entityName,
+      ids,
+    });
+  }
+
   deleteAll(entityName: string) {
     return this.post('/deleteAll', {
       entityName,
