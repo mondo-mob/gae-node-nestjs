@@ -9,6 +9,7 @@ import { createLogger } from '../gcloud/logging';
 import { asArray, OneOrMany } from '../util/types';
 import { Context } from './context';
 import { buildFilters, Filters } from './filters';
+import { NonFatalError } from '../error/NonFatalError';
 
 const keysEqual = (key1: Entity.Key, key2: Entity.Key) => {
   return _.isEqual(key1.path, key2.path);
@@ -197,7 +198,11 @@ export class DatastoreLoader {
 
         return result;
       } catch (ex) {
-        this.logger.error('Rolling back transaction - error encountered', ex);
+        if (ex instanceof NonFatalError) {
+          this.logger.warn('Rolling back transaction - non-fatal error encountered', ex);
+        } else {
+          this.logger.error('Rolling back transaction - error encountered', ex);
+        }
         await transaction.rollback();
         throw ex;
       }
