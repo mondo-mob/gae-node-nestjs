@@ -27,7 +27,9 @@ export class GraphQLMiddleware implements NestMiddleware {
           if (typeof payload === 'string') {
             rootLogger.info(payload);
           } else {
-            rootLogger.error(payload);
+            // NestJS will log unexpected (i.e. non HttpException) errors for us - so log
+            // here as warn level to prevent raising error alerts for non-fatal errors.
+            rootLogger.warn(payload);
           }
         },
       },
