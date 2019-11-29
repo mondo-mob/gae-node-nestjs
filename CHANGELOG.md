@@ -1,3 +1,8 @@
+## 3.2.0 (2019-11-29)
+
+- Log graphql errors as warning severity
+- Log non-fatal errors as warning severity in transactions
+
 ## 3.1.0 (2019-11-27)
 
 - Automatically filter undefined entries from search results
