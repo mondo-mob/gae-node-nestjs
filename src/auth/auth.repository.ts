@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as t from 'io-ts';
-import { normaliseEmail } from '..';
+import { Context, normaliseEmail } from '..';
 import { DatastoreProvider } from '../datastore/datastore.provider';
 import { dateType, Repository } from '../datastore/repository';
 import { asArray, OneOrMany } from '../util/types';
@@ -73,7 +73,7 @@ export class CredentialRepository extends Repository<LoginCredentials> {
     });
   }
 
-  protected beforePersist(entities: OneOrMany<LoginCredentials>): OneOrMany<LoginCredentials> {
+  protected beforePersist(context: Context, entities: OneOrMany<LoginCredentials>): OneOrMany<LoginCredentials> {
     return asArray(entities).map(entity => ({
       ...entity,
       id: normaliseEmail(entity.id),

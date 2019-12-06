@@ -120,25 +120,25 @@ export class Repository<T extends { id: string }> {
   async save(context: Context, entities: T): Promise<T>;
   async save(context: Context, entities: ReadonlyArray<T>): Promise<ReadonlyArray<T>>;
   async save(context: Context, entities: OneOrMany<T>): Promise<OneOrMany<T>> {
-    return this.applyMutation(context, this.beforePersist(entities), (loader, e) => loader.save(e));
+    return this.applyMutation(context, this.beforePersist(context, entities), (loader, e) => loader.save(e));
   }
 
   async update(context: Context, entities: T): Promise<T>;
   async update(context: Context, entities: ReadonlyArray<T>): Promise<ReadonlyArray<T>>;
   async update(context: Context, entities: OneOrMany<T>): Promise<OneOrMany<T>> {
-    return this.applyMutation(context, this.beforePersist(entities), (loader, e) => loader.update(e));
+    return this.applyMutation(context, this.beforePersist(context, entities), (loader, e) => loader.update(e));
   }
 
   async insert(context: Context, entities: T): Promise<T>;
   async insert(context: Context, entities: ReadonlyArray<T>): Promise<ReadonlyArray<T>>;
   async insert(context: Context, entities: OneOrMany<T>): Promise<OneOrMany<T>> {
-    return this.applyMutation(context, this.beforePersist(entities), (loader, e) => loader.insert(e));
+    return this.applyMutation(context, this.beforePersist(context, entities), (loader, e) => loader.insert(e));
   }
 
   async upsert(context: Context, entities: T): Promise<T>;
   async upsert(context: Context, entities: ReadonlyArray<T>): Promise<ReadonlyArray<T>>;
   async upsert(context: Context, entities: OneOrMany<T>): Promise<OneOrMany<T>> {
-    return this.applyMutation(context, this.beforePersist(entities), (loader, e) => loader.upsert(e));
+    return this.applyMutation(context, this.beforePersist(context, entities), (loader, e) => loader.upsert(e));
   }
 
   /**
@@ -146,9 +146,10 @@ export class Repository<T extends { id: string }> {
    *
    * By default this just returns the same entities and does not change input.
    *
+   * @param context Context of current operation.
    * @param entities Entities that will be persisted, optionally with any transformations.
    */
-  protected beforePersist(entities: OneOrMany<T>): OneOrMany<T> {
+  protected beforePersist(context: Context, entities: OneOrMany<T>): OneOrMany<T> {
     return entities;
   }
 
