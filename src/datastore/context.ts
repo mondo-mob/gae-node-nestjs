@@ -31,6 +31,9 @@ export interface Context<User = IUser> {
   datastore: DatastoreLoader;
   user?: User;
   hasAnyRole(...roles: string[]): boolean;
+  props: {
+    [key: string]: any;
+  };
   [ContextType]: true;
 }
 
@@ -39,7 +42,7 @@ export function isContext(value: object): value is Context {
 }
 
 export const newContext = (datastore: Datastore): Context => {
-  const context: any = { [ContextType]: true };
+  const context: any = { [ContextType]: true, props: [] };
   context.datastore = new DatastoreLoader(datastore, context);
   context.hasAnyRole = (...roles: string[]) =>
     !!context.user && (context.user as IUser).roles.some(r => _.includes(roles, r));
