@@ -1,3 +1,16 @@
+## 4.0.0 (2019-12-06)
+
+- Pass Context to repository beforePersist hook
+- Allow custom props in Context
+
+### Breaking changes:
+
+- Any existing beforePersist hooks need to update to use the new signature:
+
+```
+protected beforePersist(context: Context, entities: OneOrMany<T>): OneOrMany<T>;
+```
+
 ## 3.2.0 (2019-11-29)
 
 - Log graphql errors as warning severity
