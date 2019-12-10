@@ -1,6 +1,7 @@
 ## 5.0.0 (2-19-12-10)
 
- - Allow users with existing (enabled) User entity to login with external auth
+ - Allow users with existing (enabled) User entity to login with external auth. Previous code assumed that if we don't have a LoginCredential stored then we always need to create a user. 
+ This caused errors when we had a user record already but that user had not logged in (in most cases resulting in an endless redirect loop). Updated solution allows existing user to login.
 
 ### Breaking changes:
 
