@@ -42,7 +42,7 @@
     "graphql": "^0.13.2",
     "graphql-iso-date": "^3.5.0",
     "graphql-tools": "^3.0.5",
-    "helmet-csp": "^2.7.1",
+    "helmet-csp": "2.9.4",
     "html-to-text": "4.0.0",
     "io-ts": "1.8.5",
     "io-ts-reporters": "0.0.20",
