@@ -5,11 +5,8 @@ import * as emails from 'email-addresses';
 import * as t from 'io-ts';
 import { reporter } from 'io-ts-reporters';
 import { isNil } from 'lodash';
+import { Configuration, Context, createLogger, IUser, IUserCreateRequest, normaliseEmail, Transactional } from '..';
 import { CONFIGURATION } from '../configuration';
-import { Context, IUserCreateRequest } from '../datastore/context';
-import { Transactional } from '../datastore/transactional';
-import { createLogger } from '../gcloud/logging';
-import { Configuration, IUser, normaliseEmail } from '../index';
 import { CredentialRepository, ExternalAuthType, LoginCredentials } from './auth.repository';
 import { USER_SERVICE, UserService } from './user.service';
 
@@ -290,21 +287,19 @@ export class AuthService {
   ): Promise<IUser> {
     const { newUserRequest, updateUser, type } = options;
     this.logger.info(`Validating ${type} user profile`);
-
     const account = await this.getAccountByEmail(context, email);
-
     if (!account) {
-      this.logger.info(`No account found for ${email}, creating it.`);
+      this.logger.info(`No login credentials found for ${email}, creating credentials and creating or updating user.`);
 
-      const createdUser = await this.userService.create(context, newUserRequest());
+      const updatedUser = await this.userService.createOrUpdate(context, newUserRequest(), this.validateUserEnabled);
 
       await this.authRepository.save(context, {
         id: email,
         type,
-        userId: createdUser.id,
+        userId: updatedUser.id,
       });
 
-      return createdUser;
+      return updatedUser;
     }
 
     if (!options.overwriteCredentials && account.type !== type) {
@@ -333,11 +328,15 @@ export class AuthService {
       throw new AuthenticationFailedException('User not found');
     }
 
+    this.validateUserEnabled(user);
+
+    return user;
+  }
+
+  private validateUserEnabled(user: IUser) {
     if (!user.enabled) {
       throw new AuthenticationFailedException('User account is disabled');
     }
-
-    return user;
   }
 
   private getAccountByEmail(context: Context, email: string) {

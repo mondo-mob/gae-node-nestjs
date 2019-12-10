@@ -181,7 +181,6 @@ export class AuthController {
   @Get('signin/auth0/callback')
   completeSignInAuth0(@Req() req: Request, @Res() res: Response) {
     this.authConfigurer.completeAuthenticateAuth0()(req, res, (err: any) => {
-      this.logger.info(err);
       if (req.user) {
         this.authListener.onLogin(req);
         res.redirect(`/`);
@@ -202,7 +201,6 @@ export class AuthController {
   @Get('signin/oidc/callback')
   completeSignInOidc(@Req() req: Request, @Res() res: Response) {
     this.authConfigurer.completeAuthenticateOidc()(req, res, (err: any) => {
-      this.logger.info(err);
       if (req.user) {
         this.authListener.onLogin(req);
         res.redirect(`/`);

@@ -1,7 +1,7 @@
 import { omit } from 'lodash';
 import { anyFunction, anything, instance, mock, objectContaining, reset, verify, when } from 'ts-mockito';
+import { Context } from '../..';
 import { Configuration } from '../../configuration';
-import { Context } from '../../datastore/context';
 import { DatastoreLoader } from '../../datastore/loader';
 import { CredentialRepository } from '../auth.repository';
 import { AuthService, hashPassword } from '../auth.service';
@@ -31,6 +31,7 @@ describe('AuthService', () => {
     reset(userService);
     configuration = { auth: {} } as Configuration;
     when(userService.create(anything(), anything())).thenCall(async (_: any, user: any) => user);
+    when(userService.createOrUpdate(anything(), anything(), anyFunction())).thenCall(async (_: any, user: any) => user);
     when(userService.update(anything(), anything(), anything())).thenCall(async (_: any, _id: any, user: any) => user);
     authService = new AuthService(instance(credentialRepository), instance(userService), configuration);
   });
@@ -252,7 +253,7 @@ describe('AuthService', () => {
       };
     });
 
-    it('creates a new enabled user with default roles when no existing account found', async () => {
+    it('creates or updates enabled user with default roles when no existing account found', async () => {
       when(credentialRepository.get(context, anything())).thenResolve(undefined);
       await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
         email: 'test@example.com',
@@ -260,6 +261,7 @@ describe('AuthService', () => {
         roles: ['default-role'],
         enabled: true,
       });
+      verify(userService.createOrUpdate(context, anything(), anyFunction())).once();
       verify(credentialRepository.save(context, anything())).once();
     });
 

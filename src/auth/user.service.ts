@@ -9,10 +9,11 @@ export const normaliseEmail = (email: string) => email.toLowerCase();
 export interface UserService<
   T extends IUser,
   U extends IUserUpdates = IUserUpdates,
-  C extends IUserCreateRequest = IUserCreateRequest
+  C extends IUserCreateRequest & U = IUserCreateRequest & U
 > {
   getByEmail(context: Context, email: string): Promise<T | undefined>;
   get(context: Context, userId: string): Promise<T | undefined>;
+  createOrUpdate(context: Context, user: C, beforeUpdate?: (user: T) => void): Promise<T>;
   create(context: Context, user: C): Promise<T>;
   update(context: Context, id: string, updates: U): Promise<T>;
 }
@@ -20,7 +21,7 @@ export interface UserService<
 export abstract class AbstractUserService<
   T extends IUser,
   U extends IUserUpdates = IUserUpdates,
-  C extends IUserCreateRequest = IUserCreateRequest
+  C extends IUserCreateRequest & U = IUserCreateRequest & U
 > implements UserService<T, U, C> {
   private readonly baseLogger: Logger;
 
@@ -29,7 +30,7 @@ export abstract class AbstractUserService<
   }
 
   abstract get(context: Context, userId: string): Promise<T | undefined>;
-  protected abstract createUser(context: Context, user: IUserCreateRequest): Promise<T>;
+  protected abstract createUser(context: Context, user: C): Promise<T>;
   protected abstract updateUser(context: Context, user: T, updates: U): Promise<T>;
 
   async getByEmail(context: Context, email: string) {
@@ -38,7 +39,16 @@ export abstract class AbstractUserService<
   }
 
   @Transactional()
-  async create(context: Context, user: IUserCreateRequest) {
+  async createOrUpdate(context: Context, updates: C, beforeUpdate: (user: T) => void = () => {}) {
+    const existingUser = await this.getByEmail(context, updates.email);
+    if (existingUser) {
+      beforeUpdate(existingUser);
+    }
+    return existingUser ? this.updateRetrievedUser(context, existingUser, updates) : this.create(context, updates);
+  }
+
+  @Transactional()
+  async create(context: Context, user: C) {
     const normalisedEmail = normaliseEmail(user.email);
 
     await this.validateEmailAddressAvailable(context, normalisedEmail);
@@ -49,6 +59,7 @@ export abstract class AbstractUserService<
     });
     await this.createLoginIdentifier(context, normalisedEmail, createdUser.id);
 
+    this.baseLogger.info(`Created new user ${user.email}`);
     return createdUser;
   }
 
@@ -58,7 +69,10 @@ export abstract class AbstractUserService<
     if (!user) {
       throw new Error(`No user exists with id: ${id}`);
     }
+    return await this.updateRetrievedUser(context, user, updates);
+  }
 
+  private async updateRetrievedUser(context: Context, user: T, updates: U) {
     if (updates.roles && updates.roles.includes('super')) {
       throw new Error('Cannot assign super role to users');
     }
@@ -77,7 +91,6 @@ export abstract class AbstractUserService<
     const userUpdates = (normalisedEmail && ({ ...(updates as object), email: normalisedEmail } as U)) || updates;
     return this.updateUser(context, user, userUpdates);
   }
-
   private async createLoginIdentifier(context: Context, email: string, userId: string) {
     return this.loginIdentifierRepository.save(context, {
       id: email,
