@@ -1,3 +1,7 @@
+## 5.0.1 (2-19-12-10)
+
+ - Update some internal dependencies to get vulnerabilities down to one moderate from 12,763
+
 ## 5.0.0 (2-19-12-10)
 
  - Allow users with existing (enabled) User entity to login with external auth. Previous code assumed that if we don't have a LoginCredential stored then we always need to create a user. 
