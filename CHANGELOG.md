@@ -1,3 +1,12 @@
+## 5.0.0 (2-19-12-10)
+
+ - Allow users with existing (enabled) User entity to login with external auth
+
+### Breaking changes:
+
+ - `UserService` interface has an additional method to `createOrUpdate`. Most implementations that extend `AbstractUserService` should remain unaffected.
+
+
 ## 4.0.0 (2019-12-06)
 
 - Pass Context to repository beforePersist hook
