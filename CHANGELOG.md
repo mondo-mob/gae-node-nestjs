@@ -1,3 +1,7 @@
+## 5.1.1 (2019-12-17)
+
+- Audit fix one moderate security issue related to "serialize-javascript". Internal minor dependency updates.
+
 ## 5.1.0 (2019-12-16)
 
 - Allow multiple predicates per field when querying search service
