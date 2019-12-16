@@ -35,13 +35,25 @@ export interface SearchResults<T> {
 export declare type Operator = '=' | '!=' | '>' | '<' | '>=' | '<=';
 
 export interface SearchFields {
-  [key: string]: string | string[] | Predicate;
+  [key: string]: string | string[] | Predicate | Predicate[];
 }
 
 export interface Predicate {
   op: Operator;
   value: string | string[] | number | Date;
 }
+
+export interface SearchPredicate extends Predicate {
+  field: string;
+}
+
+const isPredicate = (value: any): value is Predicate => {
+  return (value as Predicate).op !== undefined;
+};
+
+const isPredicateArray = (value: any): value is Predicate[] => {
+  return Array.isArray(value) && value.length > 0 && isPredicate(value[0]);
+};
 
 @Injectable()
 export class SearchService {
@@ -97,21 +109,29 @@ export class SearchService {
     });
   }
 
-  private normaliseFields(fields: SearchFields): SearchFields {
-    return Object.keys(fields).reduce((result: SearchFields, key) => {
-      result[key] = this.toPredicate(fields[key]);
+  private normaliseFields(fields: SearchFields): SearchPredicate[] {
+    return Object.keys(fields).reduce((result: SearchPredicate[], key) => {
+      const field = fields[key];
+      if (isPredicateArray(field)) {
+        field.forEach(predicate => result.push(this.toSearchPredicate(key, predicate)));
+      } else {
+        result.push(this.toSearchPredicate(key, field));
+      }
       return result;
-    }, {});
+    }, []);
   }
 
-  private toPredicate(input: string | string[] | Predicate): Predicate {
-    if ((input as any).op !== undefined) {
-      return input as Predicate;
-    }
-
-    return {
-      op: '=',
-      value: input as string | string[],
-    };
+  private toSearchPredicate(fieldName: string, input: string | string[] | Predicate): SearchPredicate {
+    return isPredicate(input)
+      ? {
+          field: fieldName,
+          op: input.op,
+          value: input.value,
+        }
+      : {
+          field: fieldName,
+          op: '=',
+          value: input,
+        };
   }
 }
