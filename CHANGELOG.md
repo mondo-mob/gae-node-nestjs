@@ -1,3 +1,7 @@
+## 5.1.0 (2019-12-16)
+
+- Allow multiple predicates per field when querying search service
+
 ## 5.0.1 (2-19-12-10)
 
  - Update some internal dependencies to get vulnerabilities down to one moderate from 12,763
