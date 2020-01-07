@@ -4,7 +4,7 @@ import { Context } from '../datastore/context';
 import { Index } from '../datastore/loader';
 import { Repository, RepositoryOptions } from '../datastore/repository';
 import { asArray, Omit, OneOrMany } from '../util/types';
-import { Page, SearchFields, SearchResults, SearchService, Sort } from './search.service';
+import { IndexEntry, Page, SearchFields, SearchResults, SearchService, Sort } from './search.service';
 import { createLogger } from '..';
 
 interface SearchableRepositoryOptions<T extends { id: any }> extends RepositoryOptions<T> {
@@ -88,23 +88,32 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
     };
   }
 
-  private index(entities: OneOrMany<T>) {
+  /**
+   * Default indexing takes the raw entity values of the fields defined in the searchIndex config.
+   * Override this if you wish to populate custom values such as splitting a string into n-grams
+   * or combining multiple fields into a single indexed value.
+   * @param entity entity to index
+   * @return search index entry
+   */
+  protected prepareSearchEntry(entity: T): IndexEntry {
+    const fields = Object.keys(this.options.searchIndex).reduce((obj: { [key: string]: object }, fieldName: string) => {
+      obj[fieldName] = (entity as any)[fieldName];
+      return obj;
+    }, {});
+
+    return {
+      id: entity.id,
+      fields,
+    };
+  }
+
+  protected prepareSearchEntries(entities: OneOrMany<T>): IndexEntry[] {
     const entitiesArr = asArray(entities);
-    const entries = entitiesArr.map(entity => {
-      const fields = Object.keys(this.options.searchIndex).reduce(
-        (obj: { [key: string]: object }, fieldName: string) => {
-          obj[fieldName] = entity[fieldName];
-          return obj;
-        },
-        {},
-      );
+    return entitiesArr.map(entity => this.prepareSearchEntry(entity));
+  }
 
-      return {
-        id: entity.id,
-        fields,
-      };
-    });
-
+  private index(entities: OneOrMany<T>) {
+    const entries = this.prepareSearchEntries(entities);
     return this.searchService.index(this.kind, entries);
   }
 

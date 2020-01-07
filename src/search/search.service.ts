@@ -3,9 +3,9 @@ import * as Logger from 'bunyan';
 import fetch, { Response } from 'node-fetch';
 import { Configuration, CONFIGURATION, createLogger } from '..';
 
-interface IndexEntry {
+export interface IndexEntry {
   id: string;
-  fields: { [key: string]: string };
+  fields: { [key: string]: any };
 }
 
 export interface Sort {
