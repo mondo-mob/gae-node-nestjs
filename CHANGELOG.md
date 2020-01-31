@@ -1,3 +1,7 @@
+## 5.1.2 (2020-01-31)
+
+- Fix typings to support multiple query predicates for arrays of primitives and union types.
+
 ## 5.1.1 (2019-12-17)
 
 - Audit fix one moderate security issue related to "serialize-javascript". Internal minor dependency updates.
