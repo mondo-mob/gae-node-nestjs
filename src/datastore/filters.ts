@@ -8,14 +8,15 @@ export interface ComplexFilter<T> {
   value: T;
 }
 
+// This is way more complicated than ideal but required in order to prevent union types
+// being distributed over the conditional types.
+// https://github.com/Microsoft/TypeScript/issues/29368#issuecomment-453529532
+type FilterType<T> = [T] extends [Date] ? Filter<T> : [T] extends [object] ? Filters<T> : Filter<T>;
+
+type FilterArray<T extends any[]> = T[0] extends object ? Filters<T[0]> : FilterType<T[0]>;
+
 export type Filters<T> = {
-  [K in keyof T]?: T[K] extends Array<any>
-    ? Filters<T[K][0]>
-    : T[K] extends Date
-    ? Filter<T[K]>
-    : T[K] extends object
-    ? Filters<T[K]>
-    : Filter<T[K]>;
+  [K in keyof T]?: T[K] extends any[] ? FilterArray<T[K]> : FilterType<T[K]>;
 };
 
 export function isComplexFilter<T>(filter: Filter<T>): filter is ComplexFilter<T> {
