@@ -215,7 +215,7 @@ export class AuthService {
     // tslint:disable-next-line:no-string-literal
     const profileJson = (profile as any)['_json'];
     const email = profile.email || (profileJson && profileJson.email);
-    const roles = this.buildUserRoles(profile, []);
+    const roles = this.buildUserRoles(profile, profileJson && profileJson.roles || []);
     const props = this.buildUserProperties(profile, {});
     return this.validateOrCreateExternalAuthAccount(context, email, {
       type: 'oidc',
@@ -228,10 +228,11 @@ export class AuthService {
         enabled: true,
       }),
       updateUser: user => {
+        const mergedProps = { ...user.props, ...props };
         return this.userService.update(context, user.id, {
           ...user,
           roles,
-          props,
+          props: mergedProps,
           name: profile.displayName,
         });
       },
