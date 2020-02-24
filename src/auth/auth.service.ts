@@ -1,4 +1,4 @@
-import {HttpException, HttpStatus, Inject, Injectable} from '@nestjs/common';
+import {HttpException, HttpStatus, Inject, Injectable, Optional} from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import * as Logger from 'bunyan';
 import * as emails from 'email-addresses';
@@ -41,7 +41,7 @@ export class AuthService {
     private readonly authRepository: CredentialRepository,
     @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
     @Inject(CONFIGURATION) private readonly configurationProvider: Configuration,
-    /*@Optional() */@Inject(AUTH_CALLBACKS) private readonly authCallbacks: AuthCallbacks,
+    @Optional() @Inject(AUTH_CALLBACKS) private readonly authCallbacks: AuthCallbacks,
   ) {
     this.logger = createLogger('account-service');
   }
