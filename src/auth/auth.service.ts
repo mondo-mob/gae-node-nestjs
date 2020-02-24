@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {HttpException, HttpStatus, Inject, Injectable} from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import * as Logger from 'bunyan';
 import * as emails from 'email-addresses';
@@ -9,6 +9,7 @@ import { Configuration, Context, createLogger, IUser, IUserCreateRequest, normal
 import { CONFIGURATION } from '../configuration';
 import { CredentialRepository, ExternalAuthType, LoginCredentials } from './auth.repository';
 import { USER_SERVICE, UserService } from './user.service';
+import { AUTH_CALLBACKS, AuthCallbacks } from "./auth.callbacks";
 
 const userProfile = t.interface({
   id: t.string, // username
@@ -40,6 +41,7 @@ export class AuthService {
     private readonly authRepository: CredentialRepository,
     @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
     @Inject(CONFIGURATION) private readonly configurationProvider: Configuration,
+    /*@Optional() */@Inject(AUTH_CALLBACKS) private readonly authCallbacks: AuthCallbacks,
   ) {
     this.logger = createLogger('account-service');
   }
@@ -209,27 +211,45 @@ export class AuthService {
     context: Context,
     profile: any,
     overwriteCredentials: boolean,
-    newUserRoles: string[] = [],
   ): Promise<IUser> {
     // tslint:disable-next-line:no-string-literal
     const profileJson = (profile as any)['_json'];
     const email = profile.email || (profileJson && profileJson.email);
+    const roles = this.buildUserRoles(profile, []);
+    const props = this.buildUserProperties(profile, {});
     return this.validateOrCreateExternalAuthAccount(context, email, {
       type: 'oidc',
       overwriteCredentials,
       newUserRequest: () => ({
         email,
         name: profile.displayName,
-        roles: newUserRoles,
+        roles,
+        props,
         enabled: true,
       }),
       updateUser: user => {
         return this.userService.update(context, user.id, {
           ...user,
+          roles,
+          props,
           name: profile.displayName,
         });
       },
     });
+  }
+
+  private buildUserRoles(ipdProfileData: any, defaultRoles: string[] = []) {
+    if (this.authCallbacks && this.authCallbacks.buildUserRolesList) {
+      return this.authCallbacks.buildUserRolesList(ipdProfileData);
+    }
+    return defaultRoles;
+  }
+
+  private buildUserProperties(ipdProfileData: any, defaultProperties: any = {}) {
+    if (this.authCallbacks && this.authCallbacks.buildUserPropertiesObject) {
+      return this.authCallbacks.buildUserPropertiesObject(ipdProfileData);
+    }
+    return defaultProperties;
   }
 
   @Transactional()

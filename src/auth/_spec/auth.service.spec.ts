@@ -6,6 +6,7 @@ import { DatastoreLoader } from '../../datastore/loader';
 import { CredentialRepository } from '../auth.repository';
 import { AuthService, hashPassword } from '../auth.service';
 import { AbstractUserService } from '../user.service';
+import {AuthCallbacks} from "../auth.callbacks";
 
 export const mockContext = () => {
   const datastoreLoader = mock(DatastoreLoader);
@@ -23,6 +24,7 @@ describe('AuthService', () => {
   const credentialRepository = mock(CredentialRepository);
   const context = mockContext();
   const userService = mock(AbstractUserService);
+  let authCallbacks: AuthCallbacks = {} as AuthCallbacks;
   let configuration: Configuration;
   let authService: AuthService;
 
@@ -33,7 +35,7 @@ describe('AuthService', () => {
     when(userService.create(anything(), anything())).thenCall(async (_: any, user: any) => user);
     when(userService.createOrUpdate(anything(), anything(), anyFunction())).thenCall(async (_: any, user: any) => user);
     when(userService.update(anything(), anything(), anything())).thenCall(async (_: any, _id: any, user: any) => user);
-    authService = new AuthService(instance(credentialRepository), instance(userService), configuration);
+    authService = new AuthService(instance(credentialRepository), instance(userService), configuration, authCallbacks);
   });
 
   describe('validateUser', () => {
@@ -154,6 +156,7 @@ describe('AuthService', () => {
             google: {},
           },
         } as Configuration,
+        {} as AuthCallbacks
       );
 
       await expect(authService.validateUserGoogle(context, profile)).rejects.toHaveProperty(
@@ -255,10 +258,11 @@ describe('AuthService', () => {
 
     it('creates or updates enabled user with default roles when no existing account found', async () => {
       when(credentialRepository.get(context, anything())).thenResolve(undefined);
-      await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
+      await expect(authService.validateUserOidc(context, profile, true)).resolves.toEqual({
         email: 'test@example.com',
         name: 'John Smith',
-        roles: ['default-role'],
+        roles: [],
+        props: {},
         enabled: true,
       });
       verify(userService.createOrUpdate(context, anything(), anyFunction())).once();
@@ -271,10 +275,10 @@ describe('AuthService', () => {
         userId: '12345',
         id: 'test@example.com',
       });
-      const existingUser = { id: '12345', enabled: true };
+      const existingUser = { id: '12345', enabled: true, props: {}, roles: [] };
       when(userService.get(context, '12345')).thenResolve(existingUser);
 
-      await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
+      await expect(authService.validateUserOidc(context, profile, true)).resolves.toEqual({
         ...existingUser,
         name: 'John Smith',
       });
@@ -289,10 +293,10 @@ describe('AuthService', () => {
         userId: '12345',
         id: 'test@example.com',
       });
-      const existingUser = { id: '12345', enabled: true };
+      const existingUser = { id: '12345', enabled: true, props: {}, roles: [] };
       when(userService.get(context, '12345')).thenResolve(existingUser);
 
-      await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
+      await expect(authService.validateUserOidc(context, profile, true)).resolves.toEqual({
         ...existingUser,
         name: 'John Smith',
       });
@@ -306,10 +310,10 @@ describe('AuthService', () => {
         userId: '12345',
         id: 'test@example.com',
       });
-      const existingUser = { id: '12345', enabled: true };
+      const existingUser = { id: '12345', enabled: true, props: {}, roles: [] };
       when(userService.get(context, '12345')).thenResolve(existingUser);
 
-      await expect(authService.validateUserOidc(context, profile, true, ['default-role'])).resolves.toEqual({
+      await expect(authService.validateUserOidc(context, profile, true)).resolves.toEqual({
         ...existingUser,
         name: 'John Smith',
       });
