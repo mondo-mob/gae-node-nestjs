@@ -1,4 +1,4 @@
-import {HttpException, HttpStatus, Inject, Injectable, Optional} from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, Optional } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import * as Logger from 'bunyan';
 import * as emails from 'email-addresses';
@@ -9,7 +9,7 @@ import { Configuration, Context, createLogger, IUser, IUserCreateRequest, normal
 import { CONFIGURATION } from '../configuration';
 import { CredentialRepository, ExternalAuthType, LoginCredentials } from './auth.repository';
 import { USER_SERVICE, UserService } from './user.service';
-import { AUTH_CALLBACKS, AuthCallbacks } from "./auth.callbacks";
+import { AUTH_CALLBACKS, AuthCallbacks } from './auth.callbacks';
 
 const userProfile = t.interface({
   id: t.string, // username
@@ -207,16 +207,23 @@ export class AuthService {
   }
 
   @Transactional()
-  async validateUserOidc(
-    context: Context,
-    profile: any,
-    overwriteCredentials: boolean,
-  ): Promise<IUser> {
+  async validateUserOidc(context: Context, profile: any, overwriteCredentials: boolean): Promise<IUser> {
     // tslint:disable-next-line:no-string-literal
     const profileJson = (profile as any)['_json'];
     const email = profile.email || (profileJson && profileJson.email);
-    const roles = this.buildUserRoles(profile, profileJson && profileJson.roles || []);
-    const props = this.buildUserProperties(profile, {});
+
+    // derive the roles list
+    let roles: string[] = (profileJson && profileJson.roles) || [];
+    if (this.authCallbacks && this.authCallbacks.buildUserRolesList) {
+      roles = this.authCallbacks.buildUserRolesList('oidc', profile);
+    }
+
+    // derive the user properties object
+    let props: any = {};
+    if (this.authCallbacks && this.authCallbacks.buildUserPropertiesObject) {
+      props = this.authCallbacks.buildUserPropertiesObject('oidc', profile);
+    }
+
     return this.validateOrCreateExternalAuthAccount(context, email, {
       type: 'oidc',
       overwriteCredentials,
@@ -237,20 +244,6 @@ export class AuthService {
         });
       },
     });
-  }
-
-  private buildUserRoles(ipdProfileData: any, defaultRoles: string[] = []) {
-    if (this.authCallbacks && this.authCallbacks.buildUserRolesList) {
-      return this.authCallbacks.buildUserRolesList(ipdProfileData);
-    }
-    return defaultRoles;
-  }
-
-  private buildUserProperties(ipdProfileData: any, defaultProperties: any = {}) {
-    if (this.authCallbacks && this.authCallbacks.buildUserPropertiesObject) {
-      return this.authCallbacks.buildUserPropertiesObject(ipdProfileData);
-    }
-    return defaultProperties;
   }
 
   @Transactional()
