@@ -207,7 +207,12 @@ export class AuthService {
   }
 
   @Transactional()
-  async validateUserOidc(context: Context, profile: any, overwriteCredentials: boolean, newUserRoles: string[] = []): Promise<IUser> {
+  async validateUserOidc(
+    context: Context,
+    profile: any,
+    overwriteCredentials: boolean,
+    newUserRoles: string[] = [],
+  ): Promise<IUser> {
     // tslint:disable-next-line:no-string-literal
     const profileJson = (profile as any)['_json'];
     const email = profile.email || (profileJson && profileJson.email);
@@ -233,20 +238,20 @@ export class AuthService {
       overwriteCredentials,
       newUserRequest: () => {
         const userRoles: string[] = replaceRolesWithIdpRoles ? roles : newUserRoles;
-        return ({
+        return {
           email,
           name: profile.displayName,
           roles: userRoles,
           props,
           enabled: true,
-        });
+        };
       },
       updateUser: user => {
         const mergedProps = { ...user.props, ...props };
         const userRoles: string[] = replaceRolesWithIdpRoles ? roles : (user.roles as string[]) || [];
-        console.log("current roles are: %o", user.roles);
-        console.log("replace current roles: %s", replaceRolesWithIdpRoles);
-        console.log("userRoles to save: %o", userRoles);
+        console.log('current roles are: %o', user.roles);
+        console.log('replace current roles: %s', replaceRolesWithIdpRoles);
+        console.log('userRoles to save: %o', userRoles);
         return this.userService.update(context, user.id, {
           ...user,
           roles: userRoles,

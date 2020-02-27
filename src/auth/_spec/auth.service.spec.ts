@@ -6,7 +6,7 @@ import { DatastoreLoader } from '../../datastore/loader';
 import { CredentialRepository } from '../auth.repository';
 import { AuthService, hashPassword } from '../auth.service';
 import { AbstractUserService } from '../user.service';
-import {AuthCallbacks} from "../auth.callbacks";
+import { AuthCallbacks } from '../auth.callbacks';
 
 export const mockContext = () => {
   const datastoreLoader = mock(DatastoreLoader);
@@ -156,7 +156,7 @@ describe('AuthService', () => {
             google: {},
           },
         } as Configuration,
-        {} as AuthCallbacks
+        {} as AuthCallbacks,
       );
 
       await expect(authService.validateUserGoogle(context, profile)).rejects.toHaveProperty(
