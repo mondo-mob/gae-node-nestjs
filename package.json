@@ -1,6 +1,6 @@
 {
   "name": "@3wks/gae-node-nestjs",
-  "version": "5.2.0-rc2",
+  "version": "5.2.0-rc3",
   "description": "",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
