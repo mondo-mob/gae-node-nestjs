@@ -242,6 +242,7 @@ export class AuthConfigurer {
         newContext(this.datastore),
         profile,
         !!this.configuration.auth.oidc!.replaceAuth,
+        this.configuration.auth.oidc!.newUserRoles,
       ),
     );
 
