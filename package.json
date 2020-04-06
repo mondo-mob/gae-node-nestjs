@@ -1,5 +1,5 @@
 {
-  "name": "@3wks/gae-node-nestjs",
+  "name": "@mondomob/gae-node-nestjs",
   "version": "2.4.0",
   "description": "",
   "main": "dist/index.js",
@@ -14,14 +14,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@bitbucket.org/3wks/gae-node-nestjs.git"
+    "url": "https://github.com/mondo-mob/gae-node-nestjs.git"
   },
   "bin": {
     "server": "./server.js"
   },
   "author": "",
   "license": "MIT",
-  "homepage": "https://bitbucket.org/3wks/gae-node-nestjs#readme",
+  "homepage": "https://github.com/mondo-mob/gae-node-nestjs",
   "dependencies": {
     "@google-cloud/connect-datastore": "2.0.1",
     "@google-cloud/datastore": "3.1.0",
