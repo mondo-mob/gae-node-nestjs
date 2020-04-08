@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, Optional } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import * as Logger from 'bunyan';
 import * as emails from 'email-addresses';
@@ -9,6 +9,7 @@ import { Configuration, Context, createLogger, IUser, IUserCreateRequest, normal
 import { CONFIGURATION } from '../configuration';
 import { CredentialRepository, ExternalAuthType, LoginCredentials } from './auth.repository';
 import { USER_SERVICE, UserService } from './user.service';
+import { AUTH_CALLBACKS, AuthCallbacks } from './auth.callbacks';
 
 const userProfile = t.interface({
   id: t.string, // username
@@ -40,6 +41,7 @@ export class AuthService {
     private readonly authRepository: CredentialRepository,
     @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
     @Inject(CONFIGURATION) private readonly configurationProvider: Configuration,
+    @Optional() @Inject(AUTH_CALLBACKS) private readonly authCallbacks: AuthCallbacks,
   ) {
     this.logger = createLogger('account-service');
   }
@@ -214,18 +216,43 @@ export class AuthService {
     // tslint:disable-next-line:no-string-literal
     const profileJson = (profile as any)['_json'];
     const email = profile.email || (profileJson && profileJson.email);
+
+    // default behaviour is to leave existing User.roles alone unless
+    let replaceRolesWithIdpRoles: boolean = false;
+    let roles: string[] = [];
+    if (this.authCallbacks && this.authCallbacks.buildUserRolesList) {
+      // if authCallbacks was implemented then replace User.roles
+      replaceRolesWithIdpRoles = true;
+      // derive the roles list
+      roles = this.authCallbacks.buildUserRolesList('oidc', profile);
+    }
+
+    // derive the user properties object
+    let props: any = {};
+    if (this.authCallbacks && this.authCallbacks.buildUserPropertiesObject) {
+      props = this.authCallbacks.buildUserPropertiesObject('oidc', profile);
+    }
+
     return this.validateOrCreateExternalAuthAccount(context, email, {
       type: 'oidc',
       overwriteCredentials,
-      newUserRequest: () => ({
-        email,
-        name: profile.displayName,
-        roles: newUserRoles,
-        enabled: true,
-      }),
+      newUserRequest: () => {
+        const userRoles: string[] = replaceRolesWithIdpRoles ? roles : newUserRoles;
+        return {
+          email,
+          name: profile.displayName,
+          roles: userRoles,
+          props,
+          enabled: true,
+        };
+      },
       updateUser: user => {
+        const mergedProps = { ...user.props, ...props };
+        const userRoles: string[] = replaceRolesWithIdpRoles ? roles : (user.roles as string[]) || [];
         return this.userService.update(context, user.id, {
           ...user,
+          roles: userRoles,
+          props: mergedProps,
           name: profile.displayName,
         });
       },

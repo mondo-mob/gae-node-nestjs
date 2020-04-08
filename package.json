@@ -1,6 +1,6 @@
 {
   "name": "@mondomob/gae-node-nestjs",
-  "version": "5.1.2",
+  "version": "5.2.0",
   "description": "",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -64,13 +64,13 @@
     "webpack": "4.41.3"
   },
   "peerDependencies": {
-    "@nestjs/core": "^5.1.0",
-    "@nestjs/common": "^5.1.0",
+    "@nestjs/core": "^5.2.0",
+    "@nestjs/common": "^5.2.0",
     "rxjs": "^6.2.2"
   },
   "devDependencies": {
-    "@nestjs/common": "^5.1.0",
-    "@nestjs/core": "^5.1.0",
+    "@nestjs/common": "^5.2.0",
+    "@nestjs/core": "^5.2.0",
     "@types/bcryptjs": "^2.4.1",
     "@types/bunyan": "^1.8.4",
     "@types/express-session": "^1.15.10",
