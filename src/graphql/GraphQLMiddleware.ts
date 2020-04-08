@@ -12,7 +12,7 @@ export class GraphQLMiddleware implements NestMiddleware {
 
   private generateSchema = () => {
     const appTypeDefs = fileLoader('./src/**/*.graphqls');
-    const libTypeDefs = fileLoader('./node_modules/@3wks/gae-node-nestjs/dist/**/*.graphqls');
+    const libTypeDefs = fileLoader('./node_modules/@mondomob/gae-node-nestjs/dist/**/*.graphqls');
 
     const typeDefs = mergeTypes([...appTypeDefs, ...libTypeDefs]);
 
