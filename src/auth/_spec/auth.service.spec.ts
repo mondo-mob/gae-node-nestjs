@@ -24,7 +24,7 @@ describe('AuthService', () => {
   const credentialRepository = mock(CredentialRepository);
   const context = mockContext();
   const userService = mock(AbstractUserService);
-  let authCallbacks: AuthCallbacks = {} as AuthCallbacks;
+  const authCallbacks: AuthCallbacks = {} as AuthCallbacks;
   let configuration: Configuration;
   let authService: AuthService;
 

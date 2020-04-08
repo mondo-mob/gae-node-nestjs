@@ -249,9 +249,6 @@ export class AuthService {
       updateUser: user => {
         const mergedProps = { ...user.props, ...props };
         const userRoles: string[] = replaceRolesWithIdpRoles ? roles : (user.roles as string[]) || [];
-        console.log('current roles are: %o', user.roles);
-        console.log('replace current roles: %s', replaceRolesWithIdpRoles);
-        console.log('userRoles to save: %o', userRoles);
         return this.userService.update(context, user.id, {
           ...user,
           roles: userRoles,
