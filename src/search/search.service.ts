@@ -5,7 +5,7 @@ import { Configuration, CONFIGURATION, createLogger } from '..';
 
 interface IndexEntry {
   id: string;
-  fields: { [key: string]: string };
+  fields: { [key: string]: object };
 }
 
 export interface Sort {
