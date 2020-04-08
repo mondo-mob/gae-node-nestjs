@@ -61,7 +61,7 @@
     "reflect-metadata": "^0.1.12",
     "tslib": "^1.9.3",
     "uuid": "^3.3.3",
-    "webpack": "4.41.3"
+    "webpack": "4.42.1"
   },
   "peerDependencies": {
     "@nestjs/core": "^5.2.0",
@@ -69,8 +69,8 @@
     "rxjs": "^6.2.2"
   },
   "devDependencies": {
-    "@nestjs/common": "^5.2.0",
-    "@nestjs/core": "^5.2.0",
+    "@nestjs/common": "5.7.4",
+    "@nestjs/core": "5.7.4",
     "@types/bcryptjs": "^2.4.1",
     "@types/bunyan": "^1.8.4",
     "@types/express-session": "^1.15.10",
@@ -93,7 +93,7 @@
     "rxjs": "^6.2.2",
     "ts-jest": "^24.1.0",
     "ts-mockito": "^2.5.0",
-    "tslint": "^5.20.0",
-    "typescript": "3.4.5"
+    "tslint": "5.20.1",
+    "typescript": "3.8.3"
   }
 }
