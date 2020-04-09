@@ -19,12 +19,9 @@ export const rootLogger: Logger = Logger.createLogger({
   streams,
 });
 
-export const createLogger = (name: string, opts: any = {}): Logger => {
-  return rootLogger.child({
-    service: name,
-    streams,
-    ...opts,
-  });
+export const createLogger = (_: string): Logger => {
+  // TODO: rootLogger.child() is not working and returns a stdout logger in raw format that does not work
+  return rootLogger;
 };
 
 export class BunyanLogger implements LoggerService {
