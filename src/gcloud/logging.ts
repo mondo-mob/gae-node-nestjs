@@ -20,7 +20,7 @@ export const rootLogger: Logger = Logger.createLogger({
 });
 
 export const createLogger = (_: string): Logger => {
-  // TODO: rootLogger.child() is not working and returns a stdout logger in raw format that does not work
+  // TODO: rootLogger.child() is not working and returns a stdout logger in raw json format in stackdriver that is hard to read
   return rootLogger;
 };
 
