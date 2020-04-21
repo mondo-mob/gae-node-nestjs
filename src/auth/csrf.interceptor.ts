@@ -1,5 +1,5 @@
 import { Response, NextFunction, RequestHandler } from 'express';
-import * as uuidv4 from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import { Request } from 'express-serve-static-core';
 
 const generateToken = () => (process.env.APP_ENGINE_ENVIRONMENT ? uuidv4() : 'development');

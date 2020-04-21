@@ -15,7 +15,7 @@ const keysEqual = (key1: Entity.Key, key2: Entity.Key) => {
   return _.isEqual(key1.path, key2.path);
 };
 
-const countEntities = (keys: Entity.Key[]) => {
+const countEntities = (keys: ReadonlyArray<Entity.Key>) => {
   const result = keys.reduce<Record<string, number>>((prev, current) => {
     if (!prev[current.kind]) {
       prev[current.kind] = 1;
@@ -76,8 +76,13 @@ export class DatastoreLoader {
     this.logger = createLogger('loader');
   }
 
-  public async get(id: Entity.Key[]): Promise<object[]> {
-    return await this.loader.loadMany(id);
+  public async get(ids: Entity.Key[]): Promise<object[]> {
+    const results = await this.loader.loadMany(ids);
+    const firstError = results.find((result) => result instanceof Error);
+    if (firstError) {
+      throw firstError;
+    }
+    return results;
   }
 
   /**
@@ -222,14 +227,14 @@ export class DatastoreLoader {
     values.forEach(value => updateLoader(this.loader, value));
   }
 
-  private load = async (keys: Entity.Key[]): Promise<Array<any | Error>> => {
+  private load = async (keys: ReadonlyArray<Entity.Key>): Promise<Array<any | Error>> => {
     const span = trace.get().createChildSpan({
       name: 'load-keys',
     });
     const prettyPrint = countEntities(keys);
     span.addLabel('entities', prettyPrint);
 
-    const [results] = await this.datastore.get(keys);
+    const [results] = await this.datastore.get([...keys]);
     span.endSpan();
     this.logger.debug('Fetched entities by key ', { entities: prettyPrint });
 

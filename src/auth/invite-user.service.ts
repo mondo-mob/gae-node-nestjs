@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as Logger from 'bunyan';
-import * as uuidv4 from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import { CONFIGURATION } from '../configuration';
 import { Context, IUser } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';

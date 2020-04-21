@@ -1,8 +1,8 @@
 /* tslint:disable:ban-types */
 import * as DatastoreStore from '@google-cloud/connect-datastore';
 import { Datastore } from '@google-cloud/datastore';
-import { CookieOptions, NextFunction, RequestHandler, Response } from 'express';
 import * as express from 'express';
+import { NextFunction, RequestHandler, Response } from 'express';
 import * as session from 'express-session';
 import * as csp from 'helmet-csp';
 import * as passport from 'passport';
@@ -14,6 +14,18 @@ import { ServeStaticOptions } from 'serve-static';
 const minutesToMilliseconds = (minutes: number) => minutes * 60 * 1000;
 
 const MAX_AGE_DEFAULT = minutesToMilliseconds(2 * 60); // 2 hours
+
+interface CookieOptions {
+  maxAge?: number;
+  signed?: boolean;
+  expires?: Date;
+  httpOnly?: boolean;
+  path?: string;
+  domain?: string;
+  secure?: boolean | 'auto';
+  encode?: (val: string) => string;
+  sameSite?: boolean | 'lax' | 'strict' | 'none';
+}
 
 interface ServerOptions {
   csp?: object;
