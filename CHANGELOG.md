@@ -1,4 +1,9 @@
-## 6.0.0-rc1 (2020-03-00)
+## 6.0.0-rc.1 (2020-04-21)
+
+ - Fix dependency issue loading graphql
+ - Update internal dependencies where not major breaking
+
+## 6.0.0-rc.0 (2020-03-00)
 
 - Update to NestJS 6
 
@@ -37,6 +42,11 @@ e.g.
     @GqlContext() context: Context,
   ): Promise<Recipient[]> {}
 ```
+
+
+## 5.2.0 (2020-04-08)
+ - Optional auth callbacks to build user roles and build additional user properties (backwards-compatible ... not required)
+ - To utilise create an `@Injectable` class that implements `AuthCallbacks` and define one or more methods
 
 ## 5.1.2 (2020-01-31)
 

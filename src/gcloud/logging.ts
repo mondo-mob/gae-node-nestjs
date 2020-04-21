@@ -19,9 +19,10 @@ export const rootLogger: Logger = Logger.createLogger({
   streams,
 });
 
-export const createLogger = (name: string): Logger => {
+export const createLogger = (name: string, opts: any = {}): Logger => {
   return rootLogger.child({
     service: name,
+    ...opts,
   });
 };
 

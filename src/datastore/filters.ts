@@ -31,7 +31,7 @@ interface Query {
 export const buildFilters = <T, Q extends Query>(query: Q, filters: Filters<T>, pathPrefix: string = ''): Q => {
   return Object.entries(filters).reduce<Query>((q, [key, value]) => {
     if (!isComplexFilter(value) && typeof value === 'object' && !Array.isArray(value)) {
-      return buildFilters(query, value, pathPrefix + `${key}.`);
+      return buildFilters(query, value!, pathPrefix + `${key}.`);
     }
 
     const parameterFilters = asArray(value);
