@@ -1,3 +1,6 @@
+## 6.0.1
+ - Non release candidate version. New version publish only
+
 ## 6.0.0-rc.2 (2020-04-21)
  - More internal dependency updates
 
