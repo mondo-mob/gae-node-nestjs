@@ -1,5 +1,7 @@
-## 6.0.0-rc.1 (2020-04-21)
+## 6.0.0-rc.2 (2020-04-21)
+ - More internal dependency updates
 
+## 6.0.0-rc.1 (2020-04-21)
  - Fix dependency issue loading graphql
  - Update internal dependencies where not major breaking
 
