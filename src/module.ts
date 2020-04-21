@@ -120,7 +120,7 @@ export class GCloudModule implements NestModule {
         GraphQLModule.forRoot({
           path: '/api/graphql',
           context: (props: any) => _.get(props.req, 'context'),
-          typePaths: ['./src/**/*.graphqls', './node_modules/@3wks/gae-node-nestjs/dist/**/*.graphqls'],
+          typePaths: ['./src/**/*.graphqls', './node_modules/@mondomob/gae-node-nestjs/dist/**/*.graphqls'],
           resolvers: {
             Time: GraphQLTime,
             DateAndTime: GraphQLDateTime,
