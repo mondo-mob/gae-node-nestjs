@@ -15,7 +15,7 @@
 ### Breaking changes:
 
 Lots of changes:
-- Follow official migration guide: [https://docs.nestjs.com/migration-guide]
+- Follow official migration guide: https://docs.nestjs.com/migration-guide
 - Add @nestjs/platform-express
 ```
 npm install @nestjs/platform-express
