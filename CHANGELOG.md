@@ -8,7 +8,8 @@ Migration notes:
  - Official migration guide https://docs.nestjs.com/migration-guide
  - Since our example project updated from nest v5 to v7 we can't be sure if this is new with v7 or v6 but modules now do not implicitly import nested modules. 
  A prime example is if module `A` imports Module `B` and Module `B` imports `ConfigurationModule`, then you will need to expliclty include `ConfigurationModule` 
- in Module `A`'s imports if it depends on components within that module.  
+ in Module `A`'s imports if it depends on components within that module. 
+ If you are affected by this it will be obvious when you start your server and see a message similar to `Nest can't resolve dependencies of MyProvider (?).  Please make sure that the argument XX at index [0] is available in the YY context`
 
 ## 6.0.1 (2020-04-21)
  - Non release candidate version. New version publish only
