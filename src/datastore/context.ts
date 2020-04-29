@@ -1,6 +1,6 @@
 import { DatastoreLoader } from './loader';
 import { Datastore } from '@google-cloud/datastore';
-import { createParamDecorator } from '@nestjs/common';
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import _ = require('lodash');
 import { Request } from 'express';
 
@@ -26,7 +26,13 @@ export interface IUser extends IUserCreateRequest {
   orgId?: string;
 }
 
-export const Ctxt = createParamDecorator((data, req) => req.context);
+export const Ctxt = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest();
+    return request.context;
+  },
+);
+
 
 export interface Context<User = IUser> {
   request: Request;

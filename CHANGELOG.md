@@ -1,3 +1,15 @@
+## 7.0.0-rc.1 (2020-04-29)
+ - Update to NestJS 7
+
+### Breaking Changes
+ - Potential breaking changes with NestJS 7. This is a smaller jump than v5 to v6.
+
+Migration notes:
+ - Official migration guide https://docs.nestjs.com/migration-guide
+ - Since our example project updated from nest v5 to v7 we can't be sure if this is new with v7 or v6 but modules now do not implicitly import nested modules. 
+ A prime example is if module `A` imports Module `B` and Module `B` imports `ConfigurationModule`, then you will need to expliclty include `ConfigurationModule` 
+ in Module `A`'s imports if it depends on components within that module.  
+
 ## 6.0.1 (2020-04-21)
  - Non release candidate version. New version publish only
 
@@ -15,7 +27,7 @@
 ### Breaking changes:
 
 Lots of changes:
-- Follow official migration guide: https://docs.nestjs.com/migration-guide
+- Follow official migration guide: https://docs.nestjs.com/v6/migration-guide
 - Add @nestjs/platform-express
 ```
 npm install @nestjs/platform-express
@@ -41,6 +53,10 @@ const request = getRequestFromExecutionContext(context);
 -- Add `@ResolveProperty()`, `@Parent` and `@GQLContext` annotations to any graphql property resolver methods
 e.g.
 ```
+ import { Parent, ResolveProperty, Resolver, Context as GqlContext } from '@nestjs/graphql';
+
+ ...
+
  @ResolveProperty('recipients')
   async recipients(
     @Parent() parent: Message,
