@@ -1,5 +1,20 @@
 ## 7.1.0-rc.1 (2020-05-12)
  - Use cls-hooked to have thread-local-like functionality within app. First real usage is to allow context to be retrieved with `getContext()`
+ 
+Example usage:
+```
+import { getContext } from '@mondomob/gae-node-nestjs';
+
+...
+class MyClass {
+
+    myFunc() {
+        const context = getContext();
+        // use it for the repositories, or to check access without requiring it as a parameter
+    }
+}
+
+```
 
 ## 7.0.0-rc.2 (2020-04-29)
  - Update to NestJS 7 (from rc.1)
