@@ -1,10 +1,10 @@
 import { anything, capture, instance, mock, reset, verify, when } from 'ts-mockito';
-import { IUser } from '../..';
-import { GmailSender } from '../../mail/gmail/gmail.sender';
-import { CredentialRepository, LoginCredentials, UserInvite, UserInviteRepository } from '../auth.repository';
-import { IInviteUserRequest, DEFAULT_INVITE_CODE_EXPIRY, InviteUserService } from '../invite-user.service';
-import { AbstractUserService } from '../user.service';
-import { mockContext } from './auth.service.spec';
+import { IUser } from '..';
+import { GmailSender } from '../mail/gmail/gmail.sender';
+import { CredentialRepository, LoginCredentials, UserInvite, UserInviteRepository } from './auth.repository';
+import { IInviteUserRequest, DEFAULT_INVITE_CODE_EXPIRY, InviteUserService } from './invite-user.service';
+import { AbstractUserService } from './user.service';
+import { mockContext } from './auth.service.test';
 
 describe('InviteUserService', () => {
   const credentialRepository = mock(CredentialRepository);

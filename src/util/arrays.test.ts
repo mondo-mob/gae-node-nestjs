@@ -1,4 +1,4 @@
-import { unique } from '../arrays';
+import { unique } from './arrays';
 
 describe('arrays', () => {
   describe('unique', () => {

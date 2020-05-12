@@ -1,3 +1,6 @@
+## 7.1.0-rc.1 (2020-05-12)
+ - Use cls-hooked to have thread-local-like functionality within app. First real usage is to allow context to be retrieved with `getContext()`
+
 ## 7.0.0-rc.2 (2020-04-29)
  - Update to NestJS 7 (from rc.1)
  - Require `express` `4.17.1` and set as `peerDependency`. Update internal types.

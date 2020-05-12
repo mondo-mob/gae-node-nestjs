@@ -1,4 +1,4 @@
-import { ForwardReference, Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { DynamicModule, ForwardReference, Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 import { AuthConfigurer } from './auth/auth.configurer';
@@ -14,7 +14,7 @@ import { Configuration } from './configuration';
 import { DatastoreProvider } from './datastore/datastore.provider';
 import { NotFoundFilter } from './filter';
 import { StorageProvider } from './gcloud/storage.provider';
-import { ContextMiddleware } from './interceptor';
+import { ContextMiddleware, ContextRequestScopeInterceptor } from './context';
 import { GmailConfigurer } from './mail/gmail/gmail.configurer';
 import { GmailController } from './mail/gmail/gmail.controller';
 import { GmailSender } from './mail/gmail/gmail.sender';
@@ -27,6 +27,12 @@ import { GraphQLDateTime, GraphQLTime } from 'graphql-iso-date';
 import * as _ from 'lodash';
 import { MailWhitelistSender } from './mail/mail-whitelist.sender';
 import { MailSubjectSender } from './mail/mail-subject.sender';
+import {
+  REQUEST_SCOPE_INTERCEPTORS,
+  RequestScopeInterceptor,
+  RequestScopeMiddleware,
+} from './request-scope/request-scope.middleware';
+import { Type } from '@nestjs/common/interfaces/type.interface';
 
 type ClassType = new (...args: any[]) => any;
 type ClassTypeOrReference = ClassType | ForwardReference<any>;
@@ -34,6 +40,7 @@ type ClassTypeOrReference = ClassType | ForwardReference<any>;
 export interface Options {
   configurationModule: ClassTypeOrReference;
   userModule: ClassTypeOrReference;
+  requestScopeInterceptors?: Type<RequestScopeInterceptor>[];
 }
 
 @Global()
@@ -58,6 +65,8 @@ export interface Options {
       useClass: NotFoundFilter,
     },
     ContextMiddleware,
+    ContextRequestScopeInterceptor,
+    RequestScopeMiddleware,
     {
       provide: MAIL_SENDER,
       useFactory: (config: Configuration, gmailConfigurer: GmailConfigurer) => {
@@ -108,10 +117,10 @@ export interface Options {
 })
 export class GCloudModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(ContextMiddleware).forRoutes('*');
+    consumer.apply(ContextMiddleware, RequestScopeMiddleware).forRoutes('*');
   }
 
-  static forConfiguration(options: Options) {
+  static forConfiguration(options: Options): DynamicModule {
     return {
       module: GCloudModule,
       imports: [
@@ -126,6 +135,13 @@ export class GCloudModule implements NestModule {
             DateAndTime: GraphQLDateTime,
           },
         }),
+      ],
+      providers: [
+        {
+          provide: REQUEST_SCOPE_INTERCEPTORS,
+          useFactory: (...interceptors: RequestScopeInterceptor[]) => interceptors,
+          inject: [ContextRequestScopeInterceptor, ...(options.requestScopeInterceptors || [])],
+        },
       ],
     };
   }

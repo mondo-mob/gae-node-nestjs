@@ -2,10 +2,7 @@ import { Inject, Injectable, NestMiddleware } from '@nestjs/common';
 import * as Logger from 'bunyan';
 import * as _ from 'lodash';
 import { Request, Response } from 'express';
-import { Context, IUser, newContext } from './datastore/context';
-import { DatastoreProvider } from './datastore/datastore.provider';
-import { USER_SERVICE, UserService } from './auth/user.service';
-import { createLogger } from './gcloud/logging';
+import { Context, createLogger, DatastoreProvider, IUser, newContext, USER_SERVICE, UserService } from '..';
 
 export interface RequestWithContext extends Request {
   context: Context;
@@ -22,7 +19,7 @@ export class ContextMiddleware implements NestMiddleware<RequestWithContext> {
     this.logger = createLogger('context-middleware');
   }
 
-  async use(req: RequestWithContext, res: Response, next: Function) {
+  async use(req: RequestWithContext, res: Response, next: () => void) {
     this.logger.info(`[${req.method}]: ${req.originalUrl}`);
 
     const requestContext = newContext(this.datastoreProvider.datastore);

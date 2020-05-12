@@ -1,9 +1,9 @@
 import { Options } from 'nodemailer/lib/mailer';
 import { capture, instance, mock } from 'ts-mockito';
-import { Configuration } from '../../configuration';
-import { MailDiverter } from '../mail.diverter';
-import { MailSender } from '../mail.sender';
-import { mockContext, MockMailSender, testConfiguration } from './mocks';
+import { Configuration } from '../configuration';
+import { MailDiverter } from './mail.diverter';
+import { MailSender } from './mail.sender';
+import { mockContext, MockMailSender, testConfiguration } from '../_test/mocks';
 
 describe('MailDiverter', () => {
   let diverter: MailDiverter;
