@@ -1,9 +1,8 @@
 import { createNamespace, Namespace } from 'cls-hooked';
-import { Inject, Injectable, NestMiddleware, Optional } from '@nestjs/common';
+import { Inject, Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { _REQUEST_STORAGE_NAMESPACE_KEY } from './request-scope';
 import { Configuration, CONFIGURATION, rootLogger } from '..';
-import { root } from 'rxjs/internal-compatibility';
 
 export interface RequestScopeInterceptor {
   /**

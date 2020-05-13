@@ -1,3 +1,39 @@
+## 7.1.0-rc.3 (2020-05-13)
+ - Consolidated logs per request! Logs will be grouped by http endpoint where a statement is made within a request. As per https://github.com/googleapis/nodejs-logging-bunyan#using-as-an-express-middleware. 
+   To use, always use the `logger()` function dynamically for _every_ log statement without holding a reference to it. When a request
+   logger cannot be obtained it will automatically use the `rootLogger`.
+   
+   ```
+    import { logger } from '@mondomob/gae-node-nestjs';
+    ...
+    myFunc() {
+        logger().info('My log statement');
+    }
+    ```
+### Breaking Changes
+  - `configureExpress()` is now an async function. Change your `bootstrap.ts` or equivalent. Add `await` to the call as per below.
+  
+```
+// BEFORE
+export async function bootstrap() {
+    ...
+    configureExpress(expressApp, {
+        ...
+    });
+}
+```
+
+```
+// AFTER
+export async function bootstrap() {
+    ...
+    await configureExpress(expressApp, {
+        ...
+    });
+}
+```    
+
+
 ## 7.1.0-rc.2 (2020-05-13)
  - Enable request scope by default but give projects option to disable (if performance is critical) with the addition of `"requestScope": {"enabled": false }` to your configuration file, and updating your configuration provider to expose a `get` function to expose `requestScope()`
  - Add extra convenience methods for request scope: `isRequestScopeEnabled()`, `getRequestScopeValueOrDefault()`

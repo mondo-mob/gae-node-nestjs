@@ -1,7 +1,6 @@
 export { Repository, dateType } from './datastore/repository';
 export { Transactional } from './datastore/transactional';
 export { DatastoreProvider } from './datastore/datastore.provider';
-export { createLogger, rootLogger, BunyanLogger } from './gcloud/logging';
 export { StorageProvider } from './gcloud/storage.provider';
 export { Context, isContext, newContext, IUser, IUserUpdates, IUserCreateRequest, Ctxt } from './datastore/context';
 export { TaskQueue } from './gcloud/tasks';
@@ -25,3 +24,4 @@ export * from './module';
 export * from './configure';
 export * from './context';
 export * from './util';
+export * from './logging';

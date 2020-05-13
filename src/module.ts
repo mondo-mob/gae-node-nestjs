@@ -33,6 +33,7 @@ import {
   RequestScopeMiddleware,
 } from './request-scope/request-scope.middleware';
 import { Type } from '@nestjs/common/interfaces/type.interface';
+import { LoggingRequestScopeInterceptor } from './logging/logging-request-scope';
 
 type ClassType = new (...args: any[]) => any;
 type ClassTypeOrReference = ClassType | ForwardReference<any>;
@@ -65,8 +66,9 @@ export interface Options {
       useClass: NotFoundFilter,
     },
     ContextMiddleware,
-    ContextRequestScopeInterceptor,
     RequestScopeMiddleware,
+    ContextRequestScopeInterceptor,
+    LoggingRequestScopeInterceptor,
     {
       provide: MAIL_SENDER,
       useFactory: (config: Configuration, gmailConfigurer: GmailConfigurer) => {
@@ -140,7 +142,11 @@ export class GCloudModule implements NestModule {
         {
           provide: REQUEST_SCOPE_INTERCEPTORS,
           useFactory: (...interceptors: RequestScopeInterceptor[]) => interceptors,
-          inject: [ContextRequestScopeInterceptor, ...(options.requestScopeInterceptors || [])],
+          inject: [
+            ContextRequestScopeInterceptor,
+            LoggingRequestScopeInterceptor,
+            ...(options.requestScopeInterceptors || []),
+          ],
         },
       ],
     };

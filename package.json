@@ -1,6 +1,6 @@
 {
   "name": "@mondomob/gae-node-nestjs",
-  "version": "7.1.0-rc.2",
+  "version": "7.1.0-rc.3",
   "description": "",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",

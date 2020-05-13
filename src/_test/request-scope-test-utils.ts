@@ -1,13 +1,12 @@
 import { instance, mock } from 'ts-mockito';
-import { RequestWithContext } from '..';
 import { RequestScopeInterceptor } from '../request-scope';
 import { RequestScopeMiddleware } from '../request-scope/request-scope.middleware';
 import { isMock, partialInstance } from './mocks';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
-export const interceptorTest = (
+export const interceptorTest = <T extends Request>(
   interceptor: RequestScopeInterceptor,
-  req: RequestWithContext,
+  req: T,
   testAssertions: () => void,
 ) => {
   const request = isMock(req) ? instance(req) : req;

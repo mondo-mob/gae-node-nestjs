@@ -10,6 +10,7 @@ import { CsrfValidatorWithOptions } from './auth/csrf.interceptor';
 import { rootLogger } from './gcloud/logging';
 import { asArray, OneOrMany } from './util/types';
 import { ServeStaticOptions } from 'serve-static';
+import * as lb from '@google-cloud/logging-bunyan';
 
 const minutesToMilliseconds = (minutes: number) => minutes * 60 * 1000;
 
@@ -56,8 +57,13 @@ interface Express {
   set(property: string, value: boolean): void;
 }
 
-export const configureExpress = (expressApp: Express, options: ServerOptions) => {
+export const configureExpress = async (expressApp: Express, options: ServerOptions) => {
   const SessionStore = DatastoreStore(session);
+
+  if (process.env.APP_ENGINE_ENVIRONMENT) {
+    const { mw } = await lb.express.middleware({ level: 'info' });
+    expressApp.use(mw);
+  }
 
   expressApp.use(
     csp(
@@ -134,7 +140,7 @@ export const configureExpress = (expressApp: Express, options: ServerOptions) =>
   // See https://stackoverflow.com/questions/27117337/exclude-route-from-express-middleware
   const unless = (exclusions: OneOrMany<string | RegExp>, middleware: RequestHandler) => {
     return (req: any, res: Response, next: NextFunction) => {
-      const matchesExclusion = asArray(exclusions).some(path =>
+      const matchesExclusion = asArray(exclusions).some((path) =>
         typeof path.test === 'function' ? (path as RegExp).test(req.path) : path === req.path,
       );
       matchesExclusion ? next() : middleware(req, res, next);

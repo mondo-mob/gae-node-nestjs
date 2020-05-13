@@ -12,7 +12,6 @@ export class ContextRequestScopeInterceptor implements RequestScopeInterceptor {
 
   intercept(req: RequestWithContext): void {
     if (req.context) {
-      rootLogger.info(`${this.name}: Setting context onto request scope`);
       setRequestScopeValue('_CONTEXT', req.context);
     } else {
       rootLogger.warn(
