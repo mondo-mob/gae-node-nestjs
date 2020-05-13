@@ -1,5 +1,4 @@
 import { getNamespace, Namespace } from 'cls-hooked';
-import { entity } from '@google-cloud/datastore/build/src/entity';
 import { isNil } from '@nestjs/common/utils/shared.utils';
 
 export const _REQUEST_STORAGE_NAMESPACE_KEY = '_GAE_NODE_NESTJS_REQUEST_STORAGE';
@@ -16,13 +15,46 @@ export class InvaidKeyException extends Error {
   }
 }
 
-const getActiveContext = (): Namespace => {
+const getActiveContextOptional = (): Namespace | null => {
   const context = getNamespace(_REQUEST_STORAGE_NAMESPACE_KEY);
 
   if (!context || !context.active) {
+    return null;
+  }
+  return context;
+};
+
+const getActiveContext = (): Namespace => {
+  const context = getActiveContextOptional();
+
+  if (!context) {
     throw new NoNamespaceException();
   }
   return context;
+};
+
+export const isRequestScopeEnabled = (): boolean => {
+  return getActiveContextOptional() !== null;
+};
+
+/**
+ * A safe way to attempt to get a value from request scope or return the default. The default value
+ * will be returned in one of two scenarios: when the namespace is not setup; or when the namespace
+ * does not contain a non-null value for the given key.
+ *
+ * @param key key to retrieve value for from request scope namespace
+ * @param defaultVal default value when request scope namespace is not active, or when there is no value in namespace
+ */
+export const getRequestScopeValueOrDefault = <T>(key: string, defaultVal: T): T => {
+  try {
+    const value = getRequestScopeValue<T>(key);
+    return isNil(value) ? defaultVal : value;
+  } catch (e) {
+    if (e instanceof NoNamespaceException) {
+      return defaultVal;
+    }
+    throw e;
+  }
 };
 
 export const getRequestScopeValue = <T>(key: string): T | null => {

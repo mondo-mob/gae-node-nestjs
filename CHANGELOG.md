@@ -1,3 +1,7 @@
+## 7.1.0-rc.2 (2020-05-13)
+ - Enable request scope by default but give projects option to disable (if performance is critical) with the addition of `"requestScope": {"enabled": false }` to your configuration file, and updating your configuration provider to expose a `get` function to expose `requestScope()`
+ - Add extra convenience methods for request scope: `isRequestScopeEnabled()`, `getRequestScopeValueOrDefault()`
+
 ## 7.1.0-rc.1 (2020-05-12)
  - Use cls-hooked to have thread-local-like functionality within app. First real usage is to allow context to be retrieved with `getContext()`
  

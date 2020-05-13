@@ -11,6 +11,10 @@ export interface Configuration {
   passwordTokenExpiry?: number;
   systemSecret: Buffer;
 
+  requestScope?: {
+    enabled?: boolean;
+  };
+
   auth: {
     fake?: {
       enabled?: boolean;

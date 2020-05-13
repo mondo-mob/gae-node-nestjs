@@ -31,5 +31,20 @@ export const mockContext = () => {
 };
 
 export class MockMailSender implements MailSender {
-  async send(context: Context<IUser>, mailOptions: Options): Promise<void> {}
+  async send(context: Context, mailOptions: Options): Promise<void> {}
 }
+
+export const isMock = (obj: any) => '__tsmockitoMocker' in obj;
+
+/**
+ * This is useful where a mock is too much or too hard (depending on what you're trying to mock).
+ * Calling this as a generic typed function allows returning only the parts of the object you're trying to mock.
+ * E.g., to mock a literal of a specific type:  e.g., Response from a call to fetch() where you only care are about the 'ok' property:
+ * <pre>
+ * const partialResponse = partialInstance<Response>({ok: true});
+ * </pre>
+ * @param props The properties on the partial instance you want to set
+ *
+ * @returns Created instance with only the properties you have set, not strictly adhering to the type's required properties.
+ */
+export const partialInstance = <T>(props: Partial<T> = {}): T => ({ ...props } as T);

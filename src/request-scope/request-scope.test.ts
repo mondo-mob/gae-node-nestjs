@@ -1,8 +1,10 @@
 import {
   _REQUEST_STORAGE_NAMESPACE_KEY,
   clearRequestScopeValue,
+  getRequestScopeValueOrDefault,
   getRequestScopeValue,
   getRequestScopeValueRequired,
+  isRequestScopeEnabled,
   setRequestScopeValue,
 } from './request-scope';
 import { createNamespace, reset } from 'cls-hooked';
@@ -108,6 +110,40 @@ describe('Request Scope', () => {
     it('throws exception when inactive namespace exists', () => {
       createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY);
       expect(() => clearRequestScopeValue('anything')).toThrowError('No active context namespace exists');
+    });
+  });
+
+  describe('isRequestScopeEnabled', () => {
+    it('returns false when namespace has not been created', () => {
+      expect(isRequestScopeEnabled()).toBe(false);
+    });
+    it('returns false when namespace is not active', () => {
+      createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY);
+      expect(isRequestScopeEnabled()).toBe(false);
+    });
+    it('returns true when request scope setup and this is called within scope', () => {
+      createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY).run(() => expect(isRequestScopeEnabled()).toBe(true));
+    });
+  });
+
+  describe('getRequestScopeValueOrDefault', () => {
+    it('returns default when namespace has not been created', () => {
+      expect(getRequestScopeValueOrDefault('my-key', 'my-default')).toBe('my-default');
+    });
+    it('returns default when namespace is not active', () => {
+      createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY);
+      expect(getRequestScopeValueOrDefault('my-key', 'my-default')).toBe('my-default');
+    });
+    it('returns default when request scope setup and value not set', () => {
+      createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY).run(() =>
+        expect(getRequestScopeValueOrDefault('my-key', 'my-default')).toBe('my-default'),
+      );
+    });
+    it('returns value when request scope setup and value IS set', () => {
+      createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY).run(() => {
+        setRequestScopeValue('my-key', 'my-value');
+        expect(getRequestScopeValueOrDefault('my-key', 'my-default')).toBe('my-value');
+      });
     });
   });
 });

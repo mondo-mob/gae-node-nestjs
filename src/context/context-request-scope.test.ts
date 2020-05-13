@@ -1,21 +1,18 @@
 import { RequestWithContext } from './context-middleware';
 import { reset } from 'cls-hooked';
 import { ContextRequestScopeInterceptor, getContext } from './context-request-scope';
-import { instance, mock, when } from 'ts-mockito';
+import { mock, when } from 'ts-mockito';
 import { mockContext } from '../auth/auth.service.test';
-import { RequestScopeMiddleware } from '../request-scope/request-scope.middleware';
-import { Response } from 'express';
+import { interceptorTest } from '../_test/request-scope-test-utils';
 
 describe('Context Request Scope', () => {
   let interceptor: ContextRequestScopeInterceptor;
   let req: RequestWithContext;
-  let res: Response;
 
   beforeEach(() => {
     reset();
     interceptor = new ContextRequestScopeInterceptor();
     req = mock<RequestWithContext>();
-    res = mock<Response>();
   });
   afterEach(() => {
     reset();
@@ -25,7 +22,7 @@ describe('Context Request Scope', () => {
     const context = mockContext();
     when(req.context).thenReturn(context);
 
-    new RequestScopeMiddleware([interceptor]).use(instance(req), res, () => {
+    interceptorTest(interceptor, req, () => {
       expect(getContext()).toEqual(context);
     });
   });
@@ -34,7 +31,7 @@ describe('Context Request Scope', () => {
     // @ts-ignore
     when(req.context).thenReturn(null);
 
-    new RequestScopeMiddleware([interceptor]).use(instance(req), res, () => {
+    interceptorTest(interceptor, req, () => {
       expect(() => getContext()).toThrowError('No request scoped value exists for key: _CONTEXT');
     });
   });
