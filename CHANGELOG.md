@@ -1,4 +1,4 @@
-## 7.1.0-rc.4 (2020-05-13)
+## 7.1.0-rc.4 (2020-05-18)
  - Preparing to have GA release and as such we will be disabling request local (cls-hooked) storage by default so that existing
  projects can safely upgrade and enable new features at their leisure. To enable request scope in general, and also enable log
  bundling via shared logger in request log you will need to add the following entry to your configuration. All loggers should be
