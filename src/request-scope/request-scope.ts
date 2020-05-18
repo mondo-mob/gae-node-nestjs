@@ -1,5 +1,6 @@
 import { getNamespace, Namespace } from 'cls-hooked';
 import { isNil } from '@nestjs/common/utils/shared.utils';
+import { RequestScopeMiddleware } from './request-scope.middleware';
 
 export const _REQUEST_STORAGE_NAMESPACE_KEY = '_GAE_NODE_NESTJS_REQUEST_STORAGE';
 
@@ -16,6 +17,11 @@ export class InvaidKeyException extends Error {
 }
 
 const getActiveContextOptional = (): Namespace | null => {
+  // Disabling means we can short-circuit any cls-hooked checks to avoid performance hits
+  if (RequestScopeMiddleware.isDisabled()) {
+    return null;
+  }
+
   const context = getNamespace(_REQUEST_STORAGE_NAMESPACE_KEY);
 
   if (!context || !context.active) {
@@ -33,6 +39,11 @@ const getActiveContext = (): Namespace => {
   return context;
 };
 
+const getValueFromContext = <T>(context: Namespace, key: string): T => {
+  const value = context.get(key);
+  return isNil(value) ? null : value;
+};
+
 export const isRequestScopeEnabled = (): boolean => {
   return getActiveContextOptional() !== null;
 };
@@ -46,21 +57,20 @@ export const isRequestScopeEnabled = (): boolean => {
  * @param defaultVal default value when request scope namespace is not active, or when there is no value in namespace
  */
 export const getRequestScopeValueOrDefault = <T>(key: string, defaultVal: T): T => {
-  try {
-    const value = getRequestScopeValue<T>(key);
-    return isNil(value) ? defaultVal : value;
-  } catch (e) {
-    if (e instanceof NoNamespaceException) {
-      return defaultVal;
+  const context = getActiveContextOptional();
+
+  if (context) {
+    const value = getValueFromContext<T>(context, key);
+    if (!isNil(value)) {
+      return value;
     }
-    throw e;
   }
+  return defaultVal;
 };
 
 export const getRequestScopeValue = <T>(key: string): T | null => {
   const context = getActiveContext();
-  const value = context.get(key);
-  return isNil(value) ? null : value;
+  return getValueFromContext(context, key);
 };
 
 export const getRequestScopeValueRequired = <T>(key: string): T => {

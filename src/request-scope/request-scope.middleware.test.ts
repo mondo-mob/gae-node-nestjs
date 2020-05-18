@@ -19,6 +19,10 @@ class TestInterceptor implements RequestScopeInterceptor {
   }
 }
 
+function requestScopeMiddleware(config: Configuration) {
+  return new RequestScopeMiddleware(config, [new TestInterceptor()]);
+}
+
 describe('RequestScopeInterceptor', () => {
   let req: Request;
   let res: Response;
@@ -36,23 +40,9 @@ describe('RequestScopeInterceptor', () => {
 
   it('calls interceptors and shares request scope with anything within next function', () => {
     config.requestScope = { enabled: true };
-    const middleware = new RequestScopeMiddleware(config, [new TestInterceptor()]);
     let called = false;
 
-    middleware.use(req, res, () => {
-      expect(getRequestScopeValueRequired('test-key')).toBe('test-value');
-      expect(getRequestScopeValue('something-does-not-exist')).toBeNull();
-      called = true;
-    });
-
-    expect(called).toBeTruthy();
-  });
-
-  it('is still enabled when no config is set for request scope (default enabled)', () => {
-    const middleware = new RequestScopeMiddleware(config, [new TestInterceptor()]);
-    let called = false;
-
-    middleware.use(req, res, () => {
+    requestScopeMiddleware(config).use(req, res, () => {
       expect(getRequestScopeValueRequired('test-key')).toBe('test-value');
       expect(getRequestScopeValue('something-does-not-exist')).toBeNull();
       called = true;
@@ -63,10 +53,21 @@ describe('RequestScopeInterceptor', () => {
 
   it('calls next function but does not setup any request scope when disabled by config', () => {
     config.requestScope = { enabled: false };
-    const middleware = new RequestScopeMiddleware(config, [new TestInterceptor()]);
     let called = false;
 
-    middleware.use(req, res, () => {
+    requestScopeMiddleware(config).use(req, res, () => {
+      expect(isRequestScopeEnabled()).toBe(false);
+      expect(() => getRequestScopeValueRequired('test-key')).toThrowError('No active context namespace exists');
+      called = true;
+    });
+
+    expect(called).toBeTruthy();
+  });
+
+  it('is disabled by default when no config is set for request scope', () => {
+    let called = false;
+
+    requestScopeMiddleware(config).use(req, res, () => {
       expect(isRequestScopeEnabled()).toBe(false);
       expect(() => getRequestScopeValueRequired('test-key')).toThrowError('No active context namespace exists');
       called = true;

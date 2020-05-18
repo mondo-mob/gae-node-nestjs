@@ -1,3 +1,16 @@
+## 7.1.0-rc.4 (2020-05-13)
+ - Preparing to have GA release and as such we will be disabling request local (cls-hooked) storage by default so that existing
+ projects can safely upgrade and enable new features at their leisure. To enable request scope in general, and also enable log
+ bundling via shared logger in request log you will need to add the following entry to your configuration. All loggers should be
+ obtained at runtime using `logger()` as documented below and you can toggle the behaviour with the config below.
+ 
+```    
+  "requestScope": {
+    "enabled": true,
+    "logBundlingEnabled": true
+  },
+```
+
 ## 7.1.0-rc.3 (2020-05-13)
  - Consolidated logs per request! Logs will be grouped by http endpoint where a statement is made within a request. As per https://github.com/googleapis/nodejs-logging-bunyan#using-as-an-express-middleware. 
    To use, always use the `logger()` function dynamically for _every_ log statement without holding a reference to it. When a request

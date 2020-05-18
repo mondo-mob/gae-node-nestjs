@@ -13,6 +13,7 @@ export interface Configuration {
 
   requestScope?: {
     enabled?: boolean;
+    logBundlingEnabled?: boolean;
   };
 
   auth: {

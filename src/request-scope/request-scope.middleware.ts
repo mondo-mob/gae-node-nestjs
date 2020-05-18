@@ -20,16 +20,15 @@ export const REQUEST_SCOPE_INTERCEPTORS = 'REQ_SCOPE_INTERCEPTORS';
 @Injectable()
 export class RequestScopeMiddleware implements NestMiddleware {
   private readonly namespace?: Namespace;
-  private readonly enabled: boolean;
+  private static enabled: boolean;
 
   constructor(
     @Inject(CONFIGURATION) configurationProvider: Configuration,
     @Inject(REQUEST_SCOPE_INTERCEPTORS) private readonly interceptors: RequestScopeInterceptor[],
   ) {
-    // Enabled by default
-    const disabled = configurationProvider.requestScope?.enabled === false;
-    this.enabled = !disabled;
-    if (this.enabled) {
+    // Disabled by default
+    RequestScopeMiddleware.enabled = !!configurationProvider.requestScope?.enabled;
+    if (RequestScopeMiddleware.enabled) {
       this.namespace = createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY);
       const interceptorNames = interceptors.map((interceptor) => `   - ${interceptor.name}`).join('\n');
       rootLogger.info(`RequestScopeMiddleware setup up with interceptors: \n${interceptorNames}`);
@@ -49,5 +48,13 @@ export class RequestScopeMiddleware implements NestMiddleware {
     } else {
       next();
     }
+  }
+
+  static isEnabled() {
+    return RequestScopeMiddleware.enabled;
+  }
+
+  static isDisabled() {
+    return !RequestScopeMiddleware.isEnabled();
   }
 }

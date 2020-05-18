@@ -8,9 +8,18 @@ import {
   setRequestScopeValue,
 } from './request-scope';
 import { createNamespace, reset } from 'cls-hooked';
+import { RequestScopeMiddleware } from './request-scope.middleware';
+import { partialInstance } from '../_test/mocks';
+import { Configuration } from '../configuration';
+
+const requestScopeMiddleware = (enabled: boolean) => {
+  const config = partialInstance<Configuration>({ requestScope: { enabled } });
+  return new RequestScopeMiddleware(config, []);
+};
 
 describe('Request Scope', () => {
   beforeEach(() => {
+    requestScopeMiddleware(true);
     reset();
   });
   afterEach(() => {
@@ -18,21 +27,6 @@ describe('Request Scope', () => {
   });
 
   describe('getRequestScopeValue', () => {
-    it('throws exception when no namespace exists', () => {
-      expect(() => getRequestScopeValue('anything')).toThrowError('No active context namespace exists');
-    });
-
-    it('throws exception when inactive namespace exists', () => {
-      createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY);
-      expect(() => getRequestScopeValue('anything')).toThrowError('No active context namespace exists');
-    });
-
-    it('returns null when active namespace exists with no value for key', () => {
-      createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY).run(() => {
-        expect(getRequestScopeValue('does-not-exist')).toBeNull();
-      });
-    });
-
     it('returns typed value when value has been set', () => {
       createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY).run(() => {
         setRequestScopeValue('my-key', 99);
@@ -51,6 +45,29 @@ describe('Request Scope', () => {
 
         expect(value).toBe(0);
       });
+    });
+
+    it('returns null when active namespace exists with no value for key', () => {
+      createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY).run(() => {
+        expect(getRequestScopeValue('does-not-exist')).toBeNull();
+      });
+    });
+
+    it('throws exception when middleware created without request scope enabled', () => {
+      requestScopeMiddleware(false);
+
+      createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY).run(() => {
+        expect(() => getRequestScopeValue('anything')).toThrowError('No active context namespace exists');
+      });
+    });
+
+    it('throws exception when no namespace exists', () => {
+      expect(() => getRequestScopeValue('anything')).toThrowError('No active context namespace exists');
+    });
+
+    it('throws exception when inactive namespace exists', () => {
+      createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY);
+      expect(() => getRequestScopeValue('anything')).toThrowError('No active context namespace exists');
     });
   });
 

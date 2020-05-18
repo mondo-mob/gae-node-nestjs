@@ -4,7 +4,7 @@ import { interceptorTest } from '../_test/request-scope-test-utils';
 import { logger, LoggingRequestScopeInterceptor, RequestWithLog } from './logging-request-scope';
 import * as Logger from 'bunyan';
 import { partialInstance } from '../_test/mocks';
-import { rootLogger } from '..';
+import { Configuration, rootLogger } from '..';
 
 describe('Context Request Scope', () => {
   let interceptor: LoggingRequestScopeInterceptor;
@@ -13,7 +13,9 @@ describe('Context Request Scope', () => {
 
   beforeEach(() => {
     reset();
-    interceptor = new LoggingRequestScopeInterceptor();
+    interceptor = new LoggingRequestScopeInterceptor(
+      partialInstance<Configuration>({ requestScope: { logBundlingEnabled: true } }),
+    );
     testLogger = partialInstance();
     req = mock<RequestWithLog>();
   });
@@ -21,7 +23,7 @@ describe('Context Request Scope', () => {
     reset();
   });
 
-  it('sets logger on request scope when log exists on req', () => {
+  it('sets logger on request scope when enabled and log exists on req', () => {
     when(req.log).thenReturn(testLogger);
 
     interceptorTest(interceptor, req, () => {
@@ -30,8 +32,30 @@ describe('Context Request Scope', () => {
     });
   });
 
-  it('safely ignores logger in interceptor when req.log is null and logger() returns rootLogger by default', () => {
+  it('safely ignores logger in interceptor when enabled req.log is null and logger() returns rootLogger by default', () => {
     when(req.log).thenReturn(undefined);
+
+    interceptorTest(interceptor, req, () => {
+      expect(logger()).toBe(rootLogger);
+      expect(logger()).not.toBe(testLogger);
+    });
+  });
+
+  it('safely ignores logger in interceptor when disabled by config', () => {
+    interceptor = new LoggingRequestScopeInterceptor(
+      partialInstance<Configuration>({ requestScope: { logBundlingEnabled: false } }),
+    );
+    when(req.log).thenReturn(testLogger);
+
+    interceptorTest(interceptor, req, () => {
+      expect(logger()).toBe(rootLogger);
+      expect(logger()).not.toBe(testLogger);
+    });
+  });
+
+  it('safely ignores logger in interceptor when config not set (disabled by default)', () => {
+    interceptor = new LoggingRequestScopeInterceptor(partialInstance());
+    when(req.log).thenReturn(testLogger);
 
     interceptorTest(interceptor, req, () => {
       expect(logger()).toBe(rootLogger);
