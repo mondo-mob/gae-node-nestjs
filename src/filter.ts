@@ -1,8 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, NotFoundException } from '@nestjs/common';
 import { Request, Response } from 'express';
 import * as path from 'path';
-import { createLogger } from './gcloud/logging';
-import * as Logger from 'bunyan';
+import { createLogger, Logger } from './logging';
 
 // Manually save session to ensure it's fully saved before returning index page
 // Otherwise browser can start sending new requests before session is saved causing

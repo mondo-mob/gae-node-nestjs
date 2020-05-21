@@ -1,6 +1,6 @@
 import { anyFunction, instance, mock, when } from 'ts-mockito';
 import { DatastoreLoader } from '../datastore/loader';
-import { Configuration, Context, IUser, MailSender } from '..';
+import { Configuration, Context, MailSender } from '..';
 import { Options } from 'nodemailer/lib/mailer';
 
 export const testConfiguration = (overrides?: Partial<Configuration>): Configuration => ({

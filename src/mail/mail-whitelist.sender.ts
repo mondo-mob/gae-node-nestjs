@@ -1,9 +1,8 @@
-import * as Logger from 'bunyan';
 import { castArray } from 'lodash';
 import { Address, Options } from 'nodemailer/lib/mailer';
 import { Configuration } from '../configuration';
 import { Context } from '../datastore/context';
-import { createLogger } from '../gcloud/logging';
+import { createLogger, Logger } from '../logging';
 import { MailSender } from './mail.sender';
 import { isEmpty } from '../util/guards';
 import { MailLoggingSender } from './mail-logging.sender';
@@ -46,12 +45,12 @@ export class MailWhitelistSender implements MailSender {
     if (typeof actualAddresses === 'string') {
       const addresses = actualAddresses.split(',');
       return addresses
-        .map(address => address.trim())
-        .filter(address => this.filterAddress(address))
+        .map((address) => address.trim())
+        .filter((address) => this.filterAddress(address))
         .join(',');
     }
 
-    return castArray(actualAddresses).filter(address => this.filterAddress(address));
+    return castArray(actualAddresses).filter((address) => this.filterAddress(address));
   };
 
   private filterAddress = (address: string | Address): boolean => {

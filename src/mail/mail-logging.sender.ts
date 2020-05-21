@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import * as Logger from 'bunyan';
 import { Options } from 'nodemailer/lib/mailer';
 import { Context } from '../datastore/context';
-import { createLogger } from '../gcloud/logging';
+import { createLogger, Logger } from '../logging';
 import { MailSender } from './mail.sender';
 import * as htmlToText from 'html-to-text';
 

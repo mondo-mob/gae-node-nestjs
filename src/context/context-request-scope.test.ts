@@ -2,8 +2,8 @@ import { RequestWithContext } from './context-middleware';
 import { reset } from 'cls-hooked';
 import { ContextRequestScopeInterceptor, getContext } from './context-request-scope';
 import { mock, when } from 'ts-mockito';
-import { mockContext } from '../auth/auth.service.test';
 import { interceptorTest } from '../_test/request-scope-test-utils';
+import { mockContext } from '../_test/mocks';
 
 describe('Context Request Scope', () => {
   let interceptor: ContextRequestScopeInterceptor;

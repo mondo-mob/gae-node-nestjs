@@ -1,24 +1,11 @@
 import { omit } from 'lodash';
 import { anyFunction, anything, instance, mock, objectContaining, reset, verify, when } from 'ts-mockito';
-import { Context } from '..';
 import { Configuration } from '../configuration';
-import { DatastoreLoader } from '../datastore/loader';
 import { CredentialRepository } from './auth.repository';
 import { AuthService, hashPassword } from './auth.service';
 import { AbstractUserService } from './user.service';
 import { AuthCallbacks } from './auth.callbacks';
-
-export const mockContext = () => {
-  const datastoreLoader = mock(DatastoreLoader);
-
-  const context = {
-    datastore: instance(datastoreLoader),
-  } as Context;
-
-  when(datastoreLoader.inTransaction(anyFunction())).thenCall((cb: any) => cb(context));
-
-  return context;
-};
+import { mockContext } from '../_test/mocks';
 
 describe('AuthService', () => {
   const credentialRepository = mock(CredentialRepository);

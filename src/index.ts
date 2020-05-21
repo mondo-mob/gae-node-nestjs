@@ -1,3 +1,4 @@
+export { rootLogger, createLogger, BunyanLogger, Logger } from './logging';
 export { Repository, dateType } from './datastore/repository';
 export { Transactional } from './datastore/transactional';
 export { DatastoreProvider } from './datastore/datastore.provider';
@@ -24,4 +25,3 @@ export * from './module';
 export * from './configure';
 export * from './context';
 export * from './util';
-export * from './logging';

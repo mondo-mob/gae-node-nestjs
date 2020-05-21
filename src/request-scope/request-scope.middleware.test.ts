@@ -1,4 +1,4 @@
-import { RequestScopeInterceptor, RequestScopeMiddleware } from './request-scope.middleware';
+import { RequestScopeMiddleware } from './request-scope.middleware';
 import {
   getRequestScopeValue,
   getRequestScopeValueRequired,
@@ -10,6 +10,7 @@ import { mock } from 'ts-mockito';
 import { reset } from 'cls-hooked';
 import { Configuration } from '../configuration';
 import { partialInstance } from '../_test/mocks';
+import { RequestScopeInterceptor } from './request-scope-interceptor';
 
 class TestInterceptor implements RequestScopeInterceptor {
   name = 'test-interceptor';

@@ -1,15 +1,16 @@
 import { HttpException, HttpStatus, Inject, Injectable, Optional } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import * as Logger from 'bunyan';
 import * as emails from 'email-addresses';
 import * as t from 'io-ts';
 import { reporter } from 'io-ts-reporters';
 import { isNil } from 'lodash';
-import { Configuration, Context, createLogger, IUser, IUserCreateRequest, normaliseEmail, Transactional } from '..';
-import { CONFIGURATION } from '../configuration';
+import { Configuration, CONFIGURATION } from '../configuration';
 import { CredentialRepository, ExternalAuthType, LoginCredentials } from './auth.repository';
-import { USER_SERVICE, UserService } from './user.service';
+import { normaliseEmail, USER_SERVICE, UserService } from './user.service';
 import { AUTH_CALLBACKS, AuthCallbacks } from './auth.callbacks';
+import { createLogger, Logger } from '../logging';
+import { Context, IUser, IUserCreateRequest } from '../datastore/context';
+import { Transactional } from '../datastore/transactional';
 
 const userProfile = t.interface({
   id: t.string, // username
@@ -136,7 +137,7 @@ export class AuthService {
     }
 
     const profile = validationResult.value;
-    const accountEmails = profile.emails.find(accountEmail => accountEmail.verified);
+    const accountEmails = profile.emails.find((accountEmail) => accountEmail.verified);
 
     if (!accountEmails) {
       throw new AuthenticationFailedException('No credentials found for user');
@@ -246,7 +247,7 @@ export class AuthService {
           enabled: true,
         };
       },
-      updateUser: user => {
+      updateUser: (user) => {
         const mergedProps = { ...user.props, ...props };
         const userRoles: string[] = replaceRolesWithIdpRoles ? roles : (user.roles as string[]) || [];
         return this.userService.update(context, user.id, {
@@ -271,7 +272,7 @@ export class AuthService {
         props,
         enabled: true,
       }),
-      updateUser: user => {
+      updateUser: (user) => {
         user.name = name;
         user.roles = roles;
         user.orgId = orgId;
@@ -373,7 +374,7 @@ export class AuthService {
   }
 
   private toName(profile: SimpleUserProfile) {
-    return [profile.firstName, profile.lastName].filter(part => !isNil(part)).join(' ');
+    return [profile.firstName, profile.lastName].filter((part) => !isNil(part)).join(' ');
   }
 }
 

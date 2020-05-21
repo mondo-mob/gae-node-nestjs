@@ -3,10 +3,9 @@ import { MailSender } from '../mail.sender';
 import { GmailConfigurer } from './gmail.configurer';
 import { createTransport, SentMessageInfo } from 'nodemailer';
 import { Options } from 'nodemailer/lib/mailer';
-import * as Logger from 'bunyan';
 import { CONFIGURATION, Configuration } from '../../configuration';
 import { Context } from '../../datastore/context';
-import { createLogger } from '../../gcloud/logging';
+import { createLogger, Logger } from '../../logging';
 
 @Injectable()
 export class GmailSender implements MailSender {

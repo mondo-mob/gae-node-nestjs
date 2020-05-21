@@ -27,16 +27,13 @@ import { GraphQLDateTime, GraphQLTime } from 'graphql-iso-date';
 import * as _ from 'lodash';
 import { MailWhitelistSender } from './mail/mail-whitelist.sender';
 import { MailSubjectSender } from './mail/mail-subject.sender';
-import {
-  REQUEST_SCOPE_INTERCEPTORS,
-  RequestScopeInterceptor,
-  RequestScopeMiddleware,
-} from './request-scope/request-scope.middleware';
+import { REQUEST_SCOPE_INTERCEPTORS, RequestScopeMiddleware } from './request-scope/request-scope.middleware';
 import { Type } from '@nestjs/common/interfaces/type.interface';
 import { LoggingRequestScopeInterceptor } from './logging/logging-request-scope';
+import { RequestScopeInterceptor } from './request-scope';
 
 type ClassType = new (...args: any[]) => any;
-type ClassTypeOrReference = ClassType | ForwardReference<any>;
+type ClassTypeOrReference = ClassType | ForwardReference;
 
 export interface Options {
   configurationModule: ClassTypeOrReference;

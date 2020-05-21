@@ -1,8 +1,6 @@
 import { getNamespace, Namespace } from 'cls-hooked';
 import { isNil } from '@nestjs/common/utils/shared.utils';
-import { RequestScopeMiddleware } from './request-scope.middleware';
-
-export const _REQUEST_STORAGE_NAMESPACE_KEY = '_GAE_NODE_NESTJS_REQUEST_STORAGE';
+import { _REQUEST_STORAGE_NAMESPACE_KEY, RequestScopeMiddleware } from './request-scope.middleware';
 
 export class NoNamespaceException extends Error {
   constructor(message?: string) {
@@ -10,7 +8,7 @@ export class NoNamespaceException extends Error {
   }
 }
 
-export class InvaidKeyException extends Error {
+export class InvalidKeyException extends Error {
   constructor(key: string) {
     super(`No request scoped value exists for key: ${key}`);
   }
@@ -76,7 +74,7 @@ export const getRequestScopeValue = <T>(key: string): T | null => {
 export const getRequestScopeValueRequired = <T>(key: string): T => {
   const nullable = getRequestScopeValue<T>(key);
   if (nullable === null) {
-    throw new InvaidKeyException(key);
+    throw new InvalidKeyException(key);
   }
   return nullable;
 };

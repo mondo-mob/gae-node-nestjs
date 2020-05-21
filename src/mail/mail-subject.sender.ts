@@ -1,10 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import * as Logger from 'bunyan';
 import { isEmpty } from 'lodash';
 import { Options } from 'nodemailer/lib/mailer';
 import { CONFIGURATION, Configuration } from '../configuration';
 import { Context } from '../datastore/context';
-import { createLogger } from '../gcloud/logging';
+import { createLogger, Logger } from '../logging';
 import { MailSender } from './mail.sender';
 
 @Injectable()

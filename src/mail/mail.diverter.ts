@@ -1,10 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import * as Logger from 'bunyan';
 import { isEmpty, replace } from 'lodash';
 import { Address, Options } from 'nodemailer/lib/mailer';
 import { CONFIGURATION, Configuration } from '../configuration';
 import { Context } from '../datastore/context';
-import { createLogger } from '../gcloud/logging';
+import { createLogger, Logger } from '../logging';
 import { MailSender } from './mail.sender';
 
 @Injectable()
@@ -38,7 +37,7 @@ export class MailDiverter implements MailSender {
       // @ts-ignore
       const divertedFromAddresses = this.getDivertedFromAddressesAsString(actualAddresses);
       // @ts-ignore
-      return this.configurationProvider.devHooks.divertEmailTo.map(divertToAddress => {
+      return this.configurationProvider.devHooks.divertEmailTo.map((divertToAddress) => {
         return {
           name: divertedFromAddresses,
           address: divertToAddress,
@@ -56,7 +55,7 @@ export class MailDiverter implements MailSender {
     }
     // Extract raw email address and concatenate into a comma separated string
     const justAddresses = addressList
-      .map(address => {
+      .map((address) => {
         if (typeof address === 'string') {
           return address.trim();
         }

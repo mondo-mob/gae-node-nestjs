@@ -1,3 +1,15 @@
+## 7.1.0-rc.5 (2020-05-20)
+ - API change for using the logger. No more `logger()` function to obtain it - use the same `rootLogger` and `createLogger` that
+ you were using before and when you go to `.debug(..)`, `info(..)` etc on that logger it will dynamically decide whether to use log
+ bundling or not based on your config. In order to support this we had to slightly change the interface of the `Logger` we return to
+ not be the raw bunyan logging interface, but a subset that only contains the relevant functions for making log statements
+ 
+### Breaking Changes
+ - If you used `logger()` from the previous 2 RCs this has been removed in favour of the old ways to get logger
+ - Replace `import * as Logger from 'bunyan'` and `import Logger = require('bunyan')` with `import { Logger } from '@mondomob/gae-node-nestjs'`
+ - `createLogger()` no longer has an optional second argument to allow override of options (although this was only available briefly and you most likely were never using that)
+
+
 ## 7.1.0-rc.4 (2020-05-18)
  - Preparing to have GA release and as such we will be disabling request local (cls-hooked) storage by default so that existing
  projects can safely upgrade and enable new features at their leisure. To enable request scope in general, and also enable log

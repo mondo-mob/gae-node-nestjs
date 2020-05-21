@@ -1,6 +1,5 @@
 import { Datastore } from '@google-cloud/datastore';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import * as Logger from 'bunyan';
 import { Request } from 'express';
 import { decode } from 'jsonwebtoken';
 import { get } from 'lodash';
@@ -11,12 +10,12 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { IVerifyOptions, Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as OidcStrategy } from 'passport-openidconnect';
 import { Strategy as SamlStrategy } from 'passport-saml';
-import { newContext } from '../datastore/context';
+import { IUser, newContext } from '../datastore/context';
 import { DatastoreProvider } from '../datastore/datastore.provider';
-import { createLogger } from '../gcloud/logging';
-import { Configuration, IUser } from '../index';
+import { createLogger, Logger } from '../logging';
 import { AuthenticationFailedException, AuthService } from './auth.service';
 import { USER_SERVICE, UserService } from './user.service';
+import { Configuration } from '../configuration';
 
 const GOOGLE_SIGNIN = 'google';
 const SAML_SIGNIN = 'saml';

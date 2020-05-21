@@ -1,5 +1,4 @@
 import {
-  _REQUEST_STORAGE_NAMESPACE_KEY,
   clearRequestScopeValue,
   getRequestScopeValueOrDefault,
   getRequestScopeValue,
@@ -8,7 +7,7 @@ import {
   setRequestScopeValue,
 } from './request-scope';
 import { createNamespace, reset } from 'cls-hooked';
-import { RequestScopeMiddleware } from './request-scope.middleware';
+import { _REQUEST_STORAGE_NAMESPACE_KEY, RequestScopeMiddleware } from './request-scope.middleware';
 import { partialInstance } from '../_test/mocks';
 import { Configuration } from '../configuration';
 

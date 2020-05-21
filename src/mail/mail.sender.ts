@@ -1,8 +1,8 @@
 import { Options } from 'nodemailer/lib/mailer';
-import { Context, IUser } from '..';
+import { Context } from '../datastore/context';
 
 export interface MailSender {
-  send(context: Context<IUser>, mailOptions: Options): Promise<void>;
+  send(context: Context, mailOptions: Options): Promise<void>;
 }
 
 export const MAIL_SENDER = 'MailSender';

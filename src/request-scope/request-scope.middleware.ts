@@ -1,20 +1,11 @@
 import { createNamespace, Namespace } from 'cls-hooked';
 import { Inject, Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { _REQUEST_STORAGE_NAMESPACE_KEY } from './request-scope';
-import { Configuration, CONFIGURATION, rootLogger } from '..';
+import { RequestScopeInterceptor } from './request-scope-interceptor';
+import { defaultLogger } from '../logging/logging-internal';
+import { Configuration, CONFIGURATION } from '../configuration';
 
-export interface RequestScopeInterceptor {
-  /**
-   * Name of the interceptor for logging and auditing purposes.
-   */
-  readonly name: string;
-  /**
-   * Hook to intercept request and set values into request-scope, specifically for the lifecycle of the given request.
-   */
-  intercept(req: Request): void;
-}
-
+export const _REQUEST_STORAGE_NAMESPACE_KEY = '_GAE_NODE_NESTJS_REQUEST_STORAGE';
 export const REQUEST_SCOPE_INTERCEPTORS = 'REQ_SCOPE_INTERCEPTORS';
 
 @Injectable()
@@ -31,9 +22,9 @@ export class RequestScopeMiddleware implements NestMiddleware {
     if (RequestScopeMiddleware.enabled) {
       this.namespace = createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY);
       const interceptorNames = interceptors.map((interceptor) => `   - ${interceptor.name}`).join('\n');
-      rootLogger.info(`RequestScopeMiddleware setup up with interceptors: \n${interceptorNames}`);
+      defaultLogger.info(`RequestScopeMiddleware setup up with interceptors: \n${interceptorNames}`);
     } else {
-      rootLogger.info('RequestScopeMiddleware disabled by config');
+      defaultLogger.info('RequestScopeMiddleware disabled by config');
     }
   }
 

@@ -2,9 +2,10 @@ import { reset } from 'cls-hooked';
 import { mock, when } from 'ts-mockito';
 import { interceptorTest } from '../_test/request-scope-test-utils';
 import { logger, LoggingRequestScopeInterceptor, RequestWithLog } from './logging-request-scope';
-import * as Logger from 'bunyan';
 import { partialInstance } from '../_test/mocks';
-import { Configuration, rootLogger } from '..';
+import * as Logger from 'bunyan';
+import { defaultLogger } from './logging-internal';
+import { Configuration } from '../configuration';
 
 describe('Context Request Scope', () => {
   let interceptor: LoggingRequestScopeInterceptor;
@@ -28,7 +29,7 @@ describe('Context Request Scope', () => {
 
     interceptorTest(interceptor, req, () => {
       expect(logger()).toBe(testLogger);
-      expect(logger()).not.toBe(rootLogger);
+      expect(logger()).not.toBe(defaultLogger);
     });
   });
 
@@ -36,7 +37,7 @@ describe('Context Request Scope', () => {
     when(req.log).thenReturn(undefined);
 
     interceptorTest(interceptor, req, () => {
-      expect(logger()).toBe(rootLogger);
+      expect(logger()).toBe(defaultLogger);
       expect(logger()).not.toBe(testLogger);
     });
   });
@@ -48,7 +49,7 @@ describe('Context Request Scope', () => {
     when(req.log).thenReturn(testLogger);
 
     interceptorTest(interceptor, req, () => {
-      expect(logger()).toBe(rootLogger);
+      expect(logger()).toBe(defaultLogger);
       expect(logger()).not.toBe(testLogger);
     });
   });
@@ -58,7 +59,7 @@ describe('Context Request Scope', () => {
     when(req.log).thenReturn(testLogger);
 
     interceptorTest(interceptor, req, () => {
-      expect(logger()).toBe(rootLogger);
+      expect(logger()).toBe(defaultLogger);
       expect(logger()).not.toBe(testLogger);
     });
   });

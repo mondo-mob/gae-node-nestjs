@@ -1,7 +1,7 @@
 import { ExecutionContext } from '@nestjs/common';
-import { Context } from '..';
 import { Request } from 'express';
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
+import { Context } from '../datastore/context';
 
 interface RequestWithSessionAndContext extends Request {
   session: any;

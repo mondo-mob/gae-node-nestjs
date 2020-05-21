@@ -1,16 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
-import * as Logger from 'bunyan';
 import { v4 as uuidv4 } from 'uuid';
-import { CONFIGURATION } from '../configuration';
+import { Configuration, CONFIGURATION } from '../configuration';
 import { Context, IUser } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';
-import { createLogger } from '../gcloud/logging';
-import { Configuration, MailSender, UserService, USER_SERVICE } from '../index';
+import { createLogger, Logger } from '../logging';
 import { userInviteEmail } from '../mail-templates/invite';
-import { MAIL_SENDER } from '../mail/mail.sender';
+import { MAIL_SENDER, MailSender } from '../mail/mail.sender';
 import { unique } from '../util/arrays';
 import { CredentialRepository, UserInvite, UserInviteRepository } from './auth.repository';
 import { hashPassword } from './auth.service';
+import { USER_SERVICE, UserService } from './user.service';
 
 export const DEFAULT_INVITE_CODE_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
 const DEFAULT_INVITE_CODE_EXPIRY_EMAIL_COPY = '7 days';

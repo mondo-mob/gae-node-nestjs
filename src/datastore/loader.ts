@@ -2,10 +2,9 @@ import { Datastore, Transaction } from '@google-cloud/datastore';
 import { entity as Entity } from '@google-cloud/datastore/build/src/entity';
 import { OrderOptions, RunQueryInfo } from '@google-cloud/datastore/build/src/query';
 import * as trace from '@google-cloud/trace-agent';
-import * as Logger from 'bunyan';
 import * as DataLoader from 'dataloader';
 import * as _ from 'lodash';
-import { createLogger } from '../gcloud/logging';
+import { createLogger, Logger } from '../logging';
 import { asArray, OneOrMany } from '../util/types';
 import { Context } from './context';
 import { buildFilters, Filters } from './filters';
@@ -224,7 +223,7 @@ export class DatastoreLoader {
     const pendingModifications = entityChunks.map((chunk: T[]) => operation(this.datastore, chunk));
     await Promise.all(pendingModifications);
 
-    values.forEach(value => updateLoader(this.loader, value));
+    values.forEach((value) => updateLoader(this.loader, value));
   }
 
   private load = async (keys: ReadonlyArray<Entity.Key>): Promise<Array<any | Error>> => {
@@ -238,6 +237,6 @@ export class DatastoreLoader {
     span.endSpan();
     this.logger.debug('Fetched entities by key ', { entities: prettyPrint });
 
-    return keys.map(key => results.find((result: any) => keysEqual(result[Datastore.KEY], key)));
+    return keys.map((key) => results.find((result: any) => keysEqual(result[Datastore.KEY], key)));
   };
 }

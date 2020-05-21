@@ -5,6 +5,8 @@ import { isMock, partialInstance } from './mocks';
 import { Request, Response } from 'express';
 import { Configuration } from '../configuration';
 
+const configProvider = partialInstance<Configuration>({ requestScope: { enabled: true } });
+
 export const interceptorTest = <T extends Request>(
   interceptor: RequestScopeInterceptor,
   req: T,
@@ -12,10 +14,7 @@ export const interceptorTest = <T extends Request>(
 ) => {
   const request = isMock(req) ? instance(req) : req;
   let nextCalled = false;
-  new RequestScopeMiddleware(
-    partialInstance<Configuration>({ requestScope: { enabled: true } }),
-    [interceptor],
-  ).use(request, instance(mock<Response>()), () => {
+  new RequestScopeMiddleware(configProvider, [interceptor]).use(request, instance(mock<Response>()), () => {
     nextCalled = true;
     testAssertions();
   });

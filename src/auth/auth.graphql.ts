@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 import { AllowAnonymous, Roles } from './auth.guard';
 import { InviteUserService } from './invite-user.service';
 import { PasswordResetService } from './password-reset.service';
-import { Context, IUser } from '..';
+import { Context, IUser } from '../datastore/context';
 
 @Resolver('User')
 export class AuthResolver {

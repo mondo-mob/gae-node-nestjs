@@ -1,6 +1,7 @@
-import * as Logger from 'bunyan';
-import { Context, createLogger, IUser, IUserCreateRequest, IUserUpdates, Transactional } from '..';
 import { LoginIdentifierRepository } from './login-identifier.repository';
+import { Context, IUser, IUserCreateRequest, IUserUpdates } from '../datastore/context';
+import { createLogger, Logger } from '../logging';
+import { Transactional } from '../datastore/transactional';
 
 export const USER_SERVICE = 'UserService';
 

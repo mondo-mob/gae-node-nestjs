@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import * as Logger from 'bunyan';
 import fetch, { Response } from 'node-fetch';
-import { Configuration, CONFIGURATION, createLogger } from '..';
+import { createLogger, Logger } from '../logging';
+import { Configuration, CONFIGURATION } from '../configuration';
 
 interface IndexEntry {
   id: string;
@@ -113,7 +113,7 @@ export class SearchService {
     return Object.keys(fields).reduce((result: SearchPredicate[], key) => {
       const field = fields[key];
       if (isPredicateArray(field)) {
-        field.forEach(predicate => result.push(this.toSearchPredicate(key, predicate)));
+        field.forEach((predicate) => result.push(this.toSearchPredicate(key, predicate)));
       } else {
         result.push(this.toSearchPredicate(key, field));
       }

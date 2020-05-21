@@ -1,8 +1,10 @@
 import { Inject, Injectable, NestMiddleware } from '@nestjs/common';
-import * as Logger from 'bunyan';
 import * as _ from 'lodash';
 import { Request, Response } from 'express';
-import { Context, createLogger, DatastoreProvider, IUser, newContext, USER_SERVICE, UserService } from '..';
+import { Context, IUser, newContext } from '../datastore/context';
+import { createLogger, Logger } from '../logging';
+import { DatastoreProvider } from '../datastore/datastore.provider';
+import { USER_SERVICE, UserService } from '../auth/user.service';
 
 export interface RequestWithContext extends Request {
   context: Context;

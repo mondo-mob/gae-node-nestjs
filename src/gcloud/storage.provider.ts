@@ -1,8 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Configuration } from '../index';
-import * as Logger from 'bunyan';
+import { Configuration } from '../configuration';
 import { Bucket, StorageOptions, Storage } from '@google-cloud/storage';
-import { createLogger } from './logging';
+import { createLogger, Logger } from './logging';
 
 @Injectable()
 export class StorageProvider {

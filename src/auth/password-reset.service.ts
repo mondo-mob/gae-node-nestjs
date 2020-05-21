@@ -1,12 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
-import * as Logger from 'bunyan';
 import { v4 as uuidv4 } from 'uuid';
 import { Context } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';
-import { createLogger } from '../gcloud/logging';
-import { Configuration, MAIL_SENDER, MailSender } from '../index';
+import { createLogger, Logger } from '../logging';
 import { CredentialRepository, PasswordResetRepository } from './auth.repository';
 import { hashPassword } from './auth.service';
+import { Configuration } from '../configuration';
+import { MAIL_SENDER, MailSender } from '../mail/mail.sender';
 
 const DEFAULT_PASSWORD_TOKEN_EXPIRY = 24 * 60 * 60 * 1000;
 

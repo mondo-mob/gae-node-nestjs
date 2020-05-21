@@ -1,7 +1,6 @@
 import { Datastore } from '@google-cloud/datastore';
 import { Inject, Injectable } from '@nestjs/common';
-import { Configuration, createLogger } from '../';
-import Logger = require('bunyan');
+import { Configuration, createLogger, Logger } from '../';
 
 @Injectable()
 export class DatastoreProvider {

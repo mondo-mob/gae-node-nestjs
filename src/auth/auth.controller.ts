@@ -1,8 +1,7 @@
 import { Controller, Get, HttpException, HttpStatus, Inject, Next, Post, Req, Res } from '@nestjs/common';
-import * as Logger from 'bunyan';
 import { Request, Response } from 'express';
 import { Configuration, Context, Ctxt, InviteUserService } from '..';
-import { createLogger } from '../gcloud/logging';
+import { createLogger, Logger } from '../logging';
 import { AuthConfigurer } from './auth.configurer';
 import { AllowAnonymous, Roles } from './auth.guard';
 import { AuthListener, AUTH_LISTENER } from './auth.listener';

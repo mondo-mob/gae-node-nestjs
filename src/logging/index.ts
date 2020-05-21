@@ -1,2 +1,1 @@
-export { logger } from './logging-request-scope';
-export { rootLogger, createLogger, BunyanLogger } from './logging';
+export { rootLogger, createLogger, BunyanLogger, Logger } from './logging';

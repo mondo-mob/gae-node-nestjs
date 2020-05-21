@@ -1,7 +1,6 @@
-import * as Logger from 'bunyan';
 import tasks from '@google-cloud/tasks';
 import fetch from 'node-fetch';
-import { Configuration } from '../';
+import { Configuration, Logger } from '../';
 import { createLogger } from './logging';
 
 export class TaskQueue<T extends Configuration> {

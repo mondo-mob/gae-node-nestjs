@@ -7,10 +7,10 @@ import * as session from 'express-session';
 import * as csp from 'helmet-csp';
 import * as passport from 'passport';
 import { CsrfValidatorWithOptions } from './auth/csrf.interceptor';
-import { rootLogger } from './gcloud/logging';
 import { asArray, OneOrMany } from './util/types';
 import { ServeStaticOptions } from 'serve-static';
 import * as lb from '@google-cloud/logging-bunyan';
+import { defaultLogger } from './logging/logging-internal';
 
 const minutesToMilliseconds = (minutes: number) => minutes * 60 * 1000;
 
@@ -92,10 +92,10 @@ export const configureExpress = async (expressApp: Express, options: ServerOptio
       index: false,
     };
     if (staticAssets.prefix) {
-      rootLogger.info(`Serving static assets from ${staticAssets.root} on prefix ${staticAssets.prefix}`);
+      defaultLogger.info(`Serving static assets from ${staticAssets.root} on prefix ${staticAssets.prefix}`);
       expressApp.use(staticAssets.prefix, express.static(staticAssets.root, staticOptions));
     } else {
-      rootLogger.info(`Serving static assets from ${staticAssets.root}`);
+      defaultLogger.info(`Serving static assets from ${staticAssets.root}`);
       expressApp.use(express.static(staticAssets.root, staticOptions));
     }
   }
@@ -105,13 +105,13 @@ export const configureExpress = async (expressApp: Express, options: ServerOptio
   if (process.env.NODE_ENV === 'production' && process.env.APP_ENGINE_ENVIRONMENT) {
     expressApp.set('trust proxy', true);
     secure = true;
-    rootLogger.info('Cookie secured for prod');
+    defaultLogger.info('Cookie secured for prod');
   }
 
   const sessionAge = options.sessionTimeoutInMinutes
     ? minutesToMilliseconds(options.sessionTimeoutInMinutes)
     : MAX_AGE_DEFAULT;
-  rootLogger.info(`Session age set to: ${sessionAge} ms`);
+  defaultLogger.info(`Session age set to: ${sessionAge} ms`);
   expressApp.use(
     session({
       saveUninitialized: true,

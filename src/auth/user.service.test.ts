@@ -1,8 +1,8 @@
 import { anything, instance, mock, reset, spy, verify, when } from 'ts-mockito';
-import { Context, IUser, IUserCreateRequest, IUserUpdates, LoginIdentifierRepository } from '..';
-import { LoginIdentifier } from './login-identifier.repository';
+import { LoginIdentifier, LoginIdentifierRepository } from './login-identifier.repository';
 import { AbstractUserService } from './user.service';
-import { mockContext } from './auth.service.test';
+import { mockContext } from '../_test/mocks';
+import { Context, IUser, IUserCreateRequest, IUserUpdates } from '../datastore/context';
 
 describe('UserService', () => {
   const loginIdentifierRepository = mock(LoginIdentifierRepository);

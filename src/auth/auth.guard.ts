@@ -1,11 +1,9 @@
 import { CanActivate, ExecutionContext, Inject, Injectable, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import * as Logger from 'bunyan';
 import { Observable } from 'rxjs';
-import { createLogger } from '../gcloud/logging';
-import { isContext } from '../datastore/context';
-import { Configuration, IUser } from '../index';
-import { CONFIGURATION } from '../configuration';
+import { createLogger, Logger } from '../logging';
+import { isContext, IUser } from '../datastore/context';
+import { Configuration, CONFIGURATION } from '../configuration';
 import { getRequestFromExecutionContext } from '../util';
 
 const logger = createLogger('auth-guard');
@@ -47,7 +45,7 @@ function isUserAllowedAccess(reflector: Reflector, context: ExecutionContext, us
   }
 
   const { roles: userRoles = [] } = user;
-  const allowed = roles.some(role => userRoles.includes(role));
+  const allowed = roles.some((role) => userRoles.includes(role));
   if (!allowed) {
     logger.warn('User does not have the required role');
   }
@@ -70,7 +68,7 @@ async function isAuthorizedSystemCall(reflector: Reflector, context: ExecutionCo
 
   const token = headers.authorization.substr(4);
 
-  return new Promise<boolean>(resolve =>
+  return new Promise<boolean>((resolve) =>
     verify(
       token,
       secret,
@@ -78,7 +76,7 @@ async function isAuthorizedSystemCall(reflector: Reflector, context: ExecutionCo
         maxAge: '5 min',
         algorithms: ['HS256'],
       },
-      err => {
+      (err) => {
         if (err) {
           logger.error('Error decoding system token', err);
           resolve(false);
