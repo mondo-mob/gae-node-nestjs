@@ -1,4 +1,4 @@
-## 7.1.0-rc.5 (2020-05-20)
+## 7.1.0-rc.5 (2020-05-21)
  - API change for using the logger. No more `logger()` function to obtain it - use the same `rootLogger` and `createLogger` that
  you were using before and when you go to `.debug(..)`, `info(..)` etc on that logger it will dynamically decide whether to use log
  bundling or not based on your config. In order to support this we had to slightly change the interface of the `Logger` we return to
