@@ -1,3 +1,22 @@
+## 8.0.0 (2020-05-??)
+
+- Refactor search to allow custom search implementations
+- Refactor existing SearchService into GaeSearchService implementation
+
+### Breaking changes:
+
+- Search types are now exported from the root package and should be imported from there
+- If you wish to use search you must explicitly define which SearchService implementation you wish to 
+inject when instantiating the GCloudModule. e.g. to retain existing functionality:
+
+```
+GCloudModule.forConfiguration({
+  configurationModule: ConfigurationModule,
+  userModule: UserModule,
+  searchModule: SearchModule.forConfiguration({ searchService: GaeSearchService }),
+})
+```
+
 ## 7.1.0 (2020-05-26)  7.x goes GA
 Here is a summary of changes since v6. Changelog entries for v7 release candidates have been removed and are summarised here:
  - Update to NestJS 7 

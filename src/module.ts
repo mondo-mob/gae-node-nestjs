@@ -22,7 +22,6 @@ import { StoredCredentialsRepository } from './mail/gmail/stored.credentials.rep
 import { MailDiverter } from './mail/mail.diverter';
 import { MailLoggingSender } from './mail/mail-logging.sender';
 import { MAIL_SENDER, MailSender } from './mail/mail.sender';
-import { SearchService } from './search/search.service';
 import { GraphQLDateTime, GraphQLTime } from 'graphql-iso-date';
 import * as _ from 'lodash';
 import { MailWhitelistSender } from './mail/mail-whitelist.sender';
@@ -32,12 +31,12 @@ import { Type } from '@nestjs/common/interfaces/type.interface';
 import { LoggingRequestScopeInterceptor } from './logging/logging-request-scope';
 import { RequestScopeInterceptor } from './request-scope';
 
-type ClassType = new (...args: any[]) => any;
-type ClassTypeOrReference = ClassType | ForwardReference;
+type ModuleImport = Type<any> | DynamicModule | Promise<DynamicModule> | ForwardReference;
 
 export interface Options {
-  configurationModule: ClassTypeOrReference;
-  userModule: ClassTypeOrReference;
+  configurationModule: ModuleImport;
+  userModule: ModuleImport;
+  searchModule?: ModuleImport;
   requestScopeInterceptors?: Type<RequestScopeInterceptor>[];
 }
 
@@ -56,7 +55,6 @@ export interface Options {
     AuthResolver,
     PasswordResetService,
     InviteUserService,
-    SearchService,
     GmailConfigurer,
     {
       provide: APP_FILTER,
@@ -110,7 +108,6 @@ export interface Options {
     PasswordResetService,
     InviteUserService,
     MAIL_SENDER,
-    SearchService,
   ],
   controllers: [AuthController, GmailController],
 })
@@ -125,6 +122,7 @@ export class GCloudModule implements NestModule {
       imports: [
         options.configurationModule,
         options.userModule,
+        ...(options.searchModule ? [options.searchModule] : []),
         GraphQLModule.forRoot({
           path: '/api/graphql',
           context: (props: any) => _.get(props.req, 'context'),

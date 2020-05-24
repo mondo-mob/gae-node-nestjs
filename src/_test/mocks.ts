@@ -1,7 +1,11 @@
-import { anyFunction, instance, mock, when } from 'ts-mockito';
+import { anyFunction, anything, instance, mock, when } from 'ts-mockito';
 import { DatastoreLoader } from '../datastore/loader';
-import { Configuration, Context, MailSender } from '..';
+import { Configuration, MailSender } from '..';
+import { Context, IUser } from '../datastore/context';
 import { Options } from 'nodemailer/lib/mailer';
+import { DatastoreProvider } from '../datastore/datastore.provider';
+import { Datastore } from '@google-cloud/datastore';
+import * as _ from 'lodash';
 
 export const testConfiguration = (overrides?: Partial<Configuration>): Configuration => ({
   auth: {}, // required but not important for test
@@ -18,16 +22,48 @@ export const testConfiguration = (overrides?: Partial<Configuration>): Configura
   ...overrides,
 });
 
-export const mockContext = () => {
-  const datastoreLoader = mock(DatastoreLoader);
+export const user = (overrides?: Partial<IUser>): IUser => {
+  return {
+    id: 'user1',
+    email: 'user1@example.com',
+    name: 'User 1',
+    enabled: true,
+    roles: [],
+    ...overrides,
+  };
+};
+
+export const mockContext = (options?: { user?: IUser; mockLoader?: DatastoreLoader }) => {
+  const datastoreLoader = options?.mockLoader || mockDatastoreLoader();
+  when(datastoreLoader.inTransaction(anyFunction())).thenCall((cb: any) => cb(context));
 
   const context = {
     datastore: instance(datastoreLoader),
-  } as Context;
+    user: options?.user,
+    props: [],
+  } as any;
+
+  context.hasAnyRole = (...roles: string[]) =>
+    !!context.user && (context.user as IUser).roles.some((r) => _.includes(roles, r));
 
   when(datastoreLoader.inTransaction(anyFunction())).thenCall((cb: any) => cb(context));
+  return context as Context;
+};
 
-  return context;
+export const mockDatastoreProvider = (): DatastoreProvider => {
+  const datastore = mock(Datastore) as any;
+  const datastoreProvider = mock(DatastoreProvider);
+  when(datastoreProvider.datastore).thenReturn(instance(datastore));
+  return instance(datastoreProvider);
+};
+
+export const mockDatastoreLoader = (): DatastoreLoader => {
+  const datastoreLoader = mock(DatastoreLoader);
+  when(datastoreLoader.save(anything())).thenCall((cbCtx: any, cbValue: any) => {
+    return cbValue;
+  });
+  when(datastoreLoader.executeQuery(anything(), anything())).thenResolve([[], {}]);
+  return datastoreLoader;
 };
 
 export class MockMailSender implements MailSender {
