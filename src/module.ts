@@ -22,7 +22,6 @@ import { MailDiverter } from './mail/mail.diverter';
 import { MailLoggingSender } from './mail/mail-logging.sender';
 import { MAIL_SENDER, MailSender } from './mail/mail.sender';
 import { SmtpSender } from './mail/smtp/smtp.sender';
-import { SearchService } from './search/search.service';
 import { MailWhitelistSender } from './mail/mail-whitelist.sender';
 import { MailSubjectSender } from './mail/mail-subject.sender';
 import { REQUEST_SCOPE_INTERCEPTORS, RequestScopeMiddleware } from './request-scope/request-scope.middleware';
@@ -32,12 +31,12 @@ import { RequestScopeInterceptor } from './request-scope';
 import { AuthTaskController } from './auth/auth.task.controller';
 import { AuthTaskService } from './auth/auth.task.service';
 
-type ClassType = new (...args: any[]) => any;
-type ClassTypeOrReference = ClassType | ForwardReference;
+type ModuleImport = Type<any> | DynamicModule | Promise<DynamicModule> | ForwardReference;
 
 export interface Options {
-  configurationModule: ClassTypeOrReference;
-  userModule: ClassTypeOrReference;
+  configurationModule: ModuleImport;
+  userModule: ModuleImport;
+  searchModule?: ModuleImport;
   graphQLModule: DynamicModule;
   requestScopeInterceptors?: Type<RequestScopeInterceptor>[];
 }
@@ -58,7 +57,6 @@ export interface Options {
     AuthTaskService,
     PasswordResetService,
     InviteUserService,
-    SearchService,
     GmailConfigurer,
     {
       provide: APP_FILTER,
@@ -114,7 +112,6 @@ export interface Options {
     PasswordResetService,
     InviteUserService,
     MAIL_SENDER,
-    SearchService,
   ],
   controllers: [AuthController, GmailController, AuthTaskController],
 })
@@ -126,7 +123,8 @@ export class GCloudModule implements NestModule {
   static forConfiguration(options: Options): DynamicModule {
     return {
       module: GCloudModule,
-      imports: [options.configurationModule, options.userModule, options.graphQLModule],
+      imports: [options.configurationModule, options.userModule, ...(options.searchModule ? [options.searchModule] : [])
+        , options.graphQLModule],
       providers: [
         {
           provide: REQUEST_SCOPE_INTERCEPTORS,

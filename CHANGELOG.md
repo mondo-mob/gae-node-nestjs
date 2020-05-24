@@ -1,3 +1,23 @@
+## 8.0.0 (2020-05-??)
+
+- Refactor search to allow custom search implementations
+- Refactor existing SearchService into GaeSearchService implementation
+
+### Breaking changes:
+
+- Search types are now exported from the root package and should be imported from there
+- If you wish to use search you must explicitly define which SearchService implementation you wish to
+  inject when instantiating the GCloudModule. e.g. to retain existing functionality:
+
+```
+GCloudModule.forConfiguration({
+  configurationModule: ConfigurationModule,
+  userModule: UserModule,
+  searchModule: SearchModule.forConfiguration({ searchService: GaeSearchService }),
+})
+```
+
+
 ## 8.1.1 (2021-05-03)
 
 - Merge from branch `release/7.x`. Fix priming of the DataLoader cache, clear first, then prime, as per the documented DataLoader API. Also clear the parent context's cache on each update.
