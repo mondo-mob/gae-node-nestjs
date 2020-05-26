@@ -20,7 +20,7 @@ export interface SearchPredicate extends Predicate {
 
 /**
  * SearchService implementation that uses the GAE Search API via the
- * https://github.com/3wks/gae-search-service GAE Search Service proxy.
+ * https://github.com/mondo-mob/gae-search-service GAE Search Service proxy.
  */
 @Injectable()
 export class GaeSearchService extends SearchService {
