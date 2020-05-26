@@ -1,3 +1,7 @@
+## 7.1.0 (2020-05-21)  7.x goes GA
+Here is a summary of changes:
+ - TODO
+
 ## 7.1.0-rc.5 (2020-05-21)
  - API change for using the logger. No more `logger()` function to obtain it - use the same `rootLogger` and `createLogger` that
  you were using before and when you go to `.debug(..)`, `info(..)` etc on that logger it will dynamically decide whether to use log
