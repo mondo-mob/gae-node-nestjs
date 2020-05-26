@@ -19,8 +19,8 @@ describe('SearchableRepository', () => {
   let repository: SearchableRepository<Item>;
   const searchService: SearchService = mock<SearchService>();
 
-  const initRepo = () =>
-    new SearchableRepository(mockDatastoreProvider().datastore, instance(searchService), 'Item', itemSchema, {
+  const initRepo = (repoClass: new (...args: any[]) => SearchableRepository<Item>) =>
+    new repoClass(mockDatastoreProvider().datastore, instance(searchService), 'Item', itemSchema, {
       searchIndex: {
         text1: true,
       },
@@ -35,7 +35,7 @@ describe('SearchableRepository', () => {
   beforeEach(() => {
     context = initContext();
     reset(searchService);
-    repository = initRepo();
+    repository = initRepo(SearchableRepository);
   });
 
   describe('save', () => {
@@ -317,6 +317,38 @@ describe('SearchableRepository', () => {
         offset: 10,
         results: [],
       });
+    });
+  });
+
+  describe('prepareSearchEntry', () => {
+    it('indexes fields with custom index logic', async () => {
+      const customRepository = initRepo(
+        class CustomRepository extends SearchableRepository<Item> {
+          protected prepareSearchEntry(entity: Item): IndexEntry {
+            const entry = super.prepareSearchEntry(entity);
+            entry.fields.custom = `${entity.text1} ${entity.text2}`;
+            return entry;
+          }
+        },
+      );
+
+      const item: Item = {
+        id: 'item1',
+        text1: 'text1',
+        text2: 'text2',
+      };
+
+      await customRepository.save(context, item);
+
+      verifyIndexEntries([
+        {
+          id: 'item1',
+          fields: {
+            text1: 'text1',
+            custom: 'text1 text2',
+          },
+        },
+      ]);
     });
   });
 });

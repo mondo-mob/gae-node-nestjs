@@ -4,7 +4,7 @@ import { Context } from '../datastore/context';
 import { Index } from '../datastore/loader';
 import { Repository, RepositoryOptions } from '../datastore/repository';
 import { asArray, Omit, OneOrMany } from '../util/types';
-import { Page, SearchFields, SearchService, Sort } from './search.service';
+import { IndexEntry, Page, SearchFields, SearchService, Sort } from './search.service';
 import { createLogger } from '../logging';
 
 export interface SearchResults<T> {
@@ -95,33 +95,41 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
     };
   }
 
+  /**
+   * Default indexing takes the raw entity values of the fields defined in the searchIndex config.
+   * Override this if you wish to populate custom values such as splitting a string into n-grams
+   * or combining multiple fields into a single indexed value.
+   * @param entity entity to index
+   * @return search index entry
+   */
+  protected prepareSearchEntry(entity: T): IndexEntry {
+    const fields = Object.keys(this.options.searchIndex).reduce((value, fieldName) => {
+      value[fieldName] = (entity as any)[fieldName];
+      return value;
+    }, {} as { [key: string]: object });
+
+    return {
+      id: entity.id,
+      fields,
+    };
+  }
+
+  protected prepareSearchEntries(entities: OneOrMany<T>): IndexEntry[] {
+    return asArray(entities).map((entity) => this.prepareSearchEntry(entity));
+  }
+
   private index(entities: OneOrMany<T>) {
-    const entitiesArr = asArray(entities);
-    const entries = entitiesArr.map(entity => {
-      const fields = Object.keys(this.options.searchIndex).reduce(
-        (obj: { [key: string]: object }, fieldName: string) => {
-          obj[fieldName] = entity[fieldName];
-          return obj;
-        },
-        {},
-      );
-
-      return {
-        id: entity.id,
-        fields,
-      };
-    });
-
+    const entries = this.prepareSearchEntries(entities);
     return this.searchService.index(this.kind, entries);
   }
 
   private async fetchResults(context: Context, ids: string[]) {
     const results = await this.get(context, ids);
-    if (results && results.some(result => !result)) {
+    if (results && results.some((result) => !result)) {
       this.baseLogger.warn(
         'Search results contained at least one null value - search index likely out of sync with datastore',
       );
-      return results.filter(result => !!result);
+      return results.filter((result) => !!result);
     }
     return results;
   }
