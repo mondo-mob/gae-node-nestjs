@@ -148,4 +148,5 @@ e.g.
 - Fix typings to support multiple query predicates for arrays of primitives and union types.
 
 ## Older releases 
-For older releases see the original repository this was forked from: https://github.com/3wks/gae-node-nestjs
+For older releases see the original repository this was forked from a repository that no longer exists. For convenience we
+have copied the changelog from the old library here: [old library changelog](./CHANGELOG-old-lib.md).
