@@ -138,6 +138,20 @@ e.g.
   ): Promise<Recipient[]> {}
 ```
 
+## 5.3.2 (2020-04-09)
+ - Revert changes in `5.3.1` as there was nothing wrong with logging in the end.
+
+## 5.3.1 - do not use (2020-04-09)
+ - SKIP this release. Some internal changes to try to resolve an issue with logging that ended up being reverted in following release.
+ 
+## 5.3.0 (2020-04-09)
+ - `createLogger` allows an optional options object to be passed to the bunyan logger. NOTE: this feature has been removed in v7.
+
+## 5.2.2 (2020-04-09)
+ - Minor internal lib updates
+
+## 5.2.1 (2020-04-09)
+ - Minor internal lib updates
 
 ## 5.2.0 (2020-04-08)
  - Optional auth callbacks to build user roles and build additional user properties (backwards-compatible ... not required)
