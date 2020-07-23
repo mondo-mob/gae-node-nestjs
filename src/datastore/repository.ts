@@ -65,7 +65,11 @@ class SaveError extends Error {
   }
 }
 
-export class Repository<T extends { id: string }> {
+export interface BaseEntity {
+  id: string;
+}
+
+export class Repository<T extends BaseEntity> {
   private readonly validator: t.Type<T>;
 
   constructor(

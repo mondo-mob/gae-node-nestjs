@@ -32,13 +32,15 @@ const countEntities = (keys: ReadonlyArray<Entity.Key>) => {
 
 export type Index<T> = true | { [K in keyof T]?: T[K] extends Array<any> ? Index<T[K][0]> : Index<T[K]> };
 
+export interface PropertySort<T> {
+  property: (keyof T | '__key__') & string;
+  options?: OrderOptions;
+}
+
 export interface QueryOptions<T> {
   select: OneOrMany<keyof T & string>;
   filters: Filters<T>;
-  sort: {
-    property: keyof T & string;
-    options?: OrderOptions;
-  };
+  sort: OneOrMany<PropertySort<T>>;
   groupBy: OneOrMany<keyof T & string>;
   start: string;
   end: string;
@@ -77,7 +79,7 @@ export class DatastoreLoader {
 
   public async get(ids: Entity.Key[]): Promise<object[]> {
     const results = await this.loader.loadMany(ids);
-    const firstError = results.find((result) => result instanceof Error);
+    const firstError = results.find(result => result instanceof Error);
     if (firstError) {
       throw firstError;
     }
@@ -146,7 +148,7 @@ export class DatastoreLoader {
     }
 
     if (options.sort) {
-      query.order(options.sort.property, options.sort.options);
+      asArray(options.sort).forEach(sort => query.order(sort.property, sort.options));
     }
 
     if (options.groupBy) {
@@ -223,7 +225,7 @@ export class DatastoreLoader {
     const pendingModifications = entityChunks.map((chunk: T[]) => operation(this.datastore, chunk));
     await Promise.all(pendingModifications);
 
-    values.forEach((value) => updateLoader(this.loader, value));
+    values.forEach(value => updateLoader(this.loader, value));
   }
 
   private load = async (keys: ReadonlyArray<Entity.Key>): Promise<Array<any | Error>> => {
@@ -237,6 +239,6 @@ export class DatastoreLoader {
     span.endSpan();
     this.logger.debug('Fetched entities by key ', { entities: prettyPrint });
 
-    return keys.map((key) => results.find((result: any) => keysEqual(result[Datastore.KEY], key)));
+    return keys.map(key => results.find((result: any) => keysEqual(result[Datastore.KEY], key)));
   };
 }
