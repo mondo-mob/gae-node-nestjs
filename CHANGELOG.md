@@ -1,3 +1,35 @@
+## 7.2.0 (2020-07-23)
+ - Allow multiple sort columns when querying, backwards compatible. Examples below
+    ```
+        // sort by multiple fields - NOTE you need an entry in index.yaml for a composite index
+        myRepository.query(context, {
+          sort: [
+            {
+              property: 'myProp1',
+              options: {
+                descending: true,
+              },
+            },
+            {
+              property: 'myProp2',
+            },
+          ],
+        })
+    
+        // sort by single field - existing
+        myRepository.query(context, {
+          sort: {
+          property: 'myProp1',
+          options: {
+            descending: true,
+          },
+        })
+    ```
+ - Allow sort by the id field which is called `__key__` in datastore. Updated typescript types to allow this field name. 
+   Note that if you try to sort by `id` it will not work and return no results - you must use `__key__`.
+ - `Repository` implementations require an entity with `id: string`. This is exposed as `BaseEntity` so client projects can
+    reference it as a type if required.
+
 ## 7.1.0 (2020-05-26)  7.x goes GA
 Here is a summary of changes since v6. Changelog entries for v7 release candidates have been removed and are summarised here:
  - Update to NestJS 7 
