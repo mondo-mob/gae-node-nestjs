@@ -102,6 +102,7 @@ Here is a summary of changes since v6. Changelog entries for v7 release candidat
             ...
           }),
           t.partial({
+            requestScope,
             ...
           }),
         ]);
