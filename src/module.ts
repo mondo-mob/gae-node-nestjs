@@ -22,6 +22,7 @@ import { StoredCredentialsRepository } from './mail/gmail/stored.credentials.rep
 import { MailDiverter } from './mail/mail.diverter';
 import { MailLoggingSender } from './mail/mail-logging.sender';
 import { MAIL_SENDER, MailSender } from './mail/mail.sender';
+import { SmtpSender } from './mail/smtp/smtp.sender';
 import { SearchService } from './search/search.service';
 import { GraphQLDateTime, GraphQLTime } from 'graphql-iso-date';
 import * as _ from 'lodash';
@@ -76,6 +77,8 @@ export interface Options {
         let mailSender: MailSender;
         if (config.environment === 'development' && !disableMailLogger) {
           mailSender = new MailLoggingSender();
+        } else if (config.auth.smtp && config.auth.smtp.enabled) {
+          mailSender = new SmtpSender(config);
         } else {
           mailSender = new GmailSender(gmailConfigurer, config);
         }

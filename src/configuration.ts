@@ -62,6 +62,18 @@ export interface Configuration {
       replaceAuth?: boolean;
       failureRedirect?: string;
     };
+    smtp?: {
+      enabled: boolean;
+      host: string;
+      port: number;
+      secure: boolean;
+      user: string;
+      password: string;
+      from: {
+        name: string;
+        address: string;
+      }
+    };
   };
   devHooks?: {
     disableLocalMailLogger?: boolean;
