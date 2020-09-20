@@ -1,4 +1,4 @@
-import tasks from '@google-cloud/tasks';
+import { CloudTasksClient  } from '@google-cloud/tasks';
 import fetch from 'node-fetch';
 import { Configuration, Logger } from '../';
 import { createLogger } from './logging';
@@ -10,16 +10,19 @@ export class TaskQueue<T extends Configuration> {
     this.taskLogger = createLogger('task-queue');
   }
 
-  async enqueue(taskName: string, payload: any = {}) {
+  async enqueue(taskName: string, payload: any = {}, inSeconds?: number) {
     if (this.configurationProvider.environment === 'development') {
+      if (inSeconds) {
+        this.taskLogger.warn('inSeconds is not implemented for local development queues');
+      }
       await this.localQueue(taskName, payload);
     } else {
-      await this.appEngineQueue(taskName, payload);
+      await this.appEngineQueue(taskName, payload, inSeconds);
     }
   }
 
-  async appEngineQueue(taskName: string, payload: any = {}) {
-    const client = new tasks.v2beta3.CloudTasksClient();
+  async appEngineQueue(taskName: string, payload: any = {}, inSeconds?: number) {
+    const client = new CloudTasksClient();
 
     const projectId = this.configurationProvider.projectId;
     const location = this.configurationProvider.location;
@@ -27,7 +30,8 @@ export class TaskQueue<T extends Configuration> {
     const body = JSON.stringify(payload);
     const requestPayload = Buffer.from(body).toString('base64');
 
-    const parent = `projects/${projectId}/locations/${location}/queues/${this.queueName}`;
+    const parent = client.queuePath(projectId, location, this.queueName);
+
     const task = {
       appEngineHttpRequest: {
         relativeUri: `/tasks/${taskName}`,
@@ -35,7 +39,9 @@ export class TaskQueue<T extends Configuration> {
           'Content-Type': 'application/json',
         },
         body: requestPayload,
-        httpMethod: 'POST',
+        ...inSeconds ? { scheduleTime: {
+            seconds: inSeconds + Date.now() / 1000,
+          }} : {},
       },
     };
 

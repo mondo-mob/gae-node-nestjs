@@ -1,3 +1,10 @@
+## 7.4.0 (2020-09-20)
+ - Update @google-cloud/tasks to latest and update usage of it in tasks.ts to use v2 instead of v2beta3
+ - Added optional parameter for enqueuing tasks with a delay 
+
+## 7.3.0 (2020-09-02)
+ - Update google dependencies to latest
+
 ## 7.2.0 (2020-07-23)
  - Allow multiple sort columns when querying, backwards compatible. Examples below
     ```
