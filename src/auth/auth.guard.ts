@@ -142,10 +142,9 @@ export class AuthGuard implements CanActivate {
       return isAuthorizedSystemCall(this.reflector, context, this.configurationProvider.systemSecret);
     }
 
-    const requiredSecuredHeader = getRequiredSecureHeader(this.reflector, context);
-    if (requiredSecuredHeader) {
-      const newLocal = hasSecureHeader(requiredSecuredHeader, context);
-      return newLocal;
+    const requiredSecureHeader = getRequiredSecureHeader(this.reflector, context);
+    if (requiredSecureHeader) {
+      return hasSecureHeader(requiredSecureHeader, context);
     }
 
     const user = getUser(context);
