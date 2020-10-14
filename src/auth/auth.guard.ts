@@ -45,7 +45,7 @@ function isUserAllowedAccess(reflector: Reflector, context: ExecutionContext, us
   }
 
   const { roles: userRoles = [] } = user;
-  const allowed = roles.some((role) => userRoles.includes(role));
+  const allowed = roles.some(role => userRoles.includes(role));
   if (!allowed) {
     logger.warn('User does not have the required role');
   }
@@ -68,7 +68,7 @@ async function isAuthorizedSystemCall(reflector: Reflector, context: ExecutionCo
 
   const token = headers.authorization.substr(4);
 
-  return new Promise<boolean>((resolve) =>
+  return new Promise<boolean>(resolve =>
     verify(
       token,
       secret,
@@ -76,7 +76,7 @@ async function isAuthorizedSystemCall(reflector: Reflector, context: ExecutionCo
         maxAge: '5 min',
         algorithms: ['HS256'],
       },
-      (err) => {
+      err => {
         if (err) {
           logger.error('Error decoding system token', err);
           resolve(false);
@@ -88,20 +88,18 @@ async function isAuthorizedSystemCall(reflector: Reflector, context: ExecutionCo
   );
 }
 
-function hasSecureHeader(reflector: Reflector, context: ExecutionContext): boolean {
+function getRequiredSecureHeader(reflector: Reflector, context: ExecutionContext): string | undefined {
+  return reflectValue<string | undefined>(reflector, 'secure-header', context, undefined);
+}
+
+function hasSecureHeader(secureHeader: string, context: ExecutionContext): boolean {
   const { headers } = getRequestFromExecutionContext(context);
 
   if (!headers) {
     return false;
   }
 
-  const secureHeader = reflectValue<string | undefined>(reflector, 'secure-header', context, undefined);
-
-  if (secureHeader) {
-    return !!headers[secureHeader];
-  }
-
-  return false;
+  return !!headers[secureHeader];
 }
 
 function getUser(context: ExecutionContext): IUser | undefined {
@@ -136,6 +134,7 @@ export class AuthGuard implements CanActivate {
   }
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+    this.logger.info('GOAT: starting');
     if (isAllowAnonymous(this.reflector, context)) {
       return true;
     }
@@ -144,9 +143,15 @@ export class AuthGuard implements CanActivate {
       return isAuthorizedSystemCall(this.reflector, context, this.configurationProvider.systemSecret);
     }
 
-    if (hasSecureHeader(this.reflector, context)) {
-      return true;
+    const requiredSecuredHeader = getRequiredSecureHeader(this.reflector, context);
+    this.logger.info('GOAT requiredHeader?: ', requiredSecuredHeader);
+    if (requiredSecuredHeader) {
+      const newLocal = hasSecureHeader(requiredSecuredHeader, context);
+      this.logger.info('GOAT result: ', newLocal);
+      return newLocal;
     }
+
+    this.logger.info('GOAT skipping requierd header');
 
     const user = getUser(context);
 
