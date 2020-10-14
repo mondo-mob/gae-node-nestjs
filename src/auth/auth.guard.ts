@@ -134,7 +134,6 @@ export class AuthGuard implements CanActivate {
   }
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
-    this.logger.info('GOAT: starting');
     if (isAllowAnonymous(this.reflector, context)) {
       return true;
     }
@@ -144,17 +143,12 @@ export class AuthGuard implements CanActivate {
     }
 
     const requiredSecuredHeader = getRequiredSecureHeader(this.reflector, context);
-    this.logger.info('GOAT requiredHeader?: ', requiredSecuredHeader);
     if (requiredSecuredHeader) {
       const newLocal = hasSecureHeader(requiredSecuredHeader, context);
-      this.logger.info('GOAT result: ', newLocal);
       return newLocal;
     }
 
-    this.logger.info('GOAT skipping requierd header');
-
     const user = getUser(context);
-
     return isUserAllowedAccess(this.reflector, context, user);
   }
 }
