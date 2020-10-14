@@ -1,6 +1,6 @@
 ## 7.4.1 (2020-10-14)
 
-- Fix @Cron() and @Task() decorators to only allow invocation based on the presence of the respective 'x-appengine-taskname' & 'x-appengine-cron' google headers. Prior to this fix any authenticated user could invoke cron/task endpoints
+- Fix @Task() and @Cron() decorators to only allow invocation based on the presence of the respective 'x-appengine-taskname' & 'x-appengine-cron' google headers. Prior to this fix any authenticated user could invoke cron/task endpoints
 
 ## 7.4.0 (2020-09-20)
 
@@ -14,6 +14,7 @@
 ## 7.2.0 (2020-07-23)
 
 - Allow multiple sort columns when querying, backwards compatible. Examples below
+
   ```
       // sort by multiple fields - NOTE you need an entry in index.yaml for a composite index
       myRepository.query(context, {
@@ -39,6 +40,7 @@
         },
       })
   ```
+
 - Allow sort by the id field which is called `__key__` in datastore. Updated typescript types to allow this field name.
   Note that if you try to sort by `id` it will not work and return no results - you must use `__key__`.
 - `Repository` implementations require an entity with `id: string`. This is exposed as `BaseEntity` so client projects can
@@ -51,6 +53,7 @@ Here is a summary of changes since v6. Changelog entries for v7 release candidat
 - Update to NestJS 7
 - Use cls-hooked to have thread-local-like functionality within app. We call it `request scope`.
 - Allow context to be accessed via `getContext()` without having to pass it around (uses request scope to store). Example usage:
+
   ```
   import { getContext } from '@mondomob/gae-node-nestjs';
 
@@ -64,6 +67,7 @@ Here is a summary of changes since v6. Changelog entries for v7 release candidat
   }
 
   ```
+
 - Allow request log bundling per http request (uses request scope) if enabled. No changes required to calling loggers - just for the logger interface definition (see migration guide). See https://github.com/googleapis/nodejs-logging-bunyan#using-as-an-express-middleware
 - Request scope and log bundling are disabled by default, but can be enable via config (see migration guide).
 
@@ -99,6 +103,7 @@ Here is a summary of changes since v6. Changelog entries for v7 release candidat
 
 - We use our own `Logger` interface for `rootLogger` and `createLogger`. Replace all `bunyan` imports that define `Logger` with `import { logger } from '@mondomob/gae-node-nestjs';`
 - To enable `request scope` for being able to retrieve context via `getContext()` then you need to enable this via the `enabled` flag in config and to enable log bundling you need to set the `logBundlingEnabled` flag.
+
   - update `default.json` or similar config
     ```
        "requestScope": {
@@ -107,6 +112,7 @@ Here is a summary of changes since v6. Changelog entries for v7 release candidat
        },
     ```
   - update your `config.provider.ts` (or whatever you call your file that defines your configuration provider) to define a getter for `requestScope`. Example additions below:
+
     ```
     ...
     const requestScope = t.partial({
