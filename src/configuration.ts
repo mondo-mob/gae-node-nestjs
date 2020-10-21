@@ -10,6 +10,7 @@ export interface Configuration {
   gmailUser: string;
   passwordTokenExpiry?: number;
   systemSecret: Buffer;
+  serviceTasksOnThisVersion?: boolean;
 
   requestScope?: {
     enabled?: boolean;
@@ -72,7 +73,7 @@ export interface Configuration {
       from: {
         name: string;
         address: string;
-      }
+      };
     };
   };
   devHooks?: {

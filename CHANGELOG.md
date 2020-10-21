@@ -1,3 +1,11 @@
+## 7.4.2 (2020-10-21)
+
+- Enable tasks to be served by the originating version rather than defaulting to the version taking the traffic. Useful for offline and canary style deployments. Add the following property into your env props to enable:
+
+```
+serviceTasksOnThisVersion: true
+```
+
 ## 7.4.1 (2020-10-14)
 
 - Fix @Task() and @Cron() decorators to only allow invocation based on the presence of the respective 'x-appengine-taskname' & 'x-appengine-cron' google headers. Prior to this fix any authenticated user could invoke cron/task endpoints

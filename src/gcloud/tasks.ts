@@ -1,4 +1,4 @@
-import { CloudTasksClient  } from '@google-cloud/tasks';
+import { CloudTasksClient } from '@google-cloud/tasks';
 import fetch from 'node-fetch';
 import { Configuration, Logger } from '../';
 import { createLogger } from './logging';
@@ -26,6 +26,7 @@ export class TaskQueue<T extends Configuration> {
 
     const projectId = this.configurationProvider.projectId;
     const location = this.configurationProvider.location;
+    const serviceTasksOnThisVersion = !!this.configurationProvider.serviceTasksOnThisVersion;
 
     const body = JSON.stringify(payload);
     const requestPayload = Buffer.from(body).toString('base64');
@@ -39,12 +40,25 @@ export class TaskQueue<T extends Configuration> {
           'Content-Type': 'application/json',
         },
         body: requestPayload,
-        ...inSeconds ? { scheduleTime: {
-            seconds: inSeconds + Date.now() / 1000,
-          }} : {},
+        // will go to version taking traffic if not specified - enables testing offline
+        ...(serviceTasksOnThisVersion
+          ? {
+              appEngineRouting: {
+                version: process.env.GAE_VERSION,
+              },
+            }
+          : {}),
+        ...(inSeconds
+          ? {
+              scheduleTime: {
+                seconds: inSeconds + Date.now() / 1000,
+              },
+            }
+          : {}),
       },
     };
 
+    this.taskLogger.info('Creating task with payload: ', task);
     await client.createTask({
       parent,
       task,
