@@ -165,7 +165,7 @@ export class AuthController {
   @AllowAnonymous()
   @Get('signin/auth0')
   signInAuth0(@Req() req: Request, @Res() res: Response, @Next() next: () => void) {
-    this.authConfigurer.beginAuthenticateAuth0()(req, res, next);
+    this.authConfigurer.beginAuthenticateAuth0(req)(req, res, next);
   }
 
   @AllowAnonymous()
@@ -179,7 +179,7 @@ export class AuthController {
   @AllowAnonymous()
   @Get('signin/auth0/callback')
   completeSignInAuth0(@Req() req: Request, @Res() res: Response) {
-    this.authConfigurer.completeAuthenticateAuth0()(req, res, (err: any) => {
+    this.authConfigurer.completeAuthenticateAuth0(req)(req, res, (err: any) => {
       if (req.user) {
         this.authListener.onLogin(req);
         res.redirect(`/`);

@@ -1,5 +1,5 @@
 import { Datastore } from '@google-cloud/datastore';
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {Inject, Injectable, Optional, UnauthorizedException} from '@nestjs/common';
 import { Request } from 'express';
 import { decode } from 'jsonwebtoken';
 import { get } from 'lodash';
@@ -15,6 +15,7 @@ import { DatastoreProvider } from '../datastore/datastore.provider';
 import { createLogger, Logger } from '../logging';
 import { AuthenticationFailedException, AuthService } from './auth.service';
 import { USER_SERVICE, UserService } from './user.service';
+import { AUTH_CALLBACKS, AuthCallbacks } from './auth.callbacks';
 import { Configuration } from '../configuration';
 
 const GOOGLE_SIGNIN = 'google';
@@ -36,6 +37,7 @@ export class AuthConfigurer {
     @Inject('Configuration') private readonly configuration: Configuration,
     @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
     private readonly authService: AuthService,
+    @Optional() @Inject(AUTH_CALLBACKS) private readonly authCallbacks: AuthCallbacks,
   ) {
     this.datastore = datastoreProvider.datastore;
     this.logger = createLogger('auth');
@@ -169,17 +171,26 @@ export class AuthConfigurer {
     });
   }
 
-  beginAuthenticateAuth0() {
-    const options = {
+  beginAuthenticateAuth0(req: Request) {
+    const defaultOptions = {
       scope: ['openid', 'email', 'profile'],
     };
-    return passport.authenticate(AUTH0_SIGNIN, options);
+    let options: any = undefined;
+    if (this.authCallbacks && this.authCallbacks.buildAuth0AuthenticationOptions) {
+      options = this.authCallbacks.buildAuth0AuthenticationOptions(req, defaultOptions);
+    }
+    return passport.authenticate(AUTH0_SIGNIN, options || defaultOptions);
   }
 
-  completeAuthenticateAuth0() {
-    return passport.authenticate(AUTH0_SIGNIN, {
+  completeAuthenticateAuth0(req: Request) {
+    const defaultOptions = {
       failureRedirect: this.configuration.auth.auth0!.failureRedirect || DEFAULT_FAILURE_REDIRECT,
-    });
+    };
+    let options: any = undefined;
+    if (this.authCallbacks && this.authCallbacks.buildAuth0AuthenticationOptions) {
+      options = this.authCallbacks.buildAuth0AuthenticationOptions(req, defaultOptions);
+    }
+    return passport.authenticate(AUTH0_SIGNIN, options || defaultOptions);
   }
 
   getSignoutUrlAuth0() {
