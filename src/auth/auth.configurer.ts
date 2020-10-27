@@ -1,5 +1,5 @@
 import { Datastore } from '@google-cloud/datastore';
-import {Inject, Injectable, Optional, UnauthorizedException} from '@nestjs/common';
+import { Inject, Injectable, Optional, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';
 import { decode } from 'jsonwebtoken';
 import { get } from 'lodash';
@@ -175,9 +175,9 @@ export class AuthConfigurer {
     const defaultOptions = {
       scope: ['openid', 'email', 'profile'],
     };
-    let options: any = undefined;
+    let options: any;
     if (this.authCallbacks && this.authCallbacks.buildAuthenticationOptions) {
-      options = this.authCallbacks.buildAuthenticationOptions('auth0', req, defaultOptions);
+      options = this.authCallbacks.buildAuthenticationOptions(AUTH0_SIGNIN, req, defaultOptions);
     }
     return passport.authenticate(AUTH0_SIGNIN, options || defaultOptions);
   }
@@ -186,9 +186,9 @@ export class AuthConfigurer {
     const defaultOptions = {
       failureRedirect: this.configuration.auth.auth0!.failureRedirect || DEFAULT_FAILURE_REDIRECT,
     };
-    let options: any = undefined;
+    let options: any;
     if (this.authCallbacks && this.authCallbacks.buildAuthenticationOptions) {
-      options = this.authCallbacks.buildAuthenticationOptions('auth0', req, defaultOptions);
+      options = this.authCallbacks.buildAuthenticationOptions(AUTH0_SIGNIN, req, defaultOptions);
     }
     return passport.authenticate(AUTH0_SIGNIN, options || defaultOptions);
   }
