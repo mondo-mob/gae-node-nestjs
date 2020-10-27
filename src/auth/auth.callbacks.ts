@@ -7,5 +7,5 @@ export interface AuthCallbacks {
   buildUserRolesList?(authType: string, profileData: any): string[];
   buildUserPropertiesObject?(authType: string, profileData: any): any;
   // optional callback to populate auth0 authentication options
-  buildAuth0AuthenticationOptions?(req: Request, defaultAuthenticateOptions: any): any;
+  buildAuthenticationOptions?(authType: string, req: Request, defaultAuthenticateOptions: any): any;
 }

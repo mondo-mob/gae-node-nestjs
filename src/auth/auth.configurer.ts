@@ -176,8 +176,8 @@ export class AuthConfigurer {
       scope: ['openid', 'email', 'profile'],
     };
     let options: any = undefined;
-    if (this.authCallbacks && this.authCallbacks.buildAuth0AuthenticationOptions) {
-      options = this.authCallbacks.buildAuth0AuthenticationOptions(req, defaultOptions);
+    if (this.authCallbacks && this.authCallbacks.buildAuthenticationOptions) {
+      options = this.authCallbacks.buildAuthenticationOptions('auth0', req, defaultOptions);
     }
     return passport.authenticate(AUTH0_SIGNIN, options || defaultOptions);
   }
@@ -187,8 +187,8 @@ export class AuthConfigurer {
       failureRedirect: this.configuration.auth.auth0!.failureRedirect || DEFAULT_FAILURE_REDIRECT,
     };
     let options: any = undefined;
-    if (this.authCallbacks && this.authCallbacks.buildAuth0AuthenticationOptions) {
-      options = this.authCallbacks.buildAuth0AuthenticationOptions(req, defaultOptions);
+    if (this.authCallbacks && this.authCallbacks.buildAuthenticationOptions) {
+      options = this.authCallbacks.buildAuthenticationOptions('auth0', req, defaultOptions);
     }
     return passport.authenticate(AUTH0_SIGNIN, options || defaultOptions);
   }
