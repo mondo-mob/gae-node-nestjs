@@ -1,3 +1,7 @@
+## 7.4.3 (2020-10-27)
+
+- Provide a hook by way of a callback method to enable library consumers to augment the auth0 options passed through to 'passport.authenticate()'.
+
 ## 7.4.2 (2020-10-21)
 
 - Enable tasks to be served by the originating version rather than defaulting to the version taking the traffic. Useful for offline and canary style deployments. Add the following property into your env props to enable:
