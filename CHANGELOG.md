@@ -1,3 +1,8 @@
+## 7.5.0 (2020-11-10)
+
+- Enable callbacks for when inviting user. Currently supports `afterInvite` and `afterActivate`. To utilise, register an 
+`@Injectable` class that implements `InviteCallbacks` and define one or more methods. Register with the name of constant `INVITE_CALLBACKS`.
+
 ## 7.4.3 (2020-10-27)
 
 - Provide a hook by way of a callback method to enable library consumers to augment the auth0 options passed through to 'passport.authenticate()'.
