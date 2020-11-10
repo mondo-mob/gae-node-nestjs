@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { Configuration, CONFIGURATION } from '../configuration';
 import { Context, IUser } from '../datastore/context';
@@ -10,6 +10,9 @@ import { unique } from '../util/arrays';
 import { CredentialRepository, UserInvite, UserInviteRepository } from './auth.repository';
 import { hashPassword } from './auth.service';
 import { USER_SERVICE, UserService } from './user.service';
+import { AUTH_CALLBACKS, AuthCallbacks } from './auth.callbacks';
+import { INVITE_CALLBACKS, InviteCallbacks } from './invite.callbacks';
+import { asPromise } from '../util/types';
 
 export const DEFAULT_INVITE_CODE_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
 const DEFAULT_INVITE_CODE_EXPIRY_EMAIL_COPY = '7 days';
@@ -41,6 +44,7 @@ export class InviteUserService {
     @Inject(CONFIGURATION) private readonly configuration: Configuration,
     @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
     private readonly userInviteRepository: UserInviteRepository,
+    @Optional() @Inject(INVITE_CALLBACKS) private readonly inviteCallbacks?: InviteCallbacks<IUser>,
   ) {
     this.logger = createLogger('invite-user-service');
   }
@@ -194,6 +198,10 @@ export class InviteUserService {
 
       const activateLink = await this.sendActivationEmail(context, email, inviteId, request.skipEmail);
 
+      if (this.inviteCallbacks?.afterInvite) {
+        await asPromise(this.inviteCallbacks.afterInvite(user, inviteId));
+      }
+
       return { user, inviteId, activateLink };
     }
   }
@@ -287,6 +295,10 @@ export class InviteUserService {
     });
 
     await this.userInviteRepository.delete(context, code);
+
+    if (this.inviteCallbacks?.afterActivate) {
+      await asPromise(this.inviteCallbacks.afterActivate(user));
+    }
 
     return user;
   }

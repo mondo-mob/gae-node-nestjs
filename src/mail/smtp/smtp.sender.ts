@@ -13,9 +13,7 @@ const ENDS_WITH_EMAIL = /(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\
 export class SmtpSender implements MailSender {
   private readonly logger = createLogger('smtp-sender');
 
-  constructor(
-    @Inject(CONFIGURATION) private readonly configurationProvider: Configuration,
-  ) {
+  constructor(@Inject(CONFIGURATION) private readonly configurationProvider: Configuration) {
     this.logger.info('Created SmtpSender');
   }
 
@@ -36,7 +34,7 @@ export class SmtpSender implements MailSender {
 
       const transport: any = {
         pool: true,
-        ...mailConfig
+        ...mailConfig,
       };
 
       const transporter = createTransport(transport);

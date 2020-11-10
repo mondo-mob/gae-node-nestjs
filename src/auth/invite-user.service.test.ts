@@ -5,6 +5,7 @@ import { IInviteUserRequest, DEFAULT_INVITE_CODE_EXPIRY, InviteUserService } fro
 import { AbstractUserService } from './user.service';
 import { mockContext } from '../_test/mocks';
 import { IUser } from '../datastore/context';
+import { InviteCallbacks } from './invite.callbacks';
 
 describe('InviteUserService', () => {
   const credentialRepository = mock(CredentialRepository);
@@ -178,6 +179,57 @@ describe('InviteUserService', () => {
       });
       expect((invite as any).userId).toBe(createdUser.id);
       expect(mail.html).toMatch((invite as any).id);
+    });
+
+    it('should invite and invoke callback when supplied and existing user', async () => {
+      const callbackResult: { user?: IUser; inviteId?: string } = {};
+      const callback: InviteCallbacks<IUser> = {
+        afterInvite(user: IUser, inviteId: string): void | Promise<void> {
+          callbackResult.user = user;
+          callbackResult.inviteId = inviteId;
+        },
+      };
+      initServiceWithCallbacks(callback);
+      inviteRequest.roles = ['admin'];
+      const existingUser = {
+        id: 'user-123',
+        email: inviteRequest.email,
+        roles: [],
+        enabled: false,
+      } as IUser;
+      when(userService.getByEmail(context, inviteRequest.email)).thenResolve(existingUser);
+
+      const result = await inviteUserService.inviteUser(context, inviteRequest);
+
+      expect(result.user).toBe(existingUser);
+      expect(callbackResult.user).toBe(existingUser);
+      expect(callbackResult.inviteId).toBeDefined();
+    });
+
+    it('should invite and invoke promise callback when supplied and new user', async () => {
+      const callbackResult: { user?: IUser; inviteId?: string } = {};
+      const callback: InviteCallbacks<IUser> = {
+        async afterInvite(user: IUser, inviteId: string) {
+          await new Promise(r => setTimeout(r, 1000));
+          callbackResult.user = user;
+          callbackResult.inviteId = inviteId;
+        },
+      };
+      initServiceWithCallbacks(callback);
+      inviteRequest.roles = ['admin'];
+      const createdUser = {
+        id: 'user-123',
+        email: inviteRequest.email,
+        roles: [],
+        enabled: false,
+      } as IUser;
+      when(userService.create(context, anything())).thenResolve(createdUser);
+
+      const result = await inviteUserService.inviteUser(context, inviteRequest);
+
+      expect(result.user).toBe(createdUser);
+      expect(callbackResult.user).toBe(createdUser);
+      expect(callbackResult.inviteId).toBeDefined();
     });
 
     it('should generate an invite for new user and skip sending email', async () => {
@@ -365,6 +417,37 @@ describe('InviteUserService', () => {
       });
       expect(updateRequest).toEqual(expectedUpdates);
     });
+
+    it('should activate the user account and invoke callback when supplied', async () => {
+      const callbackResult: { user?: IUser } = {};
+      const callback: InviteCallbacks<IUser> = {
+        afterActivate(usr: IUser): void | Promise<void> {
+          callbackResult.user = usr;
+        },
+      };
+      initServiceWithCallbacks(callback);
+      when(userInviteRepository.get(context, '12345')).thenResolve({
+        id: '12345',
+        email: 'test@example.com',
+        createdAt: new Date(),
+        roles: ['admin'],
+        userId: 'user-123',
+      });
+      const expectedUpdates = {
+        name: 'Test User',
+        roles: ['admin'],
+        enabled: true,
+      };
+      when(userService.update(context, 'user-123', anything())).thenResolve({
+        id: 'user-123',
+        email: 'test@example.com',
+        ...expectedUpdates,
+      });
+
+      const user = await inviteUserService.activateAccount(context, '12345', 'Test User', 'password');
+
+      expect(callbackResult.user).toBe(user);
+    });
   });
 
   describe('getInvitedUser', () => {
@@ -416,4 +499,15 @@ describe('InviteUserService', () => {
       );
     });
   });
+
+  const initServiceWithCallbacks = (inviteCallbacks: InviteCallbacks<IUser>) => {
+    inviteUserService = new InviteUserService(
+      instance(credentialRepository),
+      instance(mailSender),
+      configuration,
+      instance(userService),
+      instance(userInviteRepository),
+      inviteCallbacks,
+    );
+  };
 });

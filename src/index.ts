@@ -14,6 +14,7 @@ export { PasswordResetRepository, UserInviteRepository, CredentialRepository } f
 export { LoginIdentifierRepository } from './auth/login-identifier.repository';
 export { PasswordResetService } from './auth/password-reset.service';
 export { InviteUserService } from './auth/invite-user.service';
+export { INVITE_CALLBACKS, InviteCallbacks } from './auth/invite.callbacks';
 export { AuthService, hashPassword } from './auth/auth.service';
 export { UserService } from './auth/user.service';
 export { AUTH_LISTENER, AuthListener } from './auth/auth.listener';
