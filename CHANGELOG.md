@@ -1,3 +1,7 @@
+## 7.6.1 (2020-11-10)
+
+- `InviteCallbacks` are supplied the `context` so they can call through to repositories. Skip version `7.5.0`.
+
 ## 7.5.0 (2020-11-10)
 
 - Enable callbacks for when inviting user. Currently supports `afterInvite` and `afterActivate`. To utilise, register an 

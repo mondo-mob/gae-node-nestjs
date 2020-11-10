@@ -4,7 +4,7 @@ import { CredentialRepository, LoginCredentials, UserInvite, UserInviteRepositor
 import { IInviteUserRequest, DEFAULT_INVITE_CODE_EXPIRY, InviteUserService } from './invite-user.service';
 import { AbstractUserService } from './user.service';
 import { mockContext } from '../_test/mocks';
-import { IUser } from '../datastore/context';
+import { Context, IUser } from '../datastore/context';
 import { InviteCallbacks } from './invite.callbacks';
 
 describe('InviteUserService', () => {
@@ -184,7 +184,7 @@ describe('InviteUserService', () => {
     it('should invite and invoke callback when supplied and existing user', async () => {
       const callbackResult: { user?: IUser; inviteId?: string } = {};
       const callback: InviteCallbacks<IUser> = {
-        afterInvite(user: IUser, inviteId: string): void | Promise<void> {
+        afterInvite(_: Context, user: IUser, inviteId: string): void | Promise<void> {
           callbackResult.user = user;
           callbackResult.inviteId = inviteId;
         },
@@ -209,7 +209,7 @@ describe('InviteUserService', () => {
     it('should invite and invoke promise callback when supplied and new user', async () => {
       const callbackResult: { user?: IUser; inviteId?: string } = {};
       const callback: InviteCallbacks<IUser> = {
-        async afterInvite(user: IUser, inviteId: string) {
+        async afterInvite(_: Context, user: IUser, inviteId: string) {
           await new Promise(r => setTimeout(r, 1000));
           callbackResult.user = user;
           callbackResult.inviteId = inviteId;
@@ -421,7 +421,7 @@ describe('InviteUserService', () => {
     it('should activate the user account and invoke callback when supplied', async () => {
       const callbackResult: { user?: IUser } = {};
       const callback: InviteCallbacks<IUser> = {
-        afterActivate(usr: IUser): void | Promise<void> {
+        afterActivate(_: Context, usr: IUser): void | Promise<void> {
           callbackResult.user = usr;
         },
       };

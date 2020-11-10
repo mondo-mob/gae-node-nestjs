@@ -10,7 +10,6 @@ import { unique } from '../util/arrays';
 import { CredentialRepository, UserInvite, UserInviteRepository } from './auth.repository';
 import { hashPassword } from './auth.service';
 import { USER_SERVICE, UserService } from './user.service';
-import { AUTH_CALLBACKS, AuthCallbacks } from './auth.callbacks';
 import { INVITE_CALLBACKS, InviteCallbacks } from './invite.callbacks';
 import { asPromise } from '../util/types';
 
@@ -199,7 +198,7 @@ export class InviteUserService {
       const activateLink = await this.sendActivationEmail(context, email, inviteId, request.skipEmail);
 
       if (this.inviteCallbacks?.afterInvite) {
-        await asPromise(this.inviteCallbacks.afterInvite(user, inviteId));
+        await asPromise(this.inviteCallbacks.afterInvite(context, user, inviteId));
       }
 
       return { user, inviteId, activateLink };
@@ -297,7 +296,7 @@ export class InviteUserService {
     await this.userInviteRepository.delete(context, code);
 
     if (this.inviteCallbacks?.afterActivate) {
-      await asPromise(this.inviteCallbacks.afterActivate(user));
+      await asPromise(this.inviteCallbacks.afterActivate(context, user));
     }
 
     return user;
