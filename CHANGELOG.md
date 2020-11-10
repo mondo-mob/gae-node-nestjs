@@ -1,3 +1,7 @@
+## 7.6.2 (2020-11-10)
+
+- Provide a way for subclasses of `AbstractUserService` to get user id by email address.
+
 ## 7.6.1 (2020-11-10)
 
 - `InviteCallbacks` are supplied the `context` so they can call through to repositories. Skip version `7.5.0`.
