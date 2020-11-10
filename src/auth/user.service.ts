@@ -35,8 +35,8 @@ export abstract class AbstractUserService<
   protected abstract updateUser(context: Context, user: T, updates: U): Promise<T>;
 
   async getByEmail(context: Context, email: string) {
-    const loginIdentifier = await this.loginIdentifierRepository.get(context, normaliseEmail(email));
-    return loginIdentifier && this.get(context, loginIdentifier.userId);
+    const userId = await this.getIdByEmail(context, email);
+    return userId ? this.get(context, userId) : undefined;
   }
 
   @Transactional()
@@ -71,6 +71,11 @@ export abstract class AbstractUserService<
       throw new Error(`No user exists with id: ${id}`);
     }
     return await this.updateRetrievedUser(context, user, updates);
+  }
+
+  protected async getIdByEmail(context: Context, email: string) {
+    const loginIdentifier = await this.loginIdentifierRepository.get(context, normaliseEmail(email));
+    return loginIdentifier?.userId;
   }
 
   private async updateRetrievedUser(context: Context, user: T, updates: U) {
