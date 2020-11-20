@@ -1,3 +1,7 @@
+## 7.6.3 (2020-11-20)
+
+- Reolve all vulnerabilities internally with `npm audit fix` to update some minor versions of internal dependencies.
+
 ## 7.6.2 (2020-11-10)
 
 - Provide a way for subclasses of `AbstractUserService` to get user id by email address.
