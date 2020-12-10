@@ -137,7 +137,7 @@ export class AuthService {
     }
 
     const profile = validationResult.value;
-    const accountEmails = profile.emails.find((accountEmail) => accountEmail.verified);
+    const accountEmails = profile.emails.find(accountEmail => accountEmail.verified);
 
     if (!accountEmails) {
       throw new AuthenticationFailedException('No credentials found for user');
@@ -196,7 +196,7 @@ export class AuthService {
    */
   @Transactional()
   async validateUserSaml(context: Context, profile: SimpleUserProfile): Promise<IUser> {
-    return this.validateOrCreateExternalAuthAccount(context, profile.email, {
+    return this.validateOrCreateExternalAuthAccount(context, normaliseEmail(profile.email), {
       type: 'saml',
       newUserRequest: () => ({
         roles: [],
@@ -234,7 +234,7 @@ export class AuthService {
       props = this.authCallbacks.buildUserPropertiesObject('oidc', profile);
     }
 
-    return this.validateOrCreateExternalAuthAccount(context, email, {
+    return this.validateOrCreateExternalAuthAccount(context, normaliseEmail(email), {
       type: 'oidc',
       overwriteCredentials,
       newUserRequest: () => {
@@ -247,7 +247,7 @@ export class AuthService {
           enabled: true,
         };
       },
-      updateUser: (user) => {
+      updateUser: user => {
         const mergedProps = { ...user.props, ...props };
         const userRoles: string[] = replaceRolesWithIdpRoles ? roles : (user.roles as string[]) || [];
         return this.userService.update(context, user.id, {
@@ -261,8 +261,17 @@ export class AuthService {
   }
 
   @Transactional()
-  async validateUserAuth0(context: Context, email: string, name: string, orgId: string, roles: string[], props: any) {
-    return this.validateOrCreateExternalAuthAccount(context, email, {
+  async validateUserAuth0(
+    context: Context,
+    id: string,
+    email: string,
+    name: string,
+    orgId: string,
+    roles: string[],
+    props: any,
+  ) {
+    this.logger.info('Validating auth0 account using login identifier: ', id);
+    return this.validateOrCreateExternalAuthAccount(context, id, {
       type: 'auth0',
       newUserRequest: () => ({
         roles,
@@ -272,11 +281,12 @@ export class AuthService {
         props,
         enabled: true,
       }),
-      updateUser: (user) => {
+      updateUser: user => {
         user.name = name;
         user.roles = roles;
         user.orgId = orgId;
         user.props = props;
+        user.email = email;
         return this.userService.update(context, user.id, user);
       },
     });
@@ -310,19 +320,19 @@ export class AuthService {
 
   private async validateOrCreateExternalAuthAccount(
     context: Context,
-    email: string,
+    id: string,
     options: ValidateOptions,
   ): Promise<IUser> {
     const { newUserRequest, updateUser, type } = options;
     this.logger.info(`Validating ${type} user profile`);
-    const account = await this.getAccountByEmail(context, email);
+    const account = await this.authRepository.get(context, id);
     if (!account) {
-      this.logger.info(`No login credentials found for ${email}, creating credentials and creating or updating user.`);
+      this.logger.info(`No login credentials found for ${id}, creating credentials and creating or updating user.`);
 
       const updatedUser = await this.userService.createOrUpdate(context, newUserRequest(), this.validateUserEnabled);
 
       await this.authRepository.save(context, {
-        id: email,
+        id,
         type,
         userId: updatedUser.id,
       });
@@ -337,7 +347,7 @@ export class AuthService {
     const user = await this.loadUserAndCheckEnabled(context, account.userId);
 
     if (account.type !== type) {
-      this.logger.info(`Updating auth type to [${type}] for [${email}]`);
+      this.logger.info(`Updating auth type to [${type}] for [${id}]`);
       await this.authRepository.save(context, {
         id: account.id,
         type,
@@ -345,7 +355,7 @@ export class AuthService {
       });
     }
 
-    this.logger.info(`User ${email} validated`);
+    this.logger.info(`User ${id} validated`);
     return updateUser ? await updateUser(user) : user;
   }
 
@@ -374,7 +384,7 @@ export class AuthService {
   }
 
   private toName(profile: SimpleUserProfile) {
-    return [profile.firstName, profile.lastName].filter((part) => !isNil(part)).join(' ');
+    return [profile.firstName, profile.lastName].filter(part => !isNil(part)).join(' ');
   }
 }
 

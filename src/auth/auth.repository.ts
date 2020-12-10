@@ -47,13 +47,13 @@ const externalAuthTypeEnum = t.union([t.literal('google'), t.literal('saml'), t.
 const loginCredentials = t.clean(
   t.union([
     t.interface({
-      id: t.string, // username/email
+      id: t.string, // username/email/subject-claim
       userId: t.string,
       password: t.string,
       type: t.literal('password'),
     }),
     t.interface({
-      id: t.string, // username/email
+      id: t.string, // username/email/subject-claim
       userId: t.string,
       type: externalAuthTypeEnum,
     }),
@@ -75,7 +75,7 @@ export class CredentialRepository extends Repository<LoginCredentials> {
   }
 
   protected beforePersist(context: Context, entities: OneOrMany<LoginCredentials>): OneOrMany<LoginCredentials> {
-    return asArray(entities).map((entity) => ({
+    return asArray(entities).map(entity => ({
       ...entity,
       id: normaliseEmail(entity.id),
     }));

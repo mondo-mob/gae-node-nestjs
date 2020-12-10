@@ -1,19 +1,23 @@
-## 7.6.3 (2020-11-20)
+## 7.5.4 (2020-12-11)
+
+- Update auth0 with a callback that allows apps to override email as the login identifier
+
+## 7.5.3 (2020-11-20)
 
 - Resolve all vulnerabilities internally with `npm audit fix` to update some minor versions of internal dependencies.
 
-## 7.6.2 (2020-11-10)
+## 7.5.2 (2020-11-10)
 
 - Provide a way for subclasses of `AbstractUserService` to get user id by email address.
 
-## 7.6.1 (2020-11-10)
+## 7.5.1 (2020-11-10)
 
 - `InviteCallbacks` are supplied the `context` so they can call through to repositories. Skip version `7.5.0`.
 
 ## 7.5.0 (2020-11-10)
 
-- Enable callbacks for when inviting user. Currently supports `afterInvite` and `afterActivate`. To utilise, register an 
-`@Injectable` class that implements `InviteCallbacks` and define one or more methods. Register with the name of constant `INVITE_CALLBACKS`.
+- Enable callbacks for when inviting user. Currently supports `afterInvite` and `afterActivate`. To utilise, register an
+  `@Injectable` class that implements `InviteCallbacks` and define one or more methods. Register with the name of constant `INVITE_CALLBACKS`.
 
 ## 7.4.3 (2020-10-27)
 

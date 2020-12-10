@@ -14,7 +14,7 @@ import { IUser, newContext } from '../datastore/context';
 import { DatastoreProvider } from '../datastore/datastore.provider';
 import { createLogger, Logger } from '../logging';
 import { AuthenticationFailedException, AuthService } from './auth.service';
-import { USER_SERVICE, UserService } from './user.service';
+import { USER_SERVICE, UserService, normaliseEmail } from './user.service';
 import { AUTH_CALLBACKS, AuthCallbacks } from './auth.callbacks';
 import { Configuration } from '../configuration';
 
@@ -266,17 +266,30 @@ export class AuthConfigurer {
     this.validateAuth(done, () => {
       const decoded: any = decode(extraParams.id_token);
       const { email, name } = decoded;
-
+      const normalisedEmail = normaliseEmail(email);
       const namespace = this.configuration.auth.auth0!.namespace;
       const roles = decoded[`${namespace}roles`];
       const orgId = decoded[`${namespace}orgId`];
       const props = decoded[`${namespace}props`];
 
-      if (!roles || !roles.length) {
-        this.logger.warn(`No roles were provided by auth0 for ${email}`);
+      let id = normalisedEmail;
+      if (this.authCallbacks && this.authCallbacks.getLoginIdentifier) {
+        id = this.authCallbacks.getLoginIdentifier(AUTH0_SIGNIN, decoded);
       }
 
-      return this.authService.validateUserAuth0(newContext(this.datastore), email, name, orgId, roles, props);
+      if (!roles || !roles.length) {
+        this.logger.warn(`No roles were provided by auth0 for ${normalisedEmail}`);
+      }
+
+      return this.authService.validateUserAuth0(
+        newContext(this.datastore),
+        id,
+        normalisedEmail,
+        name,
+        orgId,
+        roles,
+        props,
+      );
     });
 
   validateAuth = async (

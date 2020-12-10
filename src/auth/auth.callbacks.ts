@@ -8,4 +8,5 @@ export interface AuthCallbacks {
   buildUserPropertiesObject?(authType: string, profileData: any): any;
   // optional callback to populate auth0 authentication options
   buildAuthenticationOptions?(authType: string, req: Request, defaultAuthenticateOptions: any): any;
+  getLoginIdentifier?(authType: string, authToken: any): string;
 }
