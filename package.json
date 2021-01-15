@@ -1,6 +1,6 @@
 {
   "name": "@mondomob/gae-node-nestjs",
-  "version": "7.5.4",
+  "version": "7.5.5",
   "description": "Backup of @mondomob/gae-node-nestjs since npm corrupted our repo and will hopefully fix",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",

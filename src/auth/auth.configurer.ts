@@ -270,11 +270,15 @@ export class AuthConfigurer {
       const namespace = this.configuration.auth.auth0!.namespace;
       const roles = decoded[`${namespace}roles`];
       const orgId = decoded[`${namespace}orgId`];
-      const props = decoded[`${namespace}props`];
 
       let id = normalisedEmail;
       if (this.authCallbacks && this.authCallbacks.getLoginIdentifier) {
         id = this.authCallbacks.getLoginIdentifier(AUTH0_SIGNIN, decoded);
+      }
+
+      let props = decoded[`${namespace}props`];
+      if (this.authCallbacks && this.authCallbacks.buildUserPropertiesObject) {
+        props = this.authCallbacks.buildUserPropertiesObject(AUTH0_SIGNIN, decoded);
       }
 
       if (!roles || !roles.length) {

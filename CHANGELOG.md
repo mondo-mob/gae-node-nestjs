@@ -1,3 +1,7 @@
+## 7.5.5 (2021-01-15)
+
+- Update auth0 with a secondary callback that allows apps to get at the login identifier from the UserService
+
 ## 7.5.4 (2020-12-11)
 
 - Update auth0 with a callback that allows apps to override email as the login identifier
