@@ -29,7 +29,6 @@ import { REQUEST_SCOPE_INTERCEPTORS, RequestScopeMiddleware } from './request-sc
 import { Type } from '@nestjs/common/interfaces/type.interface';
 import { LoggingRequestScopeInterceptor } from './logging/logging-request-scope';
 import { RequestScopeInterceptor } from './request-scope';
-import { GraphQLModule } from '@nestjs/graphql';
 
 type ClassType = new (...args: any[]) => any;
 type ClassTypeOrReference = ClassType | ForwardReference;
@@ -37,8 +36,8 @@ type ClassTypeOrReference = ClassType | ForwardReference;
 export interface Options {
   configurationModule: ClassTypeOrReference;
   userModule: ClassTypeOrReference;
+  graphQLModule: DynamicModule;
   requestScopeInterceptors?: Type<RequestScopeInterceptor>[];
-  graphQLModule?: DynamicModule;
 }
 
 @Global()
@@ -124,16 +123,7 @@ export class GCloudModule implements NestModule {
   static forConfiguration(options: Options): DynamicModule {
     return {
       module: GCloudModule,
-      imports: [
-        options.configurationModule,
-        options.userModule,
-        options.graphQLModule ||
-          GraphQLModule.forRoot({
-            path: '/api/graphql',
-            context: (props: any) => props.req?.context,
-            autoSchemaFile: 'schema.gql',
-          }),
-      ],
+      imports: [options.configurationModule, options.userModule, options.graphQLModule],
       providers: [
         {
           provide: REQUEST_SCOPE_INTERCEPTORS,

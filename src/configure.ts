@@ -1,5 +1,5 @@
 /* tslint:disable:ban-types */
-import * as DatastoreStore from '@google-cloud/connect-datastore';
+import { DatastoreStore } from '@google-cloud/connect-datastore';
 import { Datastore } from '@google-cloud/datastore';
 import * as express from 'express';
 import { NextFunction, RequestHandler, Response } from 'express';
@@ -58,8 +58,6 @@ interface Express {
 }
 
 export const configureExpress = async (expressApp: Express, options: ServerOptions) => {
-  const SessionStore = DatastoreStore(session);
-
   if (process.env.APP_ENGINE_ENVIRONMENT) {
     const { mw } = await lb.express.middleware({ level: 'info' });
     expressApp.use(mw);
@@ -117,12 +115,12 @@ export const configureExpress = async (expressApp: Express, options: ServerOptio
       saveUninitialized: true,
       resave: true,
       rolling: true,
-      store: new SessionStore({
+      store: new DatastoreStore({
+        kind: 'express-sessions',
         dataset: new Datastore({
-          prefix: 'express-sessions',
           apiEndpoint: options.session.apiEndpoint,
           projectId: options.session.projectId,
-        } as any),
+        }),
       }),
       secret: options.session.secret,
       cookie: {
@@ -140,7 +138,7 @@ export const configureExpress = async (expressApp: Express, options: ServerOptio
   // See https://stackoverflow.com/questions/27117337/exclude-route-from-express-middleware
   const unless = (exclusions: OneOrMany<string | RegExp>, middleware: RequestHandler) => {
     return (req: any, res: Response, next: NextFunction) => {
-      const matchesExclusion = asArray(exclusions).some((path) =>
+      const matchesExclusion = asArray(exclusions).some(path =>
         typeof path.test === 'function' ? (path as RegExp).test(req.path) : path === req.path,
       );
       matchesExclusion ? next() : middleware(req, res, next);

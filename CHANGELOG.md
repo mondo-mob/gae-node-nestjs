@@ -1,3 +1,40 @@
+## 8.0.0-alpha-1 (2021-03-09)
+Alpha releases are for internal use only and these changelog entries will be replaced and rolled up into a single v8.0.0 entry.
+
+Support for GraphQL code-first approach so we do not need to manually craft types and graphql schema files.
+
+### BREAKING CHANGES
+This is a breaking release that is aimed at [Code First](https://docs.nestjs.com/graphql/quick-start#code-first) style resolver/model definitions. If you still want to use graphql schema files
+then we suggest you stick with v7 releases. Although there may be ways to use this release with some overrides, there has not been significant effort to test this and it may require some further
+tweaks.
+
+* Graphql schema files will not work in this release (see above).
+* The `me` GraphQL `Query` has been removed from this library since it is aimed at returning the `User` that the application defines itself. There is no reason to include
+  this in the base library, so define this in your own library - perhaps a `user.resolver.ts` if you have one. Suggested implementation
+  
+  ```typescript
+      @AllowAnonymous()
+      @Query(() => User, { nullable: true })
+      async me(_req: void, _args: void, context: Context): Promise<User | undefined> {
+        if (context.user) {
+          return context.user as User;
+        }
+      }
+  ```
+* Applications need to define their own `GraphQLModule`. When initialising your `GCloudModule` add an entry fore `GraphQLModule`. Example below (the last option is the new one):
+  ```typescript
+
+      GCloudModule.forConfiguration({
+        configurationModule: ConfigurationModule,
+        userModule: UserModule,
+        graphQLModule: GraphQLModule.forRoot({
+          path: '/api/graphql',
+          context: (props: any) => props.req?.context),
+          autoSchemaFile: 'schema.gql',
+      }),
+  ```
+
+
 ## 7.5.5 (2021-01-15)
 
 - Update auth0 with a secondary callback that allows apps to get at the login identifier from the UserService
