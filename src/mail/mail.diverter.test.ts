@@ -180,13 +180,12 @@ describe('MailDiverter', () => {
   };
 
   const setupDivertedEmails = (count: number) => {
-    const divertToAddresses = [];
-    for (let i = 0; i < count; i++) {
-      divertToAddresses.push(`divertTo${i}@test.com`);
-    }
+    const divertEmailTo = Array(count)
+      .fill(0)
+      .map((_, index) => `divertTo${index}@test.com`);
     // @ts-ignore
     config.devHooks = {
-      divertEmailTo: divertToAddresses,
+      divertEmailTo,
     };
   };
 });

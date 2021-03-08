@@ -26,12 +26,12 @@ describe('MailWhitelistSender', () => {
   };
 
   const setupWhitelistEmails = (count: number) => {
-    const whitelist = [];
-    for (let i = 1; i <= count; i++) {
-      whitelist.push(`whitelist${i}@example.com`);
-    }
+    const emailWhitelist = Array(count)
+      .fill(0)
+      .map((_, index) => `whitelist${index + 1}@example.com`);
+
     config.devHooks = {
-      emailWhitelist: whitelist,
+      emailWhitelist,
     };
   };
 

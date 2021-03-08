@@ -1,9 +1,8 @@
 import { DynamicModule, ForwardReference, Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
-import { GraphQLModule } from '@nestjs/graphql';
 import { AuthConfigurer } from './auth/auth.configurer';
 import { AuthController } from './auth/auth.controller';
-import { AuthResolver } from './auth/auth.graphql';
+import { AuthResolver } from './auth/auth.resolver';
 import { AuthGuard } from './auth/auth.guard';
 import { CredentialRepository, PasswordResetRepository, UserInviteRepository } from './auth/auth.repository';
 import { AuthService } from './auth/auth.service';
@@ -24,14 +23,13 @@ import { MailLoggingSender } from './mail/mail-logging.sender';
 import { MAIL_SENDER, MailSender } from './mail/mail.sender';
 import { SmtpSender } from './mail/smtp/smtp.sender';
 import { SearchService } from './search/search.service';
-import { GraphQLDateTime, GraphQLTime } from 'graphql-iso-date';
-import * as _ from 'lodash';
 import { MailWhitelistSender } from './mail/mail-whitelist.sender';
 import { MailSubjectSender } from './mail/mail-subject.sender';
 import { REQUEST_SCOPE_INTERCEPTORS, RequestScopeMiddleware } from './request-scope/request-scope.middleware';
 import { Type } from '@nestjs/common/interfaces/type.interface';
 import { LoggingRequestScopeInterceptor } from './logging/logging-request-scope';
 import { RequestScopeInterceptor } from './request-scope';
+import { GraphQLModule } from '@nestjs/graphql';
 
 type ClassType = new (...args: any[]) => any;
 type ClassTypeOrReference = ClassType | ForwardReference;
@@ -40,6 +38,7 @@ export interface Options {
   configurationModule: ClassTypeOrReference;
   userModule: ClassTypeOrReference;
   requestScopeInterceptors?: Type<RequestScopeInterceptor>[];
+  graphQLModule?: DynamicModule;
 }
 
 @Global()
@@ -128,15 +127,12 @@ export class GCloudModule implements NestModule {
       imports: [
         options.configurationModule,
         options.userModule,
-        GraphQLModule.forRoot({
-          path: '/api/graphql',
-          context: (props: any) => _.get(props.req, 'context'),
-          typePaths: ['./src/**/*.graphqls', './node_modules/@mondomob/gae-node-nestjs/dist/**/*.graphqls'],
-          resolvers: {
-            Time: GraphQLTime,
-            DateAndTime: GraphQLDateTime,
-          },
-        }),
+        options.graphQLModule ||
+          GraphQLModule.forRoot({
+            path: '/api/graphql',
+            context: (props: any) => props.req?.context,
+            autoSchemaFile: 'schema.gql',
+          }),
       ],
       providers: [
         {
