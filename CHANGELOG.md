@@ -1,6 +1,4 @@
-## 8.0.0-alpha-* (2021-03-09)
-Alpha releases are for internal use only and these changelog entries will be replaced and rolled up into a single v8.0.0 entry.
-
+## 8.0.0 (2021-03-09)
 Support for GraphQL code-first approach so we do not need to manually craft types and graphql schema files.
 
 ### BREAKING CHANGES
@@ -29,7 +27,7 @@ tweaks.
         userModule: UserModule,
         graphQLModule: GraphQLModule.forRoot({
           path: '/api/graphql',
-          context: (props: any) => props.req?.context),
+          context: (props: any) => props.req?.context,
           autoSchemaFile: 'schema.gql',
       }),
   ```

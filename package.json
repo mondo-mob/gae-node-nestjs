@@ -1,7 +1,7 @@
 {
   "name": "@mondomob/gae-node-nestjs",
-  "version": "8.0.0-alpha-2",
-  "description": "Backup of @mondomob/gae-node-nestjs since npm corrupted our repo and will hopefully fix",
+  "version": "8.0.0",
+  "description": "Google App Engine datastore repositories and graphql setup with nestjs",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
