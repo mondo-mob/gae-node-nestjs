@@ -1,4 +1,4 @@
-## 8.0.0-alpha-1 (2021-03-09)
+## 8.0.0-alpha-* (2021-03-09)
 Alpha releases are for internal use only and these changelog entries will be replaced and rolled up into a single v8.0.0 entry.
 
 Support for GraphQL code-first approach so we do not need to manually craft types and graphql schema files.

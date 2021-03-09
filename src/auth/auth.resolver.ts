@@ -1,4 +1,4 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Context as GqlContext, Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AllowAnonymous, Roles } from './auth.guard';
 import { InviteUserService } from './invite-user.service';
 import { PasswordResetService } from './password-reset.service';
@@ -13,7 +13,7 @@ export class AuthResolver {
 
   @AllowAnonymous()
   @Mutation(() => Boolean, { nullable: true })
-  async resetPassword(_req: void, @Args('email') email: string, context: Context) {
+  async resetPassword(_req: void, @Args('email') email: string, @GqlContext() context: Context) {
     return await this.passwordResetService.resetPassword(context, email);
   }
 
@@ -23,7 +23,7 @@ export class AuthResolver {
     _req: void,
     @Args('newPassword') newPassword: string,
     @Args('code') code: string,
-    context: Context,
+    @GqlContext() context: Context,
   ) {
     return await this.passwordResetService.confirmResetPassword(context, code, newPassword);
   }
@@ -34,7 +34,7 @@ export class AuthResolver {
     _req: void,
     @Args('roles', { type: () => [String!] }) roles: string[],
     @Args('email') email: string,
-    context: Context,
+    @GqlContext() context: Context,
   ) {
     const {
       user: { id },
@@ -44,7 +44,7 @@ export class AuthResolver {
 
   @AllowAnonymous()
   @Query(() => String, { nullable: true })
-  async checkActivationCode(_req: void, @Args('code') code: string, context: Context): Promise<string | null> {
+  async checkActivationCode(_req: void, @Args('code') code: string, @GqlContext() context: Context): Promise<string | null> {
     return this.inviteUserService.checkActivationCode(context, code);
   }
 
@@ -55,7 +55,7 @@ export class AuthResolver {
     @Args('password') password: string,
     @Args('name') name: string,
     @Args('code') code: string,
-    context: Context,
+    @GqlContext() context: Context,
   ) {
     await this.inviteUserService.activateAccount(context, code, name, password);
   }
