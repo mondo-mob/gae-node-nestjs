@@ -21,15 +21,15 @@ tweaks.
   ```
 * Applications need to define their own `GraphQLModule`. When initialising your `GCloudModule` add an entry fore `GraphQLModule`. Example below (the last option is the new one):
   ```typescript
-
-      GCloudModule.forConfiguration({
-        configurationModule: ConfigurationModule,
-        userModule: UserModule,
-        graphQLModule: GraphQLModule.forRoot({
-          path: '/api/graphql',
-          context: (props: any) => props.req?.context,
-          autoSchemaFile: 'schema.gql',
-      }),
+    GCloudModule.forConfiguration({
+      configurationModule: ConfigurationModule,
+      userModule: UserModule,
+      graphQLModule: GraphQLModule.forRoot({
+        path: '/api/graphql',
+        context: (props: any) => props.req?.context,
+        autoSchemaFile: configurationProvider.isDevelopment() ? 'schema.gql' : true,  // in-memory for GCP but generate file locally to help troubleshoot
+      }),      
+    }),
   ```
 
 
