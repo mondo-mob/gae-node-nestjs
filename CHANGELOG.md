@@ -1,3 +1,19 @@
+## 7.5.6 (2021-03-11)
+
+- Turn on nest 'enhancers' for field resolvers by default. Without this, @ResolveField functions do not execute NestInterceptor implementations, nor ExceptionFilters. This hides any error logging that may occur as a result of an error inside field resolution functions or skip specific response handling. There is a risk of a performance issue as described in: https://docs.nestjs.com/graphql/other-features#exception-filters but only in the case of returning 'thousands' of records from field resolvers. By default, we do not have any enhancers so this seems a better default. The link also provides a way to skip an enhancer if you only want to skip execution of an enhancer that is not necessary for your field resolver:
+
+```
+  export function isResolvingGraphQLField(context: ExecutionContext): boolean {
+    if (context.getType<GqlContextType>() === 'graphql') {
+      const gqlContext = GqlExecutionContext.create(context);
+      const info = gqlContext.getInfo();
+      const parentType = info.parentType.name;
+      return parentType !== 'Query' && parentType !== 'Mutation';
+    }
+    return false;
+  }
+```
+
 ## 7.5.5 (2021-01-15)
 
 - Update auth0 with a secondary callback that allows apps to get at the login identifier from the UserService

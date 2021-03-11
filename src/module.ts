@@ -136,6 +136,7 @@ export class GCloudModule implements NestModule {
             Time: GraphQLTime,
             DateAndTime: GraphQLDateTime,
           },
+          fieldResolverEnhancers: ['filters', 'interceptors'],
         }),
       ],
       providers: [
