@@ -71,12 +71,11 @@ export interface Options {
     {
       provide: MAIL_SENDER,
       useFactory: (config: Configuration, gmailConfigurer: GmailConfigurer) => {
-        const disableMailLogger = !!config.devHooks && config.devHooks.disableLocalMailLogger;
-        // tslint:disable-next-line
+        // tslint:disable-next-line:no-console
         console.log(`Configuring mail sender with devHooks: `, config.devHooks);
 
         let mailSender: MailSender;
-        if (config.environment === 'development' && !disableMailLogger) {
+        if (config.environment === 'development' && !config.devHooks?.disableLocalMailLogger) {
           mailSender = new MailLoggingSender();
         } else if (config.auth.smtp && config.auth.smtp.enabled) {
           mailSender = new SmtpSender(config);
@@ -86,14 +85,16 @@ export interface Options {
 
         // When multiple settings are enabled the senders are executed
         // in reverse order to their creation
-        if (config.devHooks && config.devHooks.emailWhitelist) {
-          mailSender = new MailWhitelistSender(mailSender, config);
-        }
-        if (config.devHooks && config.devHooks.divertEmailTo) {
-          mailSender = new MailDiverter(mailSender, config);
-        }
-        if (config.devHooks && config.devHooks.emailSubjectPrefix) {
-          mailSender = new MailSubjectSender(mailSender, config);
+        if (config.devHooks) {
+          if (config.devHooks.emailWhitelist) {
+            mailSender = new MailWhitelistSender(mailSender, config);
+          }
+          if (config.devHooks.divertEmailTo) {
+            mailSender = new MailDiverter(mailSender, config);
+          }
+          if (config.devHooks.emailSubjectPrefix) {
+            mailSender = new MailSubjectSender(mailSender, config);
+          }
         }
         return mailSender;
       },
