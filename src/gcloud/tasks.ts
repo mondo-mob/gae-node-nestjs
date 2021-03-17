@@ -10,18 +10,15 @@ export class TaskQueue<T extends Configuration> {
     this.taskLogger = createLogger('task-queue');
   }
 
-  async enqueue(taskName: string, payload: any = {}, inSeconds?: number) {
+  async enqueue(taskName: string, payload: any = {}) {
     if (this.configurationProvider.environment === 'development') {
-      if (inSeconds) {
-        this.taskLogger.warn('inSeconds is not implemented for local development queues');
-      }
       await this.localQueue(taskName, payload);
     } else {
-      await this.appEngineQueue(taskName, payload, inSeconds);
+      await this.appEngineQueue(taskName, payload);
     }
   }
 
-  async appEngineQueue(taskName: string, payload: any = {}, inSeconds?: number) {
+  async appEngineQueue(taskName: string, payload: any = {}) {
     const client = new CloudTasksClient();
 
     const projectId = this.configurationProvider.projectId;
@@ -45,13 +42,6 @@ export class TaskQueue<T extends Configuration> {
           ? {
               appEngineRouting: {
                 version: process.env.GAE_VERSION,
-              },
-            }
-          : {}),
-        ...(inSeconds
-          ? {
-              scheduleTime: {
-                seconds: inSeconds + Date.now() / 1000,
               },
             }
           : {}),
