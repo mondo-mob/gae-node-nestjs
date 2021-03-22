@@ -48,14 +48,14 @@ export class TaskQueue<T extends Configuration> {
               },
             }
           : {}),
-        ...(inSeconds
-          ? {
-              scheduleTime: {
-                seconds: inSeconds + Date.now() / 1000,
-              },
-            }
-          : {}),
       },
+      ...(inSeconds
+        ? {
+            scheduleTime: {
+              seconds: inSeconds + Date.now() / 1000,
+            },
+          }
+        : {}),
     };
 
     this.taskLogger.info('Creating task with payload: ', task);
