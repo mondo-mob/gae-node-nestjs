@@ -10,15 +10,15 @@ export class TaskQueue<T extends Configuration> {
     this.taskLogger = createLogger('task-queue');
   }
 
-  async enqueue(taskName: string, payload: any = {}) {
+  async enqueue(taskName: string, payload: any = {}, inSeconds?: number) {
     if (this.configurationProvider.environment === 'development') {
       await this.localQueue(taskName, payload);
     } else {
-      await this.appEngineQueue(taskName, payload);
+      await this.appEngineQueue(taskName, payload, inSeconds);
     }
   }
 
-  async appEngineQueue(taskName: string, payload: any = {}) {
+  async appEngineQueue(taskName: string, payload: any = {}, inSeconds?: number) {
     const client = new CloudTasksClient();
 
     const projectId = this.configurationProvider.projectId;
