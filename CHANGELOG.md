@@ -1,3 +1,7 @@
+## 7.5.7 (2021-03-22)
+
+- Fix task scheduling. The `inSeconds` parameter into the function `async enqueue(taskName: string, payload: any = {}, inSeconds?: number)` was taking no effect prior to this commit.
+
 ## 7.5.6 (2021-03-11)
 
 - Turn on nest 'enhancers' for field resolvers by default. Without this, @ResolveField functions do not execute NestInterceptor implementations, nor ExceptionFilters. This hides any error logging that may occur as a result of an error inside field resolution functions or skip specific response handling. There is a risk of a performance issue as described in: https://docs.nestjs.com/graphql/other-features#exception-filters but only in the case of returning 'thousands' of records from field resolvers. By default, we do not have any enhancers so this seems a better default. The link also provides a way to skip an enhancer if you only want to skip execution of an enhancer that is not necessary for your field resolver:
