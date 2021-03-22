@@ -1,3 +1,8 @@
+## 8.0.1 (2021-03-22)
+
+- Fix task scheduling. The `inSeconds` parameter into the function `async enqueue(taskName: string, payload: any = {}, inSeconds?: number)` was taking no effect prior to this commit.
+
+
 ## 8.0.0 (2021-03-09)
 Support for GraphQL code-first approach so we do not need to manually craft types and graphql schema files.
 
