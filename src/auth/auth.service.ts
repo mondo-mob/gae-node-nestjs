@@ -28,10 +28,10 @@ export class AuthenticationFailedException extends HttpException {
     super(message, HttpStatus.UNAUTHORIZED);
   }
 }
-const PASSWORD_ROUNDS = 10;
+const SALT_LENGTH = 10;
 
 export async function hashPassword(password: string): Promise<string> {
-  return await bcrypt.hash(password, PASSWORD_ROUNDS);
+  return await bcrypt.hash(password, SALT_LENGTH);
 }
 
 @Injectable()
