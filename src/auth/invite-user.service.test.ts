@@ -1,17 +1,17 @@
 import { anything, capture, instance, mock, reset, verify, when } from 'ts-mockito';
-import { GmailSender } from '../mail/gmail/gmail.sender';
 import { CredentialRepository, LoginCredentials, UserInvite, UserInviteRepository } from './auth.repository';
 import { IInviteUserRequest, DEFAULT_INVITE_CODE_EXPIRY, InviteUserService } from './invite-user.service';
 import { AbstractUserService } from './user.service';
 import { mockContext } from '../_test/mocks';
 import { Context, IUser } from '../datastore/context';
 import { InviteCallbacks } from './invite.callbacks';
+import { AuthTaskService } from './auth.task.service';
 
 describe('InviteUserService', () => {
   const credentialRepository = mock(CredentialRepository);
-  const mailSender = mock(GmailSender);
   const userInviteRepository = mock(UserInviteRepository);
   const userService = mock(AbstractUserService);
+  const authTaskService = mock(AuthTaskService);
   const configuration = {
     host: 'http://localhost:3000',
     auth: {
@@ -24,16 +24,16 @@ describe('InviteUserService', () => {
 
   beforeEach(() => {
     reset(credentialRepository);
-    reset(mailSender);
     reset(userInviteRepository);
     reset(userService);
+    reset(authTaskService);
 
     inviteUserService = new InviteUserService(
       instance(credentialRepository),
-      instance(mailSender),
       configuration,
       instance(userService),
       instance(userInviteRepository),
+      instance(authTaskService),
     );
   });
 
@@ -83,11 +83,10 @@ describe('InviteUserService', () => {
       const [, newInvite] = capture(userInviteRepository.save).last();
       verify(userInviteRepository.delete(context, '12313123')).once();
 
-      const [, mail] = capture(mailSender.send).last();
+      verify(authTaskService.queueActivationEmail((newInvite as any).id, 'email'));
 
       expect((newInvite as any).userId).toBe(existingInvite.userId);
       expect((newInvite as any).id).not.toBe(existingInvite.id);
-      expect(mail.html).toMatch(result.inviteId!);
     });
   });
 
@@ -138,15 +137,13 @@ describe('InviteUserService', () => {
 
       verify(userService.create(anything(), anything())).never();
       const [, invite] = capture(userInviteRepository.save).last();
-      const [, mail] = capture(mailSender.send).last();
+      verify(authTaskService.queueActivationEmail((invite as any).id, inviteRequest.email));
 
       expect(result).toEqual({
         user: existingUser,
         inviteId: (invite as any).id,
-        activateLink: `http://localhost:3000/activate/${(invite as any).id}`,
       });
       expect((invite as any).userId).toBe(existingUser.id);
-      expect(mail.html).toMatch((invite as any).id);
     });
 
     it('should generate an invite for new user and send email', async () => {
@@ -165,12 +162,11 @@ describe('InviteUserService', () => {
 
       const [, createRequest] = capture(userService.create).last();
       const [, invite] = capture(userInviteRepository.save).last();
-      const [, mail] = capture(mailSender.send).last();
+      verify(authTaskService.queueActivationEmail((invite as any).id, inviteRequest.email));
 
       expect(result).toEqual({
         user: createdUser,
         inviteId: (invite as any).id,
-        activateLink: `http://localhost:3000/activate/${(invite as any).id}`,
       });
       expect(createRequest).toEqual({
         email: inviteRequest.email,
@@ -178,7 +174,6 @@ describe('InviteUserService', () => {
         enabled: false,
       });
       expect((invite as any).userId).toBe(createdUser.id);
-      expect(mail.html).toMatch((invite as any).id);
     });
 
     it('should invite and invoke callback when supplied and existing user', async () => {
@@ -248,12 +243,11 @@ describe('InviteUserService', () => {
 
       const [, createRequest] = capture(userService.create).last();
       const [, invite] = capture(userInviteRepository.save).last();
-      verify(mailSender.send(context, anything())).never();
+      verify(authTaskService.queueActivationEmail(anything(), anything())).never();
 
       expect(result).toEqual({
         user: createdUser,
         inviteId: (invite as any).id,
-        activateLink: `http://localhost:3000/activate/${(invite as any).id}`,
       });
       expect(createRequest).toEqual({
         email: inviteRequest.email,
@@ -301,7 +295,7 @@ describe('InviteUserService', () => {
 
       verify(userService.create(anything(), anything())).never();
       verify(userInviteRepository.save(anything(), anything())).never();
-      verify(mailSender.send(context, anything())).never();
+      verify(authTaskService.queueActivationEmail(anything(), anything())).never();
       const [, , updateRequest] = capture(userService.update).last();
 
       expect(result).toEqual({
@@ -326,12 +320,11 @@ describe('InviteUserService', () => {
 
       const [, createRequest] = capture(userService.create).last();
       const [, invite] = capture(userInviteRepository.save).last();
-      verify(mailSender.send(context, anything())).never();
+      verify(authTaskService.queueActivationEmail(anything(), anything())).never();
 
       expect(result).toEqual({
         user: createdUser,
         inviteId: (invite as any).id,
-        activateLink: `http://localhost:3000/activate/${(invite as any).id}`,
       });
       expect(createRequest).toEqual({
         email: inviteRequest.email,
@@ -503,10 +496,10 @@ describe('InviteUserService', () => {
   const initServiceWithCallbacks = (inviteCallbacks: InviteCallbacks<IUser>) => {
     inviteUserService = new InviteUserService(
       instance(credentialRepository),
-      instance(mailSender),
       configuration,
       instance(userService),
       instance(userInviteRepository),
+      instance(authTaskService),
       inviteCallbacks,
     );
   };

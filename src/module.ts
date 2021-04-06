@@ -29,6 +29,8 @@ import { REQUEST_SCOPE_INTERCEPTORS, RequestScopeMiddleware } from './request-sc
 import { Type } from '@nestjs/common/interfaces/type.interface';
 import { LoggingRequestScopeInterceptor } from './logging/logging-request-scope';
 import { RequestScopeInterceptor } from './request-scope';
+import { AuthTaskController } from './auth/auth.task.controller';
+import { AuthTaskService } from './auth/auth.task.service';
 
 type ClassType = new (...args: any[]) => any;
 type ClassTypeOrReference = ClassType | ForwardReference;
@@ -53,6 +55,7 @@ export interface Options {
     AuthService,
     AuthConfigurer,
     AuthResolver,
+    AuthTaskService,
     PasswordResetService,
     InviteUserService,
     SearchService,
@@ -113,7 +116,7 @@ export interface Options {
     MAIL_SENDER,
     SearchService,
   ],
-  controllers: [AuthController, GmailController],
+  controllers: [AuthController, GmailController, AuthTaskController],
 })
 export class GCloudModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -1,5 +1,7 @@
-## 8.0.1 (2021-03-22)
+## 8.1.0 (2021-04-06)
+- Use a task queue to send activation and password reset emails. Relies on a `default` queue being present and cloudtasks API enabled.
 
+## 8.0.1 (2021-03-22)
 - Fix task scheduling. The `inSeconds` parameter into the function `async enqueue(taskName: string, payload: any = {}, inSeconds?: number)` was taking no effect prior to this commit.
 
 

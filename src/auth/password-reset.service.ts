@@ -6,7 +6,7 @@ import { createLogger, Logger } from '../logging';
 import { CredentialRepository, PasswordResetRepository } from './auth.repository';
 import { hashPassword } from './auth.service';
 import { Configuration } from '../configuration';
-import { MAIL_SENDER, MailSender } from '../mail/mail.sender';
+import { AuthTaskService } from './auth.task.service';
 
 const DEFAULT_PASSWORD_TOKEN_EXPIRY = 24 * 60 * 60 * 1000;
 
@@ -19,7 +19,7 @@ export class PasswordResetService {
     private readonly authRepository: CredentialRepository,
     private readonly passwordResetRepository: PasswordResetRepository,
     @Inject('Configuration') private readonly configuration: Configuration,
-    @Inject(MAIL_SENDER) private readonly mailSender: MailSender,
+    private readonly authTaskService: AuthTaskService,
   ) {
     this.logger = createLogger('password-reset-service');
     this.tokenExpiry = configuration.passwordTokenExpiry || DEFAULT_PASSWORD_TOKEN_EXPIRY;
@@ -47,7 +47,7 @@ export class PasswordResetService {
       return;
     }
 
-    this.logger.info(`Sending password reset email for "${email}"`);
+    this.logger.info(`Queuing password reset email for "${email}"`);
 
     const id = uuidv4();
 
@@ -57,18 +57,7 @@ export class PasswordResetService {
       id,
     });
 
-    const address = `${this.configuration.host}/confirm-reset/${id}`;
-
-    await this.mailSender.send(context, {
-      to: email,
-      subject: 'Password reset',
-      html: `
-        <html>
-        <head></head>
-        <body><a href="${address}">Reset your password</a></body>
-        </html>
-      `,
-    });
+    await this.authTaskService.queuePasswordResetEmail(id, email);
   }
 
   /**

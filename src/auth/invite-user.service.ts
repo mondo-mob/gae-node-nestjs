@@ -4,23 +4,19 @@ import { Configuration, CONFIGURATION } from '../configuration';
 import { Context, IUser } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';
 import { createLogger, Logger } from '../logging';
-import { userInviteEmail } from '../mail-templates/invite';
-import { MAIL_SENDER, MailSender } from '../mail/mail.sender';
 import { unique } from '../util/arrays';
 import { CredentialRepository, UserInvite, UserInviteRepository } from './auth.repository';
 import { hashPassword } from './auth.service';
 import { USER_SERVICE, UserService } from './user.service';
 import { INVITE_CALLBACKS, InviteCallbacks } from './invite.callbacks';
 import { asPromise } from '../util/types';
+import { AuthTaskService } from './auth.task.service';
 
 export const DEFAULT_INVITE_CODE_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
-const DEFAULT_INVITE_CODE_EXPIRY_EMAIL_COPY = '7 days';
-const DEFAULT_INVITATION_EMAIL_COPY = 'You have been invited as a new user.';
 
 export interface IInviteUserResponse {
   user: IUser;
   inviteId?: string;
-  activateLink?: string;
 }
 
 export interface IInviteUserRequest {
@@ -39,10 +35,10 @@ export class InviteUserService {
 
   constructor(
     private readonly authRepository: CredentialRepository,
-    @Inject(MAIL_SENDER) private readonly mailSender: MailSender,
     @Inject(CONFIGURATION) private readonly configuration: Configuration,
     @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
     private readonly userInviteRepository: UserInviteRepository,
+    private readonly authTaskService: AuthTaskService,
     @Optional() @Inject(INVITE_CALLBACKS) private readonly inviteCallbacks?: InviteCallbacks<IUser>,
   ) {
     this.logger = createLogger('invite-user-service');
@@ -145,9 +141,9 @@ export class InviteUserService {
 
     await this.userInviteRepository.delete(context, existingInvite.id);
 
-    const activateLink = await this.sendActivationEmail(context, newInvite.email, newInvite.id, false);
+    await this.queueActivationEmail(context, newInvite.email, newInvite.id, false);
 
-    return { user, inviteId: newInvite.id, activateLink };
+    return { user, inviteId: newInvite.id };
   }
 
   protected async inviteUserInternal(
@@ -195,13 +191,13 @@ export class InviteUserService {
         userId: user.id,
       });
 
-      const activateLink = await this.sendActivationEmail(context, email, inviteId, request.skipEmail);
+      await this.queueActivationEmail(context, email, inviteId, request.skipEmail);
 
       if (this.inviteCallbacks?.afterInvite) {
         await asPromise(this.inviteCallbacks.afterInvite(context, user, inviteId));
       }
 
-      return { user, inviteId, activateLink };
+      return { user, inviteId };
     }
   }
 
@@ -216,16 +212,6 @@ export class InviteUserService {
       : DEFAULT_INVITE_CODE_EXPIRY;
   };
 
-  private getActivationExpiryEmailCopy = (): string | undefined =>
-    !(this.configuration.auth.local && this.configuration.auth.local.activationExpiryInMinutes)
-      ? DEFAULT_INVITE_CODE_EXPIRY_EMAIL_COPY
-      : this.configuration.auth.local.activationExpiryEmailCopy;
-
-  private getInvitationCopy = (): string =>
-    !(this.configuration.auth.local && this.configuration.auth.local.invitationEmailCopy)
-      ? DEFAULT_INVITATION_EMAIL_COPY
-      : this.configuration.auth.local.invitationEmailCopy;
-
   /**
    * Send activation email and return activation link.
    * If skipEmail flag is set, just send activation link only.
@@ -235,26 +221,19 @@ export class InviteUserService {
    * @param {boolean | undefined} skipEmail
    * @returns {Promise<string>}
    */
-  private async sendActivationEmail(
+  private async queueActivationEmail(
     context: Context,
     email: string,
     inviteId: string,
     skipEmail: boolean | undefined,
-  ): Promise<string> {
-    const activateLink = `${this.configuration.host}/activate/${inviteId}`;
+  ): Promise<void> {
     if (skipEmail) {
       this.logger.info('Skipping sending invitation email based on request option');
-      return activateLink;
+      return;
     }
 
-    this.logger.info(`Sending invitation email to ${email} with link ${activateLink}`);
-    const title = 'Activate your account';
-    await this.mailSender.send(context, {
-      to: email,
-      subject: title,
-      html: userInviteEmail(title, activateLink, this.getInvitationCopy(), this.getActivationExpiryEmailCopy()),
-    });
-    return activateLink;
+    this.logger.info(`Queuing invitation email to ${email}`);
+    await this.authTaskService.queueActivationEmail(inviteId, email);
   }
 
   async checkActivationCode(context: Context, code: string): Promise<string | null> {
