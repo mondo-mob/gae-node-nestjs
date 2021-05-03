@@ -65,7 +65,7 @@ function isTransaction(datastore: Datastore | Transaction): datastore is Transac
 export class DatastoreLoader {
   private readonly loader: DataLoader<Entity.Key, object>;
   private readonly datastore: Datastore | Transaction;
-  private readonly parentContext: Context;
+  readonly parentContext: Context;
   private readonly logger: Logger;
 
   constructor(datastore: Datastore | Transaction, context: Context) {
@@ -97,7 +97,7 @@ export class DatastoreLoader {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.save(chunk),
-      (loader, { key, data }) => loader.prime(key, data),
+      (datastoreLoader, { key, data }) => this.resetDataloaderCache(datastoreLoader, key, data),
     );
   }
 
@@ -105,7 +105,10 @@ export class DatastoreLoader {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.delete(chunk) as Promise<any>,
-      (loader, key) => loader.clear(key),
+      (datastoreLoader, key) => {
+        datastoreLoader.parentContext.datastore.loader.clear(key);
+        return datastoreLoader.loader.clear(key);
+      },
     );
   }
 
@@ -113,7 +116,7 @@ export class DatastoreLoader {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.save(chunk),
-      (loader, { key, data }) => loader.prime(key, data),
+      (datastoreLoader, { key, data }) => this.resetDataloaderCache(datastoreLoader, key, data),
     );
   }
 
@@ -121,7 +124,7 @@ export class DatastoreLoader {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.upsert(chunk),
-      (loader, { key, data }) => loader.prime(key, data),
+      (datastoreLoader, { key, data }) => this.resetDataloaderCache(datastoreLoader, key, data),
     );
   }
 
@@ -129,7 +132,7 @@ export class DatastoreLoader {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.insert(chunk),
-      (loader, { key, data }) => loader.prime(key, data),
+      (datastoreLoader, { key, data }) => this.resetDataloaderCache(datastoreLoader, key, data),
     );
   }
 
@@ -215,17 +218,25 @@ export class DatastoreLoader {
     }
   }
 
+  private resetDataloaderCache(datastoreLoader: DatastoreLoader, key: Entity.Key, data: any) {
+    // if we are in a transaction we also need to clear the cache of the parent datastoreLoader
+    // for this key/data combo. We do not prime it yet as this transaction may roll back. If
+    // there is no transaction this and the parent dataloaders will be the same instance
+    datastoreLoader.parentContext.datastore.loader.clear(key);
+    return datastoreLoader.loader.clear(key).prime(key, data);
+  }
+
   private async applyBatched<T>(
     values: ReadonlyArray<T>,
     operation: (datastore: Datastore | Transaction, chunk: ReadonlyArray<T>) => Promise<any>,
-    updateLoader: (loader: DataLoader<Entity.Key, {}>, value: T) => void,
+    updateLoader: (loader: DatastoreLoader, value: T) => void,
     batchSize: number = 100,
   ) {
     const entityChunks: T[][] = _.chunk(values, batchSize);
     const pendingModifications = entityChunks.map((chunk: T[]) => operation(this.datastore, chunk));
     await Promise.all(pendingModifications);
 
-    values.forEach(value => updateLoader(this.loader, value));
+    values.forEach(value => updateLoader(this, value));
   }
 
   private load = async (keys: ReadonlyArray<Entity.Key>): Promise<Array<any | Error>> => {
