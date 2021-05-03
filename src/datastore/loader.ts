@@ -97,7 +97,7 @@ export class DatastoreLoader {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.save(chunk),
-      (loader, { key, data }) => loader.prime(key, data),
+      (loader, { key, data }) => this.resetDataloaderCache(loader, key, data),
     );
   }
 
@@ -113,7 +113,7 @@ export class DatastoreLoader {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.save(chunk),
-      (loader, { key, data }) => loader.prime(key, data),
+      (loader, { key, data }) => this.resetDataloaderCache(loader, key, data),
     );
   }
 
@@ -121,7 +121,7 @@ export class DatastoreLoader {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.upsert(chunk),
-      (loader, { key, data }) => loader.prime(key, data),
+      (loader, { key, data }) => this.resetDataloaderCache(loader, key, data),
     );
   }
 
@@ -129,7 +129,7 @@ export class DatastoreLoader {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.insert(chunk),
-      (loader, { key, data }) => loader.prime(key, data),
+      (loader, { key, data }) => this.resetDataloaderCache(loader, key, data),
     );
   }
 
@@ -201,6 +201,10 @@ export class DatastoreLoader {
         });
 
         await transaction.commit();
+        // Any entities saved in this transaction need to be cleared from the parent cache
+        // now we have committed this transaction. Given it is only a request scope cache
+        // it's simple enough to clear the lot.
+        this.parentContext.datastore.loader.clearAll();
 
         return result;
       } catch (ex) {
@@ -213,6 +217,10 @@ export class DatastoreLoader {
         throw ex;
       }
     }
+  }
+
+  private resetDataloaderCache(loader: DataLoader<Entity.Key, {}>, key: Entity.Key, data: any) {
+    return loader.clear(key).prime(key, data);
   }
 
   private async applyBatched<T>(
