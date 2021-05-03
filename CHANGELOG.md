@@ -1,3 +1,7 @@
+## 7.5.10 (2021-05-03)
+
+- Code refactor on 7.5.9, non-functional change publishing latest code.
+
 ## 7.5.9 (2021-05-03)
 
 - Minor change to the implementation of the fix in 7.5.8, which clears entities from the parentContext cache only on transaction commit.

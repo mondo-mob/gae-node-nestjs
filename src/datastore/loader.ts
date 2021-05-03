@@ -97,7 +97,7 @@ export class DatastoreLoader {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.save(chunk),
-      (datastoreLoader, { key, data }) => this.resetDataloaderCache(datastoreLoader, key, data),
+      (loader, { key, data }) => this.resetDataloaderCache(loader, key, data),
     );
   }
 
@@ -105,10 +105,7 @@ export class DatastoreLoader {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.delete(chunk) as Promise<any>,
-      (datastoreLoader, key) => {
-        datastoreLoader.parentContext.datastore.loader.clear(key);
-        return datastoreLoader.loader.clear(key);
-      },
+      (loader, key) => loader.clear(key),
     );
   }
 
@@ -116,7 +113,7 @@ export class DatastoreLoader {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.save(chunk),
-      (datastoreLoader, { key, data }) => this.resetDataloaderCache(datastoreLoader, key, data),
+      (loader, { key, data }) => this.resetDataloaderCache(loader, key, data),
     );
   }
 
@@ -124,7 +121,7 @@ export class DatastoreLoader {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.upsert(chunk),
-      (datastoreLoader, { key, data }) => this.resetDataloaderCache(datastoreLoader, key, data),
+      (loader, { key, data }) => this.resetDataloaderCache(loader, key, data),
     );
   }
 
@@ -132,7 +129,7 @@ export class DatastoreLoader {
     await this.applyBatched(
       entities,
       (datastore, chunk) => datastore.insert(chunk),
-      (datastoreLoader, { key, data }) => this.resetDataloaderCache(datastoreLoader, key, data),
+      (loader, { key, data }) => this.resetDataloaderCache(loader, key, data),
     );
   }
 
@@ -221,21 +218,21 @@ export class DatastoreLoader {
     }
   }
 
-  private resetDataloaderCache(datastoreLoader: DatastoreLoader, key: Entity.Key, data: any) {
-    return datastoreLoader.loader.clear(key).prime(key, data);
+  private resetDataloaderCache(loader: DataLoader<Entity.Key, {}>, key: Entity.Key, data: any) {
+    return loader.clear(key).prime(key, data);
   }
 
   private async applyBatched<T>(
     values: ReadonlyArray<T>,
     operation: (datastore: Datastore | Transaction, chunk: ReadonlyArray<T>) => Promise<any>,
-    updateLoader: (loader: DatastoreLoader, value: T) => void,
+    updateLoader: (loader: DataLoader<Entity.Key, {}>, value: T) => void,
     batchSize: number = 100,
   ) {
     const entityChunks: T[][] = _.chunk(values, batchSize);
     const pendingModifications = entityChunks.map((chunk: T[]) => operation(this.datastore, chunk));
     await Promise.all(pendingModifications);
 
-    values.forEach(value => updateLoader(this, value));
+    values.forEach(value => updateLoader(this.loader, value));
   }
 
   private load = async (keys: ReadonlyArray<Entity.Key>): Promise<Array<any | Error>> => {
