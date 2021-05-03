@@ -1,3 +1,11 @@
+## 7.5.9 (2021-05-03)
+
+- Minor change to the implementation of the fix in 7.5.8, which clears entities from the parentContext cache only on transaction commit.
+
+## 7.5.8 (2021-05-03)
+
+- Fix priming of the DataLoader cache, clear first, then prime, as per the documented DataLoader API. Also clear the parent context's cache on each update.
+
 ## 7.5.7 (2021-03-22)
 
 - Fix task scheduling. The `inSeconds` parameter into the function `async enqueue(taskName: string, payload: any = {}, inSeconds?: number)` was taking no effect prior to this commit.

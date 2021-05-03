@@ -204,7 +204,10 @@ export class DatastoreLoader {
         });
 
         await transaction.commit();
-
+        // Any entities saved in this transaction need to be cleared from the parent cache
+        // now we have committed this transaction. Given it is only a request scope cache
+        // it's simple enough to clear the lot.
+        this.parentContext.datastore.loader.clearAll();
         return result;
       } catch (ex) {
         if (ex instanceof NonFatalError) {
@@ -219,10 +222,6 @@ export class DatastoreLoader {
   }
 
   private resetDataloaderCache(datastoreLoader: DatastoreLoader, key: Entity.Key, data: any) {
-    // if we are in a transaction we also need to clear the cache of the parent datastoreLoader
-    // for this key/data combo. We do not prime it yet as this transaction may roll back. If
-    // there is no transaction this and the parent dataloaders will be the same instance
-    datastoreLoader.parentContext.datastore.loader.clear(key);
     return datastoreLoader.loader.clear(key).prime(key, data);
   }
 
