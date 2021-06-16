@@ -1,3 +1,7 @@
+## 7.5.11 (2021-06-16)
+
+- Uplift @google-cloud libs to latest versions
+
 ## 7.5.10 (2021-05-03)
 
 - Code refactor on 7.5.9, non-functional change publishing latest code.

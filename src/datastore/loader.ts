@@ -96,7 +96,7 @@ export class DatastoreLoader {
   public async save(entities: ReadonlyArray<DatastorePayload<any>>): Promise<void> {
     await this.applyBatched(
       entities,
-      (datastore, chunk) => datastore.save(chunk),
+      async (datastore, chunk) => await datastore.save(chunk),
       (loader, { key, data }) => this.resetDataloaderCache(loader, key, data),
     );
   }
@@ -112,7 +112,7 @@ export class DatastoreLoader {
   public async update(entities: ReadonlyArray<DatastorePayload<any>>): Promise<void> {
     await this.applyBatched(
       entities,
-      (datastore, chunk) => datastore.save(chunk),
+      async (datastore, chunk) => await datastore.save(chunk),
       (loader, { key, data }) => this.resetDataloaderCache(loader, key, data),
     );
   }
@@ -120,7 +120,7 @@ export class DatastoreLoader {
   public async upsert(entities: ReadonlyArray<DatastorePayload<any>>): Promise<void> {
     await this.applyBatched(
       entities,
-      (datastore, chunk) => datastore.upsert(chunk),
+      async (datastore, chunk) => await datastore.upsert(chunk),
       (loader, { key, data }) => this.resetDataloaderCache(loader, key, data),
     );
   }
@@ -128,7 +128,7 @@ export class DatastoreLoader {
   public async insert(entities: ReadonlyArray<DatastorePayload<any>>): Promise<void> {
     await this.applyBatched(
       entities,
-      (datastore, chunk) => datastore.insert(chunk),
+      async (datastore, chunk) => await datastore.insert(chunk),
       (loader, { key, data }) => this.resetDataloaderCache(loader, key, data),
     );
   }
