@@ -1,3 +1,8 @@
+## 8.1.2 (2021-08-18)
+
+- Update @google-cloud dependencies and others with high vulnerabilities
+- Update dev dependencies
+
 ## 8.1.2 (2021-11-00)
 
 - Batch re-index method to cater for 200 max allowed for re-index datastore limit
