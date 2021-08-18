@@ -7,7 +7,8 @@ import { Configuration, CONFIGURATION } from '../../configuration';
 import { createLogger } from '../../logging';
 import { MailSender } from '../mail.sender';
 
-const ENDS_WITH_EMAIL = /(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/;
+const ENDS_WITH_EMAIL =
+  /(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/;
 
 @Injectable()
 export class SmtpSender implements MailSender {

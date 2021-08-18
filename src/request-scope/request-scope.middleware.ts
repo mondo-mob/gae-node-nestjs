@@ -21,7 +21,7 @@ export class RequestScopeMiddleware implements NestMiddleware {
     RequestScopeMiddleware.enabled = !!configurationProvider.requestScope?.enabled;
     if (RequestScopeMiddleware.enabled) {
       this.namespace = createNamespace(_REQUEST_STORAGE_NAMESPACE_KEY);
-      const interceptorNames = interceptors.map((interceptor) => `   - ${interceptor.name}`).join('\n');
+      const interceptorNames = interceptors.map(interceptor => `   - ${interceptor.name}`).join('\n');
       defaultLogger.info(`RequestScopeMiddleware setup up with interceptors: \n${interceptorNames}`);
     } else {
       defaultLogger.info('RequestScopeMiddleware disabled by config');
@@ -31,7 +31,7 @@ export class RequestScopeMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: () => void) {
     if (this.namespace) {
       this.namespace.run(() => {
-        this.interceptors.forEach((interceptor) => {
+        this.interceptors.forEach(interceptor => {
           interceptor.intercept(req);
         });
         next();

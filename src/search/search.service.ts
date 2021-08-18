@@ -113,7 +113,7 @@ export class SearchService {
     return Object.keys(fields).reduce((result: SearchPredicate[], key) => {
       const field = fields[key];
       if (isPredicateArray(field)) {
-        field.forEach((predicate) => result.push(this.toSearchPredicate(key, predicate)));
+        field.forEach(predicate => result.push(this.toSearchPredicate(key, predicate)));
       } else {
         result.push(this.toSearchPredicate(key, field));
       }

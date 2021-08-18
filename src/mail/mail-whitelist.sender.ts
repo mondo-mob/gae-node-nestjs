@@ -45,12 +45,12 @@ export class MailWhitelistSender implements MailSender {
     if (typeof actualAddresses === 'string') {
       const addresses = actualAddresses.split(',');
       return addresses
-        .map((address) => address.trim())
-        .filter((address) => this.filterAddress(address))
+        .map(address => address.trim())
+        .filter(address => this.filterAddress(address))
         .join(',');
     }
 
-    return castArray(actualAddresses).filter((address) => this.filterAddress(address));
+    return castArray(actualAddresses).filter(address => this.filterAddress(address));
   };
 
   private filterAddress = (address: string | Address): boolean => {

@@ -115,7 +115,7 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
 
   private index(entities: OneOrMany<T>) {
     const entitiesArr = asArray(entities);
-    const entries = entitiesArr.map((entity) => {
+    const entries = entitiesArr.map(entity => {
       const fields = Object.keys(this.options.searchIndex).reduce(
         (obj: { [key: string]: object }, fieldName: string) => {
           obj[fieldName] = entity[fieldName];
@@ -135,11 +135,11 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
 
   private async fetchResults(context: Context, ids: string[]) {
     const results = await this.get(context, ids);
-    if (results && results.some((result) => !result)) {
+    if (results && results.some(result => !result)) {
       this.baseLogger.warn(
         'Search results contained at least one null value - search index likely out of sync with datastore',
       );
-      return results.filter((result) => !!result);
+      return results.filter(result => !!result);
     }
     return results;
   }

@@ -26,13 +26,10 @@ export interface IUser extends IUserCreateRequest {
   orgId?: string;
 }
 
-export const Ctxt = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
-    return request.context;
-  },
-);
-
+export const Ctxt = createParamDecorator((data: unknown, ctx: ExecutionContext) => {
+  const request = ctx.switchToHttp().getRequest();
+  return request.context;
+});
 
 export interface Context<User = IUser> {
   request: Request;

@@ -10,7 +10,7 @@ export const normaliseEmail = (email: string) => email.toLowerCase();
 export interface UserService<
   T extends IUser,
   U extends IUserUpdates = IUserUpdates,
-  C extends IUserCreateRequest & U = IUserCreateRequest & U
+  C extends IUserCreateRequest & U = IUserCreateRequest & U,
 > {
   getByEmail(context: Context, email: string): Promise<T | undefined>;
   get(context: Context, userId: string): Promise<T | undefined>;
@@ -22,8 +22,9 @@ export interface UserService<
 export abstract class AbstractUserService<
   T extends IUser,
   U extends IUserUpdates = IUserUpdates,
-  C extends IUserCreateRequest & U = IUserCreateRequest & U
-> implements UserService<T, U, C> {
+  C extends IUserCreateRequest & U = IUserCreateRequest & U,
+> implements UserService<T, U, C>
+{
   private readonly baseLogger: Logger;
 
   protected constructor(protected readonly loginIdentifierRepository: LoginIdentifierRepository) {

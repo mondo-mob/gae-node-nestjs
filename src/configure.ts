@@ -131,8 +131,11 @@ export const configureExpress = async (expressApp: Express, options: ServerOptio
     }),
   );
 
-  const { ignorePaths = [/^\/(tasks\/|system\/).*/], sameSite = true, disabled: csrfDisabled = false } =
-    options.csrf || {};
+  const {
+    ignorePaths = [/^\/(tasks\/|system\/).*/],
+    sameSite = true,
+    disabled: csrfDisabled = false,
+  } = options.csrf || {};
 
   // Allows us to specify positive matches for ignoring rather than complex negative lookaheads
   // See https://stackoverflow.com/questions/27117337/exclude-route-from-express-middleware

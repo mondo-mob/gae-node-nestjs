@@ -44,7 +44,11 @@ export class AuthResolver {
 
   @AllowAnonymous()
   @Query(() => String, { nullable: true })
-  async checkActivationCode(_req: void, @Args('code') code: string, @GqlContext() context: Context): Promise<string | null> {
+  async checkActivationCode(
+    _req: void,
+    @Args('code') code: string,
+    @GqlContext() context: Context,
+  ): Promise<string | null> {
     return this.inviteUserService.checkActivationCode(context, code);
   }
 

@@ -284,7 +284,7 @@ export class InviteUserService {
   private async checkInvite(context: Context, invite: UserInvite | undefined): Promise<string | null> {
     if (!invite) {
       // tslint:disable-next-line:max-line-length
-      return 'This activation code is no longer available. Please use the \'Activate Account\' link in the most recent activation email you have received. If you\'re still experiencing problems please contact your administrator.';
+      return "This activation code is no longer available. Please use the 'Activate Account' link in the most recent activation email you have received. If you're still experiencing problems please contact your administrator.";
     }
 
     const activationExpiry = this.getActivationExpiryInMillis();

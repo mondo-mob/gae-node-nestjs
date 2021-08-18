@@ -29,8 +29,7 @@ export class GmailController {
     authenticateRet(request, response, () => {
       const user = request.user as any;
       this.logger.info(
-        `Gmail OAuth done. request.user.refreshToken property exists is: ${request.user &&
-          !!user.refreshToken}`,
+        `Gmail OAuth done. request.user.refreshToken property exists is: ${request.user && !!user.refreshToken}`,
       );
 
       if (!request.user) {
