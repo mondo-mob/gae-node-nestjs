@@ -66,17 +66,20 @@ export class TaskQueue<T extends Configuration> {
     const endpoint = `${this.configurationProvider.host}/tasks/${taskName}`;
     this.taskLogger.info(`Dispatching local task to ${endpoint}`);
 
-    const result = await fetch(endpoint, {
+    // Intentionally don't return this promise because we want the task to be executed
+    // asynchronously - i.e. a tiny bit like a task queue would work. Otherwise if the caller
+    // awaits this fetch then it will wait for the entire downstream process to complete.
+    fetch(endpoint, {
       method: 'POST',
       body: JSON.stringify(payload),
       headers: {
         'content-type': 'application/json',
         'x-appengine-taskname': taskName,
       },
+    }).then(async result => {
+      if (!result.ok) {
+        throw new Error(`Task failed to execute - status ${result.status}: ${await result.text()}`);
+      }
     });
-
-    if (!result.ok) {
-      throw new Error(`Task failed to execute - status ${result.status}: ${await result.text()}`);
-    }
   }
 }
