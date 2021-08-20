@@ -1,3 +1,7 @@
+## 8.2.0 (2021-08-20)
+
+- Make local task queue implementation call the task url asynchronously - so requests to enqueue will return immediately rather than waiting for downstream request to complete
+
 ## 8.1.2 (2021-08-18)
 
 - Update @google-cloud dependencies and others with high vulnerabilities
