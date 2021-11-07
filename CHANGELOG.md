@@ -1,3 +1,7 @@
+## 8.1.2 (2021-11-00)
+
+- Batch re-index method to cater for 200 max allowed for re-index datastore limit
+
 ## 8.1.1 (2021-05-03)
 
 - Merge from branch `release/7.x`. Fix priming of the DataLoader cache, clear first, then prime, as per the documented DataLoader API. Also clear the parent context's cache on each update.
