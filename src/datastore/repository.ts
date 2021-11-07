@@ -7,7 +7,6 @@ import * as _ from 'lodash';
 import { asArray, Omit, OneOrMany } from '../util/types';
 import { Context } from './context';
 import { DatastoreLoader, Index, QueryOptions, DatastorePayload } from './loader';
-import { createLogger, Logger } from '../logging';
 
 export interface RepositoryOptions<T extends { id: any }> {
   defaultValues?: Partial<Omit<T, 'id'>>;
@@ -72,7 +71,6 @@ export interface BaseEntity {
 
 export class Repository<T extends BaseEntity> {
   private readonly validator: t.Type<T>;
-  private readonly logger: Logger;
 
   constructor(
     private readonly datastore: Datastore,
@@ -81,7 +79,6 @@ export class Repository<T extends BaseEntity> {
     protected readonly options: RepositoryOptions<T> = {},
   ) {
     this.validator = validator;
-    this.logger = createLogger('repository');
   }
 
   async getRequired(context: Context, id: string): Promise<T> {
@@ -163,8 +160,7 @@ export class Repository<T extends BaseEntity> {
   /**
    * Reindex all entities in datastore
    *
-   * Loads all entities into memory and applies some mutation to them before resaving them. The operation is batched
-   * to allow for datastore index limits
+   * Loads all entities into memory and applies some mutation to them before resaving them
    *
    * @param context
    * @param operation (Optional) The operation to perform on each entity, returning the new
@@ -172,16 +168,10 @@ export class Repository<T extends BaseEntity> {
    */
   async reindex(context: Context, operation: (input: T) => T | Promise<T> = input => input) {
     const [allEntities] = await this.query(context);
-    this.logger.info(`Saving ${allEntities.length} entities`);
-    const batchSize = 100;
-    const updatePromises = [];
-    for (let i = 0; i < allEntities.length; i += batchSize) {
-      const batchOfEntities = allEntities.slice(i, i + batchSize);
-      const updatedEntities = await Promise.all(batchOfEntities.map(operation));
-      this.logger.info(`Saving batch of ${batchOfEntities.length} updated entities`);
-      updatePromises.push(this.update(context, updatedEntities))
-    }
-    return Promise.all(updatePromises);
+
+    const updatedEntities = await Promise.all(allEntities.map(operation));
+
+    return this.update(context, updatedEntities);
   }
 
   async delete(context: Context, ...ids: string[]): Promise<void> {
