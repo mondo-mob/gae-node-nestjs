@@ -1,3 +1,7 @@
+## 8.2.1 (2021-11-08)
+
+- Add SearchableRespository reindex method to batch requests to cater for 200 max allowed for by GAE search service.
+
 ## 8.2.0 (2021-08-20)
 
 - Make local task queue implementation call the task url asynchronously - so requests to enqueue will return immediately rather than waiting for downstream request to complete
@@ -6,10 +10,6 @@
 
 - Update @google-cloud dependencies and others with high vulnerabilities
 - Update dev dependencies
-
-## 8.1.2 (2021-11-00)
-
-- Batch re-index method to cater for 200 max allowed for re-index datastore limit
 
 ## 8.1.1 (2021-05-03)
 
