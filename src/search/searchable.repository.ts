@@ -88,6 +88,31 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
     };
   }
 
+  /**
+   * Reindex all entities in datastore
+   *
+   * Loads all entities into memory and applies some mutation to them before re-saving them. Note: the save is batched
+   * to cater for limits in the max index sized in the datastore
+   *
+   * @param context
+   * @param operation (Optional) The operation to perform on each entity, returning the new
+   * form. By default this will return the same instance.
+   */
+  async reindex(context: Context, operation: (input: T) => T | Promise<T> = input => input): Promise<readonly T[]> {
+    const [allEntities] = await this.query(context);
+    this.baseLogger.info(`Saving ${allEntities.length} searchable entities`);
+    const batchSize = 100;
+    const allUpdatedEntities = [];
+    for (let i = 0; i < allEntities.length; i += batchSize) {
+      const batchOfEntities = allEntities.slice(i, i + batchSize);
+      const updatedEntities = await Promise.all(batchOfEntities.map(operation));
+      this.baseLogger.info(`Saving batch of ${batchOfEntities.length} updated searchable entities`);
+      const batchUpdatedEntities = await this.update(context, updatedEntities);
+      allUpdatedEntities.push(...batchUpdatedEntities);
+    }
+    return allUpdatedEntities;
+  }
+
   private index(entities: OneOrMany<T>) {
     const entitiesArr = asArray(entities);
     const entries = entitiesArr.map((entity) => {
