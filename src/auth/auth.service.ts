@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Inject, Injectable, Optional } from '@nestjs
 import * as bcrypt from 'bcryptjs';
 import * as emails from 'email-addresses';
 import * as t from 'io-ts';
-import { reporter } from 'io-ts-reporters';
+import iotsReporter from 'io-ts-reporters';
 import { isNil } from 'lodash';
 import { Configuration, CONFIGURATION } from '../configuration';
 import { CredentialRepository, ExternalAuthType, LoginCredentials } from './auth.repository';
@@ -11,8 +11,9 @@ import { AUTH_CALLBACKS, AuthCallbacks } from './auth.callbacks';
 import { createLogger, Logger } from '../logging';
 import { Context, IUser, IUserCreateRequest } from '../datastore/context';
 import { Transactional } from '../datastore/transactional';
+import { isLeft } from 'fp-ts/lib/Either';
 
-const userProfile = t.interface({
+const userProfile = t.type({
   id: t.string, // username
   emails: t.array(
     t.interface({
@@ -132,11 +133,11 @@ export class AuthService {
   async validateUserGoogle(context: Context, inputProfile: object): Promise<IUser> {
     const validationResult = userProfile.decode(inputProfile);
 
-    if (validationResult.isLeft()) {
-      throw new Error(reporter(validationResult).join(', '));
+    if (isLeft(validationResult)) {
+      throw new Error(iotsReporter.report(validationResult).join(', '));
     }
 
-    const profile = validationResult.value;
+    const profile = validationResult.right;
     const accountEmails = profile.emails.find(accountEmail => accountEmail.verified);
 
     if (!accountEmails) {

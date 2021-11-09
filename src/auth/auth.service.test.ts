@@ -121,7 +121,7 @@ describe('AuthService', () => {
     it('fails when the profile does not match the expected format', async () => {
       await expect(authService.validateUserGoogle(context, omit(profile, 'id'))).rejects.toHaveProperty(
         'message',
-        'Expecting string at id but instead got: undefined.',
+        'Expecting string at id but instead got: undefined',
       );
     });
 

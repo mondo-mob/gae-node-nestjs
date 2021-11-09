@@ -2,11 +2,12 @@ import { Datastore } from '@google-cloud/datastore';
 import { entity as Entity } from '@google-cloud/datastore/build/src/entity';
 import { RunQueryInfo } from '@google-cloud/datastore/build/src/query';
 import * as t from 'io-ts';
-import { reporter } from 'io-ts-reporters';
+import iotsReporter from 'io-ts-reporters';
 import * as _ from 'lodash';
 import { asArray, Omit, OneOrMany } from '../util/types';
 import { Context } from './context';
 import { DatastoreLoader, Index, QueryOptions, DatastorePayload } from './loader';
+import { isLeft } from 'fp-ts/lib/Either';
 
 export interface RepositoryOptions<T extends { id: any }> {
   defaultValues?: Partial<Omit<T, 'id'>>;
@@ -194,12 +195,12 @@ export class Repository<T extends BaseEntity> {
 
     const validation = this.validator.decode(entity);
 
-    if (validation.isLeft()) {
-      const errors = reporter(validation);
+    if (isLeft(validation)) {
+      const errors = iotsReporter.report(validation);
       throw new LoadError(this.kind, id, errors);
     }
 
-    return validation.value;
+    return validation.right;
   };
 
   private async applyMutation(
@@ -211,12 +212,12 @@ export class Repository<T extends BaseEntity> {
       .map(entity => {
         const validation = this.validator.decode(entity);
 
-        if (validation.isLeft()) {
-          const errors = reporter(validation);
+        if (isLeft(validation)) {
+          const errors = iotsReporter.report(validation);
           throw new SaveError(this.kind, entity.id, errors);
         }
 
-        return validation.value;
+        return validation.right;
       })
       .map(data => {
         const withoutId = _.omit(data, 'id');
