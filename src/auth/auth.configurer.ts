@@ -4,7 +4,6 @@ import { Request } from 'express';
 import { decode } from 'jsonwebtoken';
 import { get } from 'lodash';
 import * as passport from 'passport';
-import { use } from 'passport';
 import { Profile, Strategy as Auth0Strategy } from 'passport-auth0';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { IVerifyOptions, Strategy as LocalStrategy } from 'passport-local';
@@ -54,7 +53,7 @@ export class AuthConfigurer {
     });
 
     if (this.configuration.auth.local && this.configuration.auth.local.enabled) {
-      use(LOCAL_SIGNIN, new LocalStrategy({}, this.validate));
+      passport.use(LOCAL_SIGNIN, new LocalStrategy({}, this.validate));
     }
 
     if (this.configuration.auth.fake && this.configuration.auth.fake.enabled) {
@@ -64,11 +63,11 @@ export class AuthConfigurer {
         }
         this.logger.warn('Fake login is enabled');
       }
-      use(FAKE_SIGNIN, new LocalStrategy({ passReqToCallback: true }, this.validateFakeLogin));
+      passport.use(FAKE_SIGNIN, new LocalStrategy({ passReqToCallback: true }, this.validateFakeLogin));
     }
 
     if (this.configuration.auth.google && this.configuration.auth.google.enabled) {
-      use(
+      passport.use(
         new GoogleStrategy(
           {
             clientID: this.configuration.auth.google.clientId,
@@ -82,7 +81,7 @@ export class AuthConfigurer {
     }
 
     if (this.configuration.auth.saml && this.configuration.auth.saml.enabled) {
-      use(
+      passport.use(
         SAML_SIGNIN,
         new SamlStrategy(
           {
@@ -98,7 +97,7 @@ export class AuthConfigurer {
     }
 
     if (this.configuration.auth.auth0 && this.configuration.auth.auth0.enabled) {
-      use(
+      passport.use(
         AUTH0_SIGNIN,
         new Auth0Strategy(
           {
@@ -114,7 +113,7 @@ export class AuthConfigurer {
 
     if (this.configuration.auth.oidc && this.configuration.auth.oidc.enabled) {
       const { authUrl, clientId, enabled, issuer, secret, tokenUrl, userInfoUrl } = this.configuration.auth.oidc;
-      use(
+      passport.use(
         OIDC_SIGNIN,
         new OidcStrategy(
           {
@@ -311,7 +310,7 @@ export class AuthConfigurer {
       if (ex instanceof AuthenticationFailedException) {
         done(null, false, ex);
       } else {
-        done(new UnauthorizedException('Internal error', ex), false);
+        done(new UnauthorizedException(ex, 'Internal error'), false);
       }
     }
   };

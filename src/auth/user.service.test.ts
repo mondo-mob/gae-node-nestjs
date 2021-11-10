@@ -1,19 +1,18 @@
-import { anything, instance, mock, reset, spy, verify, when } from 'ts-mockito';
+import { anything, instance, mock, reset, verify, when } from 'ts-mockito';
 import { LoginIdentifier, LoginIdentifierRepository } from './login-identifier.repository';
 import { AbstractUserService } from './user.service';
 import { mockContext } from '../_test/mocks';
 import { Context, IUser, IUserCreateRequest, IUserUpdates } from '../datastore/context';
 
+// NOTE: Latest typescript broke some of the mockito spies - so these bits have been updated to use jest mocks instead.
 describe('UserService', () => {
   const loginIdentifierRepository = mock(LoginIdentifierRepository);
   const context = mockContext();
   let userService: TestUserService;
-  let userServiceSpy: TestUserService;
 
   beforeEach(() => {
     reset(loginIdentifierRepository);
     userService = new TestUserService(instance(loginIdentifierRepository));
-    userServiceSpy = spy(userService);
   });
 
   describe('createOrUpdate', () => {
@@ -43,32 +42,33 @@ describe('UserService', () => {
 
     it('creates a user when user does not exist by email', async () => {
       when(loginIdentifierRepository.get(context, 'foo@bar.com')).thenResolve(undefined);
+      const createUserSpy = jest.spyOn<any, any>(userService, 'createUser');
+      const updateUserSpy = jest.spyOn<any, any>(userService, 'updateUser');
 
       await userService.createOrUpdate(context, request);
 
-      // @ts-ignore
-      verify(userServiceSpy.createUser(context, anything())).once();
+      expect(createUserSpy).toHaveBeenCalledWith(context, expect.anything());
       verify(loginIdentifierRepository.save(context, anything())).once();
-      // @ts-ignore
-      verify(userServiceSpy.updateUser(context, anything(), anything())).never();
+      expect(updateUserSpy).not.toHaveBeenCalled();
     });
 
     it('updates user when user exists by email', async () => {
+      const createUserSpy = jest.spyOn<any, any>(userService, 'createUser');
+      const updateUserSpy = jest.spyOn<any, any>(userService, 'updateUser');
+      jest.spyOn(userService, 'get').mockResolvedValue(existingUser);
       when(loginIdentifierRepository.get(context, 'foo@bar.com')).thenResolve(loginIdentifier);
-      when(userServiceSpy.get(context, loginIdentifier.userId)).thenResolve(existingUser);
 
       await userService.createOrUpdate(context, request);
 
-      // @ts-ignore
-      verify(userServiceSpy.updateUser(context, existingUser, anything())).once();
-      // @ts-ignore
-      verify(userServiceSpy.createUser(context, anything())).never();
+      expect(updateUserSpy).toHaveBeenCalledWith(context, existingUser, expect.anything());
+      expect(createUserSpy).not.toHaveBeenCalled();
       verify(loginIdentifierRepository.save(context, anything())).never();
     });
 
     it('calls beforeUpdate before performing update on an existing user by email', async () => {
+      const updateUserSpy = jest.spyOn<any, any>(userService, 'updateUser');
       when(loginIdentifierRepository.get(context, 'foo@bar.com')).thenResolve(loginIdentifier);
-      when(userServiceSpy.get(context, loginIdentifier.userId)).thenResolve(existingUser);
+      jest.spyOn(userService, 'get').mockResolvedValue(existingUser);
 
       await expect(
         userService.createOrUpdate(context, request, () => {
@@ -76,8 +76,7 @@ describe('UserService', () => {
         }),
       ).rejects.toHaveProperty('message', 'test error');
 
-      // @ts-ignore
-      verify(userServiceSpy.updateUser(context, existingUser, anything())).never();
+      expect(updateUserSpy).not.toHaveBeenCalled();
     });
   });
 });
