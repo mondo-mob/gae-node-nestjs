@@ -1,3 +1,56 @@
+## 9.0.0 (2021-11-10)
+
+- Update to NestJS 8
+- Update to io-ts 2
+- Update other non-breaking dependencies
+- Update to TypeScript 4.4 (some dependencies required this to build)
+
+### BREAKING CHANGES
+
+#### NestJS 8:
+This may not require any changes but please read official migration guide:
+[https://docs.nestjs.com/migration-guide](https://docs.nestjs.com/migration-guide)
+
+In general:
+
+- Update all nest dependencies to latest
+- Update rxjs to v7
+
+#### IOTS 2:
+A few changes likely required for this:
+
+- Add `fp-ts` dependency
+- Change any code using isLeft as example below
+
+OLD:
+  ```typescript
+    import { reporter } from 'io-ts-reporters';
+    import { ThrowReporter } from 'io-ts/lib/ThrowReporter';
+    ...
+    
+    const validationResult = schema.decode(inputValue);
+  
+    if (validationResult.isLeft()) {
+      throw ThrowReporter.report(validationResult);
+    }
+  
+    return validationResult.value;
+  ```
+NEW:
+  ```typescript
+    import iotsReporter from 'io-ts-reporters';
+    import { isLeft } from 'fp-ts/lib/Either';
+    ...
+  
+    const validationResult = schema.decode(inputValue);
+  
+    if (isLeft(validationResult)) {
+      throw new Error(iotsReporter.report(validationResult).join(', '));
+    }
+  
+    return validationResult.right;
+  ```
+
 ## 8.2.1 (2021-11-08)
 
 - Add SearchableRespository reindex method to batch requests to cater for 200 max allowed for by GAE search service.
