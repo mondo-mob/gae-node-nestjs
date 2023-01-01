@@ -60,7 +60,7 @@
     "reflect-metadata": "0.1.13",
     "tslib": "1.11.2",
     "uuid": "8.3.2",
-    "webpack": "4.46.0"
+    "webpack": "5.75.0"
   },
   "peerDependencies": {
     "@nestjs/core": "^8.2.0",
