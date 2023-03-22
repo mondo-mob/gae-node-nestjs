@@ -29,7 +29,7 @@
     "@google-cloud/storage": "5.15.5",
     "@google-cloud/tasks": "2.4.2",
     "@google-cloud/trace-agent": "5.1.5",
-    "apollo-server-core": "3.5.0",
+    "apollo-server-core": "3.10.1",
     "apollo-server-express": "3.5.0",
     "bcryptjs": "^2.4.3",
     "bunyan": "^1.8.15",
