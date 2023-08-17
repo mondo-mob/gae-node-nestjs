@@ -1,3 +1,7 @@
+## 9.0.1 (2023-08-17)
+
+Minor change in the server-start script to remove use of 'localhost' when starting and listening for start of datastore emulator.
+
 ## 9.0.0 (2021-11-10)
 
 - Update to NestJS 8

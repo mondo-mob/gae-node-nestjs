@@ -35,11 +35,7 @@ class BunyanStream {
     const component = rec.component || rec.name;
     const service = rec.service ? `/${rec.service}` : '';
     const componentColor = componentColors[component] || colors.white;
-    console.log(
-      `${formattedTime} ${componentColor(component + service)} ${levelColor(
-        level + ':',
-      )} ${message}`,
-    );
+    console.log(`${formattedTime} ${componentColor(component + service)} ${levelColor(level + ':')} ${message}`);
   }
 }
 
@@ -47,11 +43,7 @@ const { logger, loggingStream } = setupLogging();
 
 const { buildEvents, stopWebpack } = setupWebpack(logger);
 
-const { stopServer, startServer } = setupServer(
-  logger,
-  loggingStream,
-  buildEvents,
-);
+const { stopServer, startServer } = setupServer(logger, loggingStream, buildEvents);
 
 const { stopDatastore, startDatastore } = setupDatastore(logger, buildEvents);
 const { startDsui, stopDsui } = setupDsui(logger);
@@ -61,7 +53,7 @@ startDatastore();
 startDsui();
 
 // Handle process stop
-process.on('SIGINT', async function() {
+process.on('SIGINT', async function () {
   logger.info('Caught interrupt signal');
 
   await Promise.all([stopWebpack(), stopDatastore(), stopDsui(), stopServer()]);
@@ -71,19 +63,16 @@ process.on('SIGINT', async function() {
 });
 
 // reload server on graphqls or config files change
-chokidar.watch(['./src/**/*.graphqls', './config/**/*.json'])
-  .on('all', (event, path) => {
-    if (event === 'add') {
-      console.log('added to watch list:', path);
-    } else if (event === 'change') {
-      console.log('file changed:', path);
-      stopServer()
-        .then(() => {
-          startServer();
-        })
-    }
-  });
-
+chokidar.watch(['./src/**/*.graphqls', './config/**/*.json']).on('all', (event, path) => {
+  if (event === 'add') {
+    console.log('added to watch list:', path);
+  } else if (event === 'change') {
+    console.log('file changed:', path);
+    stopServer().then(() => {
+      startServer();
+    });
+  }
+});
 
 function setupLogging() {
   const loggingStream = new BunyanStream();
@@ -216,9 +205,7 @@ function setupServer(logger, loggingStream, buildEvents) {
 
     child.once('close', () => {
       child = undefined;
-      serverLogger.warn(
-        'Server crashed waiting for restart trigger to restart',
-      );
+      serverLogger.warn('Server crashed waiting for restart trigger to restart');
       buildEvents.removeListener('reload', hotReload);
       buildEvents.once('reload', startServer);
     });
@@ -255,7 +242,7 @@ function setupDsui(logger) {
       let body = '';
       http.get(
         {
-          hostname: 'localhost',
+          hostname: '127.0.0.1',
           port: DATASTORE_PORT,
           path: '/',
           agent: false,
@@ -268,13 +255,7 @@ function setupDsui(logger) {
             if (res.statusCode == 200) {
               dsuiLogger.info('Datastore emulator is ready, starting DSUI');
               clearInterval(timeout);
-              const gcloud = spawn('gcloud', [
-                'beta',
-                'emulators',
-                'datastore',
-                'env-init',
-                '--format=json',
-              ]);
+              const gcloud = spawn('gcloud', ['beta', 'emulators', 'datastore', 'env-init', '--format=json']);
               gcloud.stdout.on('data', data => {
                 const datastoreConfig = JSON.parse(data);
                 _.forEach(datastoreConfig, (value, key) => {
@@ -326,13 +307,7 @@ function setupDatastore(logger, buildEvents) {
   let datastore;
   const startDatastore = () => {
     datastoreLogger.info('Starting datastore emulator');
-    datastore = spawn('gcloud', [
-      'beta',
-      'emulators',
-      'datastore',
-      'start',
-      `--host-port=localhost:${DATASTORE_PORT}`,
-    ]);
+    datastore = spawn('gcloud', ['beta', 'emulators', 'datastore', 'start', `--host-port=127.0.0.1:${DATASTORE_PORT}`]);
 
     datastore.stdout.on('data', data => {
       let string = data.toString('utf8');
