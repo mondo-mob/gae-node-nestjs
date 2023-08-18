@@ -115,7 +115,7 @@ export class SearchableRepository<T extends { id: string }> extends Repository<T
 
   private index(entities: OneOrMany<T>) {
     const entitiesArr = asArray(entities);
-    const entries = entitiesArr.map(entity => {
+    const entries = entitiesArr.map((entity: any) => {
       const fields = Object.keys(this.options.searchIndex).reduce(
         (obj: { [key: string]: object }, fieldName: string) => {
           obj[fieldName] = entity[fieldName];

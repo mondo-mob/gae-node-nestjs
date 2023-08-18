@@ -142,7 +142,7 @@ export const configureExpress = async (expressApp: Express, options: ServerOptio
   const unless = (exclusions: OneOrMany<string | RegExp>, middleware: RequestHandler) => {
     return (req: any, res: Response, next: NextFunction) => {
       const matchesExclusion = asArray(exclusions).some(path =>
-        typeof path.test === 'function' ? (path as RegExp).test(req.path) : path === req.path,
+        typeof (path as RegExp).test === 'function' ? (path as RegExp).test(req.path) : path === req.path,
       );
       matchesExclusion ? next() : middleware(req, res, next);
     };
