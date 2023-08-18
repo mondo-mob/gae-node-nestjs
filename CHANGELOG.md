@@ -1,3 +1,18 @@
+## 10.0.0 (2023-08-23)
+
+### BREAKING CHANGES
+
+#### NestJS 10:
+This may not require any changes but please read official migration guide:
+[https://docs.nestjs.com/migration-guide](https://docs.nestjs.com/migration-guide)
+
+In general:
+
+- Update to NestJS 10
+- Update all nest dependencies to latest
+- Update Typescript to v5
+- Update all google-cloud libs to latest
+
 ## 9.0.1 (2023-08-17)
 
 Minor change in the server-start script to remove use of 'localhost' when starting and listening for start of datastore emulator.
