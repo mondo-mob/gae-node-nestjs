@@ -1,3 +1,13 @@
+## 10.0.1 (2023-09-14)
+
+Updating to latest versions of internal packages including:
+
+- passport
+- auth0, openidconnect & saml passport strategies
+- jsonwebtoken
+- node-fetch
+- webpack
+
 ## 10.0.0 (2023-08-23)
 
 ### BREAKING CHANGES

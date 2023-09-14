@@ -1,5 +1,6 @@
 import { Datastore } from '@google-cloud/datastore';
 import { Inject, Injectable, Optional, UnauthorizedException } from '@nestjs/common';
+import { Strategy as SamlStrategy } from '@node-saml/passport-saml';
 import { Request } from 'express';
 import { decode } from 'jsonwebtoken';
 import { get } from 'lodash';
@@ -8,14 +9,13 @@ import { Profile, Strategy as Auth0Strategy } from 'passport-auth0';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { IVerifyOptions, Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as OidcStrategy } from 'passport-openidconnect';
-import { Strategy as SamlStrategy } from 'passport-saml';
+import { Configuration } from '../configuration';
 import { IUser, newContext } from '../datastore/context';
 import { DatastoreProvider } from '../datastore/datastore.provider';
 import { createLogger, Logger } from '../logging';
-import { AuthenticationFailedException, AuthService } from './auth.service';
-import { USER_SERVICE, UserService, normaliseEmail } from './user.service';
 import { AUTH_CALLBACKS, AuthCallbacks } from './auth.callbacks';
-import { Configuration } from '../configuration';
+import { AuthenticationFailedException, AuthService } from './auth.service';
+import { normaliseEmail } from './user.service';
 
 const GOOGLE_SIGNIN = 'google';
 const SAML_SIGNIN = 'saml';
@@ -34,7 +34,6 @@ export class AuthConfigurer {
   constructor(
     datastoreProvider: DatastoreProvider,
     @Inject('Configuration') private readonly configuration: Configuration,
-    @Inject(USER_SERVICE) private readonly userService: UserService<IUser>,
     private readonly authService: AuthService,
     @Optional() @Inject(AUTH_CALLBACKS) private readonly authCallbacks: AuthCallbacks,
   ) {
@@ -44,8 +43,8 @@ export class AuthConfigurer {
   }
 
   private init() {
-    passport.serializeUser((user: IUser, done) => {
-      done(null, { id: user.id });
+    passport.serializeUser((user, done) => {
+      done(null, { id: (user as { id: string }).id });
     });
 
     passport.deserializeUser(async (user: { id: string }, done) => {
@@ -88,10 +87,13 @@ export class AuthConfigurer {
             entryPoint: this.configuration.auth.saml.identityProviderUrl,
             callbackUrl: `${this.configuration.host}/auth/signin/saml/acs`,
             issuer: this.configuration.host,
+            audience: this.configuration.host,
             acceptedClockSkewMs: 5000,
             cert: this.configuration.auth.saml.cert,
+            wantAuthnResponseSigned: false,
           },
           this.validateSaml,
+          () => undefined,
         ),
       );
     }

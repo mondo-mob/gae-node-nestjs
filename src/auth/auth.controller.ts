@@ -96,7 +96,7 @@ export class AuthController {
   @Get('signout/local')
   signOutLocal(@Req() req: Request, @Res() res: Response, @Next() next: (err: Error) => void) {
     this.logger.debug('Logging out local user');
-    req.logout();
+    req.logout(() => undefined);
 
     if (req.xhr) {
       res.status(204).send();
@@ -115,7 +115,7 @@ export class AuthController {
     this.logger.warn(
       'This endpoint is deprecated and will be removed in future releases - please use GET /auth/signout/local instead',
     );
-    req.logout();
+    req.logout(() => undefined);
     res.redirect('/');
   }
 
