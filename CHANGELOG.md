@@ -1,3 +1,14 @@
+## 11.0.0 (2024-08-31)
+
+Updating major versions of internal packages including:
+- @google-cloud/datastore
+
+Updating minor versions of various internal packages.
+
+This lib has been deprecated @google-cloud/connect-datastore. The single source file was copied into this code base and the dependency removed.
+- see `./src/datastore/connect-datastore.ts`
+
+
 ## 10.0.1 (2023-09-14)
 
 Updating to latest versions of internal packages including:

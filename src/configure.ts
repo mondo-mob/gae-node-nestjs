@@ -1,5 +1,5 @@
 /* tslint:disable:ban-types */
-import { DatastoreStore } from '@google-cloud/connect-datastore';
+import { DatastoreStore } from './datastore/node-datastore-session';
 import { Datastore } from '@google-cloud/datastore';
 import * as express from 'express';
 import { NextFunction, RequestHandler, Response } from 'express';
