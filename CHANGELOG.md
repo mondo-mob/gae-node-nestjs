@@ -1,3 +1,8 @@
+## 11.0.1 (2025-02-02)
+
+Updating minor versions for nestjs, express, express-session.
+
+
 ## 11.0.0 (2024-08-31)
 
 Updating major versions of internal packages including:
