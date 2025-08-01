@@ -89,7 +89,7 @@ export class AuthConfigurer {
             issuer: this.configuration.host,
             audience: this.configuration.host,
             acceptedClockSkewMs: 5000,
-            cert: this.configuration.auth.saml.cert,
+            idpCert: this.configuration.auth.saml.cert,
             wantAuthnResponseSigned: false,
           },
           this.validateSaml,
