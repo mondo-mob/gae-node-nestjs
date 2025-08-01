@@ -1,6 +1,6 @@
 {
   "name": "@mondomob/gae-node-nestjs",
-  "version": "11.0.2-alpha1",
+  "version": "11.0.2-alpha2",
   "description": "Google App Engine datastore repositories and graphql setup with nestjs",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",

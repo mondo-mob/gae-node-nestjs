@@ -21,7 +21,6 @@ const componentColors = {
   server: colors.blue,
   webpack: colors.magenta,
   datastore: colors.cyan,
-  dsui: colors.green,
 };
 
 class BunyanStream {
@@ -46,17 +45,15 @@ const { buildEvents, stopWebpack } = setupWebpack(logger);
 const { stopServer, startServer } = setupServer(logger, loggingStream, buildEvents);
 
 const { stopDatastore, startDatastore } = setupDatastore(logger, buildEvents);
-const { startDsui, stopDsui } = setupDsui(logger);
 
 buildEvents.once('reload', startServer);
 startDatastore();
-startDsui();
 
 // Handle process stop
 process.on('SIGINT', async function () {
   logger.info('Caught interrupt signal');
 
-  await Promise.all([stopWebpack(), stopDatastore(), stopDsui(), stopServer()]);
+  await Promise.all([stopWebpack(), stopDatastore(), stopServer()]);
 
   logger.info('Shutting down');
   process.exit();
@@ -230,74 +227,6 @@ function setupServer(logger, loggingStream, buildEvents) {
     },
     startServer,
   };
-}
-
-function setupDsui(logger) {
-  const dsuiLogger = logger.child({ component: 'dsui' });
-  let dsui;
-  const startDsui = () => {
-    // poll the status URL until the datastore emulator is ready
-    dsuiLogger.info('Waiting for Datastore emulator to start');
-    const timeout = setInterval(() => {
-      let body = '';
-      http.get(
-        {
-          hostname: '127.0.0.1',
-          port: DATASTORE_PORT,
-          path: '/',
-          agent: false,
-        },
-        res => {
-          res.on('data', data => {
-            body += data;
-          });
-          res.on('end', () => {
-            if (res.statusCode == 200) {
-              dsuiLogger.info('Datastore emulator is ready, starting DSUI');
-              clearInterval(timeout);
-              const gcloud = spawn('gcloud', ['beta', 'emulators', 'datastore', 'env-init', '--format=json']);
-              gcloud.stdout.on('data', data => {
-                const datastoreConfig = JSON.parse(data);
-                _.forEach(datastoreConfig, (value, key) => {
-                  process.env[key] = value;
-                });
-              });
-
-              gcloud.once('close', () => {
-                dsui = spawn('npm', ['run', 'dsui']);
-                dsui.stdout.on('data', dsuiData => {
-                  const string = dsuiData.toString('utf8');
-                  dsuiLogger.info(string);
-                });
-
-                dsui.stderr.on('data', dsuiData => {
-                  const string = dsuiData.toString('utf8');
-                  dsuiLogger.error(string);
-                });
-              });
-            }
-          });
-        },
-      );
-    }, 2000);
-  };
-
-  const stopDsui = () => {
-    return new Promise(resolve => {
-      if (dsui) {
-        dsuiLogger.info('Killing DSUI');
-        dsui.kill('SIGINT');
-        dsui.once('close', () => {
-          logger.info('DSUI successfully shutdown');
-          resolve();
-        });
-      } else {
-        resolve();
-      }
-    });
-  };
-
-  return { startDsui, stopDsui };
 }
 
 function setupDatastore(logger, buildEvents) {
