@@ -1,3 +1,16 @@
+## 11.0.2 (2025-08-06)
+
+Updating @node-saml/passport-saml from v4 to v5
+ - not a breaking change.
+
+Updating various libs with minor version bumps only.
+
+Removal of `dsui`
+- dsui is an outdated Datastore UI for local development only
+- removed code that attempts to start and stop dsui
+- developers who still want to use this should handle the start/stop in their own projects
+
+
 ## 11.0.1 (2025-02-02)
 
 Updating minor versions for nestjs, express, express-session.
