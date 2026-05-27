@@ -121,7 +121,7 @@ export interface Options {
 })
 export class GCloudModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(ContextMiddleware, RequestScopeMiddleware).forRoutes('*');
+    consumer.apply(ContextMiddleware, RequestScopeMiddleware).forRoutes('{*path}');
   }
 
   static forConfiguration(options: Options): DynamicModule {

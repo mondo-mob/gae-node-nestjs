@@ -1,3 +1,15 @@
+## 11.1.0 (2026-05-27)
+
+Updated wildcard route matching from `'*'` to `'{*path}'` to align with Express v5 route syntax.
+
+Updating minor versions of internal packages including:
+- @apollo/server
+- @google-cloud/datastore
+- @google-cloud/storage
+- @nestjs/common, @nestjs/core, @nestjs/platform-express
+- express
+
+
 ## 11.0.2 (2025-08-06)
 
 Updating @node-saml/passport-saml from v4 to v5
