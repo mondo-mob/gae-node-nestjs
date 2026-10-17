@@ -1,3 +1,29 @@
+## 12.0.0-alpha1 (2026-10-17)
+
+Security release: clears the critical and several high `npm audit` findings from this lib's dependencies.
+
+Node.js 22 or newer is now required (`engines.node >= 22`).
+
+Updating major versions of internal packages including:
+- nodemailer 6.9.15 -> 10.1.1
+  - TLS certificates are now validated by default for HTTPS fetches (Gmail OAuth token endpoint,
+    attachment URLs, proxy CONNECT). Hosts with self-signed or mismatched certificates will fail
+    unless `tls.rejectUnauthorized=false` is set.
+  - The SMTP error code `NoAuth` is now `ENOAUTH`.
+  - nodemailer now ships its own types. `@types/nodemailer` has been removed, and address fields
+    (`to`, `cc`, `bcc`) on `Options` now accept nested arrays and group addresses. Custom `MailSender`
+    implementations may need type updates.
+- @google-cloud/trace-agent 7.1.2 -> 8.0.0
+  - removes `node-forge` (no upstream fix) from the dependency tree.
+  - trace-agent is deprecated upstream in favour of OpenTelemetry; this is a minimal bump only.
+
+Updating minor versions of internal packages including:
+- lodash 4.17.21 -> 4.18.1
+
+Refreshed the lockfile for `protobufjs`, `proxy-addr` and `sha.js`, which were flagged critical.
+Consumers should refresh their own lockfiles to pick these up.
+
+
 ## 11.1.0 (2026-05-27)
 
 Updated wildcard route matching from `'*'` to `'{*path}'` to align with Express v5 route syntax.

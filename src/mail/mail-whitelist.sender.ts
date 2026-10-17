@@ -1,5 +1,6 @@
-import { castArray } from 'lodash';
-import { Address, Options } from 'nodemailer/lib/mailer';
+import { flattenDeep } from 'lodash';
+import { Options } from 'nodemailer/lib/mailer';
+import { MimeNodeAddress } from 'nodemailer/lib/mime-node';
 import { Configuration } from '../configuration';
 import { Context } from '../datastore/context';
 import { createLogger, Logger } from '../logging';
@@ -37,7 +38,7 @@ export class MailWhitelistSender implements MailSender {
     }
   }
 
-  private filterAddresses = (actualAddresses: string | Address | Array<string | Address> | undefined) => {
+  private filterAddresses = (actualAddresses: Options['to']) => {
     if (isEmpty(actualAddresses)) {
       return [];
     }
@@ -50,11 +51,13 @@ export class MailWhitelistSender implements MailSender {
         .join(',');
     }
 
-    return castArray(actualAddresses).filter(address => this.filterAddress(address));
+    return (flattenDeep([actualAddresses]) as Array<string | MimeNodeAddress>).filter(address =>
+      this.filterAddress(address),
+    );
   };
 
-  private filterAddress = (address: string | Address): boolean => {
-    const email = typeof address === 'string' ? address.trim() : address.address.trim();
+  private filterAddress = (address: string | MimeNodeAddress): boolean => {
+    const email = typeof address === 'string' ? address.trim() : (address.address || '').trim();
 
     if (this.emailWhitelist.includes(email)) {
       return true;

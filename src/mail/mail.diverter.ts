@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { isEmpty, replace } from 'lodash';
-import { Address, Options } from 'nodemailer/lib/mailer';
+import { flattenDeep, isEmpty, replace } from 'lodash';
+import { Options } from 'nodemailer/lib/mailer';
+import { MimeNodeAddress } from 'nodemailer/lib/mime-node';
 import { CONFIGURATION, Configuration } from '../configuration';
 import { Context } from '../datastore/context';
 import { createLogger, Logger } from '../logging';
@@ -32,7 +33,7 @@ export class MailDiverter implements MailSender {
     return this.mailSender.send(context, { ...mailOptions, ...diversionOverrides });
   }
 
-  private divertAddresses = (actualAddresses: string | Address | Array<string | Address> | undefined) => {
+  private divertAddresses = (actualAddresses: Options['to']) => {
     if (!isEmpty(actualAddresses)) {
       // @ts-ignore
       const divertedFromAddresses = this.getDivertedFromAddressesAsString(actualAddresses);
@@ -47,20 +48,17 @@ export class MailDiverter implements MailSender {
     return [];
   };
 
-  private getDivertedFromAddressesAsString = (actualAddress: string | Address | Array<string | Address>) => {
-    // convert all input into an array for ease of processing
-    let addressList = [actualAddress];
-    if (actualAddress instanceof Array) {
-      addressList = actualAddress;
-    }
+  private getDivertedFromAddressesAsString = (actualAddress: NonNullable<Options['to']>) => {
+    // convert all input into a flat array for ease of processing
+    const addressList = flattenDeep([actualAddress]) as Array<string | MimeNodeAddress>;
     // Extract raw email address and concatenate into a comma separated string
     const justAddresses = addressList
       .map(address => {
         if (typeof address === 'string') {
           return address.trim();
         }
-        // Assuming it's an Address object
-        return (address as Address).address.trim();
+        // Assuming it's an Address object (group addresses have no address of their own)
+        return (address.address || '').trim();
       })
       .join(', ');
 

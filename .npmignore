@@ -2,3 +2,7 @@ node_modules/
 .idea/
 src/
 
+docs/
+*.iml
+*.code-workspace
+.DS_Store
