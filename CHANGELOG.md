@@ -1,3 +1,24 @@
+## 13.0.0-alpha1 (2026-10-18)
+
+Alpha release, published under the `alpha` dist-tag (`npm i @mondomob/gae-node-nestjs@alpha`). The final 13.0.0 follows once an app has run on it.
+
+Nest 11 support. This is a breaking change: the `@nestjs/*` peer dependencies move from Nest 10 to Nest 11. Stay on 12.x if you are still on Nest 10.
+
+Peer dependencies:
+- `@nestjs/common`, `@nestjs/core`, `@nestjs/platform-express`: `^10.4.22` -> `^11.2.7` (11.1.x bundles a vulnerable `multer`, so use 11.2.7 or later)
+- `@nestjs/graphql`: `^12.2.2` -> `^13.4.5`
+- `@apollo/server` stays `^4.13.0`. If you use `@nestjs/apollo`, stay on 13.1.0 or earlier: `@nestjs/apollo` 13.2.0 and later require `@apollo/server` 5, which this lib has not been tested with.
+- `graphql` dependency 16.8.2 -> 16.14.2 (`@nestjs/graphql` 13.4.5 requires 16.11 or later; make sure your app has a compatible version)
+
+No source changes were needed in the lib.
+
+Upgrading your app from Nest 10 to Nest 11:
+- Express 5 route syntax: wildcards must be named (`*path` or `{*path}`) and regex characters in route paths such as `.exclude('(api|tasks)/(.*)')` are no longer supported.
+- Dynamic modules are no longer deduplicated by their metadata, which can create extra module instances in tests.
+- Termination hooks (`OnModuleDestroy`, `OnApplicationShutdown`) now run in reverse initialisation order.
+- See https://docs.nestjs.com/v11/migration-guide
+
+
 ## 12.0.1 (2026-10-18)
 
 Bug fix: the `express` peer dependency range is now `>= 5.0.0` (was `>= 4.22.0`); the dev dependency is Express 5.2.1
