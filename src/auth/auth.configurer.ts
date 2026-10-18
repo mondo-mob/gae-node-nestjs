@@ -80,6 +80,7 @@ export class AuthConfigurer {
     }
 
     if (this.configuration.auth.saml && this.configuration.auth.saml.enabled) {
+      // passport-saml types its Strategy against the Express 4 Request (nested @types/express 4.x); cast until it moves to Express 5 types
       passport.use(
         SAML_SIGNIN,
         new SamlStrategy(
@@ -94,7 +95,7 @@ export class AuthConfigurer {
           },
           this.validateSaml,
           () => undefined,
-        ),
+        ) as unknown as passport.Strategy,
       );
     }
 

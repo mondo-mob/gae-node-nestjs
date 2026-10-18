@@ -1,3 +1,15 @@
+## 12.0.1 (2026-10-18)
+
+Bug fix: the `express` peer dependency range is now `>= 5.0.0` (was `>= 4.22.0`); the dev dependency is Express 5.2.1
+and `@types/express` is 5.0.6 (was 4.17.21).
+
+This is a correction rather than a new breaking change, which is why it is a patch release and not a major version:
+- 11.1.0 changed the middleware route to `forRoutes('{*path}')`, which is Express 5 syntax. Under Express 4 it matches no requests, so `ContextMiddleware` and `RequestScopeMiddleware` silently do not run.
+- So the lib has needed Express 5 since 11.1.0. The old peer range only claimed support for a setup that was already broken; the range has now caught up with what the code requires.
+- Nest 10's `@nestjs/platform-express` bundles its own Express 4. `NestFactory.create(AppModule)` with no adapter therefore still runs on Express 4 and has the problem above. Pass your own Express 5 instance instead:
+  `NestFactory.create(AppModule, new ExpressAdapter(express()))`
+
+
 ## 12.0.0 (2026-10-18)
 
 Security release: clears the critical and high `npm audit` findings that come from this lib's own dependencies.
