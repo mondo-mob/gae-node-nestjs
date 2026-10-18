@@ -1,23 +1,6 @@
-## 12.0.0-alpha2 (2026-10-17)
+## 12.0.0 (2026-10-18)
 
-Clears the remaining critical and high `npm audit` findings that come from this lib's own dependencies.
-
-`@apollo/server` has moved from `dependencies` to `peerDependencies` (`^4.13.0`).
-- the lib never imported it; `@nestjs/apollo` also declares it as a peer
-- apps that use GraphQL must declare `@apollo/server` themselves (npm 7+ installs missing peers automatically)
-- this removes `@apollo/server`'s vulnerable transitive packages (`sha.js`, `@graphql-tools/*`) from the lib's own dependencies
-- `@apollo/server` 5 is not supported by `@nestjs/apollo` 12 yet, so stay on 4.x
-
-Refreshed the lockfile to pick up patched versions of transitive packages including:
-- @grpc/grpc-js, @xmldom/xmldom, axios, form-data, jws
-- brace-expansion, minimatch, path-to-regexp, browserslist, serialize-javascript
-
-Consumers should refresh their own lockfiles to pick these up.
-
-
-## 12.0.0-alpha1 (2026-10-17)
-
-Security release: clears the critical and several high `npm audit` findings from this lib's dependencies.
+Security release: clears the critical and high `npm audit` findings that come from this lib's own dependencies.
 
 Node.js 22 or newer is now required (`engines.node >= 22`).
 
@@ -37,7 +20,17 @@ Updating major versions of internal packages including:
 Updating minor versions of internal packages including:
 - lodash 4.17.21 -> 4.18.1
 
-Refreshed the lockfile for `protobufjs`, `proxy-addr` and `sha.js`, which were flagged critical.
+`@apollo/server` has moved from `dependencies` to `peerDependencies` (`^4.13.0`).
+- the lib never imported it; `@nestjs/apollo` also declares it as a peer
+- apps that use GraphQL must declare `@apollo/server` themselves (npm 7+ installs missing peers automatically)
+- this removes `@apollo/server`'s vulnerable transitive packages (`sha.js`, `@graphql-tools/*`) from the lib's own dependencies
+- `@apollo/server` 5 is not supported by `@nestjs/apollo` 12 yet, so stay on 4.x
+
+Refreshed the lockfile to pick up patched versions of transitive packages including:
+- @grpc/grpc-js, @xmldom/xmldom, axios, form-data, jws
+- brace-expansion, minimatch, path-to-regexp, browserslist, serialize-javascript
+- protobufjs, proxy-addr, sha.js (previously flagged critical)
+
 Consumers should refresh their own lockfiles to pick these up.
 
 
