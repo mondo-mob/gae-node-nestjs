@@ -1,6 +1,4 @@
-## 13.0.0-alpha1 (2026-10-18)
-
-Alpha release, published under the `alpha` dist-tag (`npm i @mondomob/gae-node-nestjs@alpha`). The final 13.0.0 follows once an app has run on it.
+## 13.0.0 (2026-10-22)
 
 Nest 11 support. This is a breaking change: the `@nestjs/*` peer dependencies move from Nest 10 to Nest 11. Stay on 12.x if you are still on Nest 10.
 
