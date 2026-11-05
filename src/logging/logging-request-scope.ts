@@ -7,7 +7,7 @@ import { defaultLogger } from './logging-internal';
 
 const key = '_LOGGER';
 export const logger = () =>
-  // Disabling via config allows short-circuiting of cls-hooked checks if performance is a concern
+  // Disabling via config allows short-circuiting of request scope checks if performance is a concern
   LoggingRequestScopeInterceptor.isEnabled() ? getRequestScopeValueOrDefault(key, defaultLogger) : defaultLogger;
 
 export interface RequestWithLog extends Request {

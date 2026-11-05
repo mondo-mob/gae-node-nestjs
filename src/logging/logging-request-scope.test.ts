@@ -1,4 +1,3 @@
-import { reset } from 'cls-hooked';
 import { mock, when } from 'ts-mockito';
 import { interceptorTest } from '../_test/request-scope-test-utils';
 import { logger, LoggingRequestScopeInterceptor, RequestWithLog } from './logging-request-scope';
@@ -13,15 +12,11 @@ describe('Context Request Scope', () => {
   let testLogger: Logger;
 
   beforeEach(() => {
-    reset();
     interceptor = new LoggingRequestScopeInterceptor(
       partialInstance<Configuration>({ requestScope: { logBundlingEnabled: true } }),
     );
     testLogger = partialInstance();
     req = mock<RequestWithLog>();
-  });
-  afterEach(() => {
-    reset();
   });
 
   it('sets logger on request scope when enabled and log exists on req', () => {

@@ -7,7 +7,6 @@ import {
 } from './request-scope';
 import { Request, Response } from 'express';
 import { mock } from 'ts-mockito';
-import { reset } from 'cls-hooked';
 import { Configuration } from '../configuration';
 import { partialInstance } from '../_test/mocks';
 import { RequestScopeInterceptor } from './request-scope-interceptor';
@@ -30,13 +29,9 @@ describe('RequestScopeInterceptor', () => {
   let config: Configuration;
 
   beforeEach(() => {
-    reset();
     req = mock<Request>();
     res = mock<Response>();
     config = partialInstance();
-  });
-  afterEach(() => {
-    reset();
   });
 
   it('calls interceptors and shares request scope with anything within next function', () => {

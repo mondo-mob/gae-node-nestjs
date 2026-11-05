@@ -1,5 +1,4 @@
 import { RequestWithContext } from './context-middleware';
-import { reset } from 'cls-hooked';
 import { ContextRequestScopeInterceptor, getContext } from './context-request-scope';
 import { mock, when } from 'ts-mockito';
 import { interceptorTest } from '../_test/request-scope-test-utils';
@@ -10,12 +9,8 @@ describe('Context Request Scope', () => {
   let req: RequestWithContext;
 
   beforeEach(() => {
-    reset();
     interceptor = new ContextRequestScopeInterceptor();
     req = mock<RequestWithContext>();
-  });
-  afterEach(() => {
-    reset();
   });
 
   it('sets context on request scope when context exists on req', () => {

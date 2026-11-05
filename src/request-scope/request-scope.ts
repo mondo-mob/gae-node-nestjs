@@ -1,6 +1,6 @@
-import { getNamespace, Namespace } from 'cls-hooked';
 import { isNil } from '@nestjs/common/utils/shared.utils';
-import { _REQUEST_STORAGE_NAMESPACE_KEY, RequestScopeMiddleware } from './request-scope.middleware';
+import { requestScopeStorage } from './request-scope-storage';
+import { RequestScopeMiddleware } from './request-scope.middleware';
 
 export class NoNamespaceException extends Error {
   constructor(message?: string) {
@@ -14,21 +14,18 @@ export class InvalidKeyException extends Error {
   }
 }
 
-const getActiveContextOptional = (): Namespace | null => {
-  // Disabling means we can short-circuit any cls-hooked checks to avoid performance hits
+type RequestScopeStore = Map<string, unknown>;
+
+const getActiveContextOptional = (): RequestScopeStore | null => {
+  // Disabling means we can short-circuit any async storage checks to avoid performance hits
   if (RequestScopeMiddleware.isDisabled()) {
     return null;
   }
 
-  const context = getNamespace(_REQUEST_STORAGE_NAMESPACE_KEY);
-
-  if (!context || !context.active) {
-    return null;
-  }
-  return context;
+  return requestScopeStorage.getStore() ?? null;
 };
 
-const getActiveContext = (): Namespace => {
+const getActiveContext = (): RequestScopeStore => {
   const context = getActiveContextOptional();
 
   if (!context) {
@@ -37,9 +34,9 @@ const getActiveContext = (): Namespace => {
   return context;
 };
 
-const getValueFromContext = <T>(context: Namespace, key: string): T => {
+const getValueFromContext = <T>(context: RequestScopeStore, key: string): T | null => {
   const value = context.get(key);
-  return isNil(value) ? null : value;
+  return isNil(value) ? null : (value as T);
 };
 
 export const isRequestScopeEnabled = (): boolean => {

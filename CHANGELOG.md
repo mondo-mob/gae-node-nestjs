@@ -1,3 +1,14 @@
+## 13.0.1-alpha1 (2026-11-05)
+
+Alpha release, published under the `alpha` dist-tag (`npm i @mondomob/gae-node-nestjs@alpha`). The final 13.0.1 follows once an app has run on it.
+
+Fix a memory leak in request scope (`requestScope.enabled: true`). Request scope now uses Node's `AsyncLocalStorage` instead of `cls-hooked`, which is no longer a dependency.
+
+`cls-hooked` kept every request's context in a global Map until each async resource's destroy hook fired, and a promise's destroy hook only fires once the promise is garbage collected. The Datastore loader's DataLoader cache holds promises and hangs off the request context, so every request that read from Datastore kept its context (request, response, user and every cached entity) alive forever, and the heap grew until the process ran out of memory.
+
+No API changes. If your app reached into the `cls-hooked` namespace (`_GAE_NODE_NESTJS_REQUEST_STORAGE`) directly, use `getRequestScopeValue` and friends instead.
+
+
 ## 13.0.0 (2026-10-22)
 
 Nest 11 support. This is a breaking change: the `@nestjs/*` peer dependencies move from Nest 10 to Nest 11. Stay on 12.x if you are still on Nest 10.

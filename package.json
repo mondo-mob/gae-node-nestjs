@@ -1,6 +1,6 @@
 {
   "name": "@mondomob/gae-node-nestjs",
-  "version": "13.0.0",
+  "version": "13.0.1-alpha1",
   "description": "Google App Engine datastore repositories and graphql setup with nestjs",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -36,7 +36,6 @@
     "bcryptjs": "2.4.3",
     "bunyan": "^1.8.15",
     "cli-spinner": "0.2.10",
-    "cls-hooked": "4.2.2",
     "colors": "1.4.0",
     "commander": "5.1.0",
     "dataloader": "2.2.2",
@@ -79,7 +78,6 @@
     "@nestjs/platform-express": "11.2.7",
     "@types/bcryptjs": "2.4.6",
     "@types/bunyan": "1.8.11",
-    "@types/cls-hooked": "4.3.8",
     "@types/express": "5.0.6",
     "@types/express-session": "1.18.0",
     "@types/html-to-text": "5.1.2",
