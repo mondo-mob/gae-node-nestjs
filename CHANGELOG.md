@@ -1,6 +1,4 @@
-## 13.0.1-alpha1 (2026-11-05)
-
-Alpha release, published under the `alpha` dist-tag (`npm i @mondomob/gae-node-nestjs@alpha`). The final 13.0.1 follows once an app has run on it.
+## 13.0.1 (2026-11-06)
 
 Fix a memory leak in request scope (`requestScope.enabled: true`). Request scope now uses Node's `AsyncLocalStorage` instead of `cls-hooked`, which is no longer a dependency.
 
