@@ -17,6 +17,18 @@ export interface Configuration {
     logBundlingEnabled?: boolean;
   };
 
+  storage?: {
+    /**
+     * LOCAL DEVELOPMENT ONLY. Service account key (the contents of the JSON key file, as an object or a
+     * JSON string) used to connect to Google Cloud Storage when `isDevelopment()` is true. When unset,
+     * local development falls back to `./keyfile.json` (deprecated).
+     *
+     * Deployed environments ignore this (with a warning) and always use the runtime identity
+     * (Application Default Credentials), so never rely on it outside local development.
+     */
+    credentials?: string | Record<string, unknown>;
+  };
+
   auth: {
     fake?: {
       enabled?: boolean;

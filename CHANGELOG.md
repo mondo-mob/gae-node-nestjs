@@ -1,3 +1,14 @@
+## 13.1.0 (2026-11-07)
+
+`StorageProvider` can now be given service account credentials through configuration, so apps no longer need a `keyfile.json` committed or copied next to the server for **local development**.
+
+Set `storage.credentials` to the contents of the key file, either as an object or a JSON string (for example a `SECRET(...)` placeholder your app resolves before the module is created). It is only used when `isDevelopment()` is true. Invalid JSON throws `storage.credentials is not valid JSON` without including the value.
+
+Deployed environments (App Engine) are unchanged: they always use the runtime identity (Application Default Credentials). If `storage.credentials` is set there it is ignored and a warning is logged.
+
+When `storage.credentials` is not set nothing changes: local development still reads `./keyfile.json`. That `./keyfile.json` fallback is now deprecated.
+
+
 ## 13.0.1 (2026-11-06)
 
 Fix a memory leak in request scope (`requestScope.enabled: true`). Request scope now uses Node's `AsyncLocalStorage` instead of `cls-hooked`, which is no longer a dependency.
